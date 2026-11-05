@@ -1,0 +1,13 @@
+:root { color-scheme: light; font-family: system-ui, sans-serif; color: #17212b; background: #fff; }
+body { max-width: 52rem; margin: auto; padding: 1rem; line-height: 1.6; }
+section, article { border: 1px solid #64748b; padding: 1rem; margin-block: 1.5rem; }
+label { display: block; font-weight: 600; margin-top: 1rem; }
+input, textarea, select { display: block; width: 100%; box-sizing: border-box; padding: .6rem; font: inherit; }
+textarea { min-height: 6rem; }
+button { font: inherit; padding: .6rem 1rem; margin: .75rem .5rem .25rem 0; cursor: pointer; }
+:focus-visible, #message:focus { outline: 3px solid #004cba; outline-offset: 3px; }
+[hidden] { display: none !important; }
+dt { font-weight: 700; }
+dd { margin: 0 0 .6rem; overflow-wrap: anywhere; white-space: pre-wrap; }
+.skip { display: inline-block; }
+#message:not(:empty) { border-left: 4px solid #004cba; padding: .75rem; }

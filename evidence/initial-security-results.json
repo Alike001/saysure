@@ -1,0 +1,104 @@
+{
+  "checked_at": "2026-11-05T09:21:25.803Z",
+  "browser": "153.0.8010.52",
+  "authenticator": "Chrome CDP virtual CTAP2 with resident keys and UV; NOT a physical/user passkey",
+  "financial_data": "synthetic only",
+  "mock_verifier": false,
+  "forbidden_network_origins": [],
+  "results": [
+    {
+      "name": "01 valid enrollment: separate buyer credentials, verified UV, replacement blocked",
+      "outcome": "PASS"
+    },
+    {
+      "name": "02 valid approval: actual browser-generated signature verified and digest recorded",
+      "outcome": "PASS"
+    },
+    {
+      "name": "03 tamper amount: old signed assertion and old review digest denied",
+      "outcome": "PASS"
+    },
+    {
+      "name": "03 tamper merchant ID: old signed assertion and old review digest denied",
+      "outcome": "PASS"
+    },
+    {
+      "name": "03 tamper merchant name: old signed assertion and old review digest denied",
+      "outcome": "PASS"
+    },
+    {
+      "name": "03 tamper currency: old signed assertion and old review digest denied",
+      "outcome": "PASS"
+    },
+    {
+      "name": "03 tamper description: old signed assertion and old review digest denied",
+      "outcome": "PASS"
+    },
+    {
+      "name": "03 tamper revision only: old signed assertion and old review digest denied",
+      "outcome": "PASS"
+    },
+    {
+      "name": "04 changed buyer: helper reassignment denied; internal synthetic corruption fails closed",
+      "outcome": "PASS"
+    },
+    {
+      "name": "05 expired challenge: pre-generated assertion denied at server expiry",
+      "outcome": "PASS"
+    },
+    {
+      "name": "06 expired request: consent and continuation denied",
+      "outcome": "PASS"
+    },
+    {
+      "name": "07 replay assertion: 100 replays denied, exactly one consent event",
+      "outcome": "PASS"
+    },
+    {
+      "name": "08 reused consent: one local consume, repeated use denied",
+      "outcome": "PASS"
+    },
+    {
+      "name": "09 incorrect passkey and invalid signature cannot approve",
+      "outcome": "PASS"
+    },
+    {
+      "name": "10 helper cannot approve, use buyer proof, consume, reject, or enroll substitute",
+      "outcome": "PASS"
+    },
+    {
+      "name": "11 parallel duplicates: 20 approvals and 20 consumes yield one of each",
+      "outcome": "PASS"
+    },
+    {
+      "name": "12 refresh and server/database restart: challenge/session retained, replay and reuse still denied",
+      "outcome": "PASS"
+    },
+    {
+      "name": "13 buyer-b isolated: cannot see or approve buyer-a; can approve own request",
+      "outcome": "PASS"
+    },
+    {
+      "name": "14 signature validation: wrong origin, RP hash, challenge, UV, user presence, and type denied",
+      "outcome": "PASS"
+    },
+    {
+      "name": "15 previous approval invalidated by revision; rejected and withdrawn consent cannot be consumed",
+      "outcome": "PASS"
+    },
+    {
+      "name": "16 request validation, CSRF, host/origin, anonymous access and role injection",
+      "outcome": "FAIL",
+      "reason": "Expected values to be strictly equal:\n\n200 !== 403\n"
+    },
+    {
+      "name": "17 usable UI: native registration/approval path, safe text, focus and automated accessibility",
+      "outcome": "PASS"
+    },
+    {
+      "name": "18 privacy/boundary: local traffic only, hashed sessions, no helper consent events",
+      "outcome": "PASS"
+    }
+  ],
+  "manual_physical_passkey": "NOT_EXECUTED"
+}

@@ -1,0 +1,13 @@
+{
+  "checked_on": "2026-11-05",
+  "time_precision": "date only; exact tool evaluation time was not captured",
+  "browser": "Tool-controlled HeadlessChrome/153.0.0.0 on Linux x86_64",
+  "origin": "http://localhost:3100",
+  "virtual_authenticator_enabled_for_this_check": false,
+  "secure_context": true,
+  "webauthn_api_available": true,
+  "simplewebauthn_browser_loaded": true,
+  "user_verifying_platform_authenticator_available": false,
+  "registration_or_approval_attempted": false,
+  "interpretation": "Capability observation only. Does not establish availability in the user's own browser or an external security key. Physical-user ceremony remains manual."
+}
