@@ -1,3 +1,4 @@
+import { fresh } from './paypal-order.mjs';
 import { randomUUID } from 'node:crypto';
 import { ensure, fields, random, digest, displayAmount } from './core.mjs';
 import { buyer, helper } from './identity.mjs';
@@ -18,7 +19,17 @@ export function requestService(store) {
     const snapshot = intact(row);
     return { snapshot, digest: row.digest, status: row.status,
       consent_digest: row.consent_digest, consumed_at: row.consumed_at,
-      display_amount: displayAmount(snapshot), synthetic: true };
+      display_amount: displayAmount(snapshot), synthetic: snapshot.kind !== 'paypal',
+      ...(snapshot.kind === 'paypal' ? { paypal_evidence: evidence(row.id) } : {}) };
+  }
+  function evidence(id) {
+    const e = store.get('SELECT observed_at,available,provenance FROM paypal_bindings WHERE request_id=?', id);
+    return { observed_at: e?.observed_at ?? null, current: !!e?.available && fresh(e.observed_at),
+      provenance: e?.provenance ?? 'unavailable', merchant_identity_verified: false };
+  }
+  function assertEvidence(row, proof) {
+    if (intact(row).kind !== 'paypal') return;
+    ensure(proof?.digest === row.digest && fresh(proof.observedAt) && evidence(row.id).current, 'ORDER_EVIDENCE_STALE');
   }
   function owned(id, session) { return visible(store.request(id), session); }
   function create(session, input) {
@@ -43,6 +54,7 @@ export function requestService(store) {
     const data = fields(input);
     return store.atomic(() => {
       const row = owned(id, session), prior = intact(row);
+      ensure(prior.kind !== 'paypal', 'PAYPAL_FIELDS_SERVER_ONLY', 403);
       ensure(input.buyer_id === row.buyer_id, 'BUYER_IMMUTABLE', 403);
       ensure(input.revision === prior.revision, 'REVISION_CHANGED');
       ensure(['pending', 'approved'].includes(row.status), 'REQUEST_CLOSED');
@@ -56,19 +68,20 @@ export function requestService(store) {
       return view(store.request(id));
     });
   }
-  function action(session, id, action, expectedDigest) {
+  function action(session, id, action, expectedDigest, proof = null) {
     buyer(session);
     return store.atomic(() => {
       const row = owned(id, session); intact(row);
       ensure(row.digest === expectedDigest, 'DETAILS_CHANGED_REVIEW_AGAIN');
       if (action === 'consume') {
+        assertEvidence(row, proof);
         ensure(row.status === 'approved' && row.consent_digest === row.digest && !row.consumed_at,
           'CONSENT_NOT_AVAILABLE');
         const result = store.run("UPDATE requests SET status='consumed',consumed_at=? WHERE id=? AND status='approved'",
           Date.now(), id);
         ensure(result.changes === 1, 'CONSENT_ALREADY_CONSUMED');
       } else {
-        ensure(action === 'reject' ? row.status === 'pending' : row.status === 'approved', 'REQUEST_CLOSED');
+        ensure(action === 'reject' ? ['pending', 'invalidated'].includes(row.status) : row.status === 'approved', 'REQUEST_CLOSED');
         store.run('UPDATE requests SET status=?,consent_digest=NULL WHERE id=?',
           action === 'reject' ? 'rejected' : 'withdrawn', id);
       }
@@ -83,5 +96,5 @@ export function requestService(store) {
     return store.all(`SELECT * FROM requests WHERE ${column}=? ORDER BY rowid DESC LIMIT 100`,
       session.user_id).map(view);
   }
-  return { create, revise, action, list, owned, intact, view };
+  return { create, revise, action, list, owned, intact, view, assertEvidence };
 }

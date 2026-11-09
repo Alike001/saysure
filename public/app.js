@@ -11,6 +11,9 @@ const explanations = {
   SESSION_EXPIRED: 'Your session expired. Sign in again.',
   PASSKEY_AUTHENTICATION_FAILED: 'Passkey verification failed. No approval was recorded.',
   PASSKEY_REGISTRATION_FAILED: 'Passkey registration failed. No credential was enrolled.',
+  PAYPAL_ORDER_NOT_CONFIGURED: 'PayPal reads are disabled or this order is not operator-allowlisted. Ask the operator; no payment was made.',
+  ORDER_DETAILS_CHANGED: 'PayPal details changed. Prior consent is invalid. Ask the helper to re-read and review a new revision.',
+  ORDER_EVIDENCE_STALE: 'PayPal evidence is stale. Re-read the order and review again.',
   REVISION_CHANGED: 'The request was revised. Refresh before editing again.',
 };
 export function notify(text, focus = true) {
@@ -41,6 +44,7 @@ async function load() {
   const user = session.user;
   $('login-panel').hidden = !!user;
   $('account').hidden = !user;
+  $('paypal-helper').hidden = user?.role !== 'helper';
   $('helper').hidden = user?.role !== 'helper';
   $('inbox').hidden = !user;
   $('enrollment').hidden = user?.role !== 'buyer' || session.enrolled;
@@ -50,6 +54,7 @@ async function load() {
   if (user.role === 'helper') {
     const buyers = await api('/api/buyers', undefined, 'GET');
     $('buyer').replaceChildren(...buyers.map(b => new Option(b.id, b.id)));
+    $('paypal-buyer').replaceChildren(...buyers.map(b => new Option(b.id, b.id)));
   }
   await refresh();
 }
@@ -111,3 +116,11 @@ $('refresh').addEventListener('click', event => perform(event.target, async () =
   await refresh(); notify('Requests refreshed. Review any changed details before approving.');
 }));
 load().catch(error => notify(error.message));
+
+$('paypal-import').addEventListener('submit', event => {
+  event.preventDefault();
+  perform(event.submitter, async () => {
+    await api('/api/paypal/requests', Object.fromEntries(new FormData(event.target)));
+    event.target.reset(); await refresh(); notify('Server-read PayPal order prepared for independent buyer review. No payment was made.');
+  });
+});

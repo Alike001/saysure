@@ -1,0 +1,14 @@
+{
+  "at": "2026-11-09T11:33:10.370Z",
+  "model": "openai/gpt-oss-120b",
+  "input": "Fixed sanitized synthetic items and explicitly labelled MOCK PayPal fixtures; no actual API/buyer data",
+  "ordinary_help": "Complete deterministic item/expectation comparison, curated definitions and ordinary speech of the same facts",
+  "baseline_supported_target_coverage": 6,
+  "case_count": 6,
+  "paypal_operations": 0,
+  "usefulness": "UNPROVEN; automatic reference coverage is not human comprehension or accessibility benefit",
+  "http_status": 400,
+  "latency_ms": 716,
+  "accepted": false,
+  "blocker": "Provider/configuration/output unavailable or unsupported claim rejected. No retry."
+}

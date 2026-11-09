@@ -3,7 +3,7 @@ import { generateRegistrationOptions, verifyRegistrationResponse,
 import { ensure, random, clientData, Failure } from './core.mjs';
 import { buyer } from './identity.mjs';
 
-export function passkeyService(store, requests, config) {
+export function passkeyService(store, requests, config, paypal) {
   const credential = buyerId => store.get('SELECT * FROM credentials WHERE buyer_id=?', buyerId);
   function liveSession(session) {
     ensure(store.get('SELECT id FROM sessions WHERE id=? AND user_id=? AND expires>?',
@@ -77,6 +77,7 @@ export function passkeyService(store, requests, config) {
     const row = requests.owned(id, session); requests.intact(row);
     ensure(row.status === 'pending', 'REQUEST_NOT_PENDING');
     ensure(row.digest === expectedDigest, 'DETAILS_CHANGED_REVIEW_AGAIN');
+    const proof = await paypal?.revalidate(session, id);
     const key = credential(session.user_id);
     ensure(key, 'ENROLL_BUYER_PASSKEY_FIRST');
     const options = await generateAuthenticationOptions({ rpID: config.rpID, timeout: 120_000,
@@ -84,6 +85,7 @@ export function passkeyService(store, requests, config) {
     // Recheck after the asynchronous library call, before binding the challenge.
     const current = requests.owned(id, session); requests.intact(current);
     ensure(current.status === 'pending' && current.digest === row.digest, 'DETAILS_CHANGED_REVIEW_AGAIN');
+    requests.assertEvidence(current, proof);
     return { options, challengeId: saveChallenge(session, 'approve', options.challenge, current), digest: current.digest };
   }
   async function approve(session, id, input) {
@@ -104,10 +106,12 @@ export function passkeyService(store, requests, config) {
           transports: JSON.parse(key.transports) } });
     } catch { throw new Failure('PASSKEY_AUTHENTICATION_FAILED', 400); }
     ensure(result.verified && result.authenticationInfo.userVerified, 'PASSKEY_AUTHENTICATION_FAILED', 400);
+    const proof = await paypal?.revalidate(session, id);
     return store.atomic(() => {
       stillCurrent(session, c);
       const current = requests.owned(id, session); requests.intact(current);
       ensure(current.status === 'pending' && current.digest === c.digest, 'DETAILS_CHANGED_REVIEW_AGAIN');
+      requests.assertEvidence(current, proof);
       const updated = store.run(`UPDATE requests SET status='approved',consent_digest=?
         WHERE id=? AND status='pending' AND digest=?`, c.digest, id, c.digest);
       ensure(updated.changes === 1, 'ALREADY_APPROVED_OR_MODIFIED');

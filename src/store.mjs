@@ -18,6 +18,8 @@ export function openStore(path) {
     CREATE TABLE IF NOT EXISTS challenges(id TEXT PRIMARY KEY, session_id TEXT NOT NULL,
       buyer_id TEXT NOT NULL, kind TEXT NOT NULL, request_id TEXT, digest TEXT,
       challenge TEXT NOT NULL, expires INTEGER NOT NULL, used INTEGER NOT NULL DEFAULT 0);
+    CREATE TABLE IF NOT EXISTS paypal_bindings(request_id TEXT PRIMARY KEY REFERENCES requests(id),
+      order_id TEXT NOT NULL UNIQUE, observed_at INTEGER NOT NULL, available INTEGER NOT NULL, provenance TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS events(seq INTEGER PRIMARY KEY, at INTEGER NOT NULL,
       actor TEXT NOT NULL, event TEXT NOT NULL, request_id TEXT);`);
   function atomic(fn) {

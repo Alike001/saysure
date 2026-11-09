@@ -1,3 +1,4 @@
+import { paypalRequests } from './paypal-requests.mjs';
 import { assertLocalExperiment } from './origin.mjs';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
@@ -31,7 +32,9 @@ function keys(input, allowed) {
 }
 export function makeApp(store, config) {
   assertLocalExperiment(config);
-  const requests = requestService(store), passkeys = passkeyService(store, requests, config);
+  const requests = requestService(store);
+  const paypal = paypalRequests(store, requests, config.paypal);
+  const passkeys = passkeyService(store, requests, config, paypal);
   const attempts = new Map();
   const cookie = token => `consent_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800${
     config.origin.startsWith('https:') ? '; Secure' : ''}`;
@@ -105,15 +108,22 @@ export function makeApp(store, config) {
       if (req.method === 'POST' && url.pathname === '/api/requests') {
         send(201, requests.create(session, input)); return;
       }
-      const match = url.pathname.match(/^\/api\/requests\/(SYNTH-[a-f0-9-]{36})(?:\/(options|approve|reject|withdraw|consume))?$/);
+      if (req.method === 'POST' && url.pathname === '/api/paypal/requests') {
+        send(201, await paypal.create(session, input)); return;
+      }
+      const match = url.pathname.match(/^\/api\/requests\/((?:SYNTH|PAYPAL)-[a-f0-9-]{36})(?:\/(options|approve|reject|withdraw|consume|refresh-provider))?$/);
       ensure(match, 'ROUTE_NOT_FOUND', 404);
       const [, id, action] = match;
       if (req.method === 'PATCH' && !action) { send(200, requests.revise(session, id, input)); return; }
       ensure(req.method === 'POST' && action, 'ROUTE_NOT_FOUND', 404);
       keys(input, action === 'approve' ? ['challengeId', 'response'] : ['digest']);
-      if (action === 'options') send(200, await passkeys.approvalOptions(session, id, input.digest));
+      if (action === 'refresh-provider') send(200, await paypal.refresh(session, id, input.digest));
+      else if (action === 'options') send(200, await passkeys.approvalOptions(session, id, input.digest));
       else if (action === 'approve') send(200, await passkeys.approve(session, id, input));
-      else send(200, requests.action(session, id, action, input.digest));
+      else {
+        const proof = action === 'consume' ? await paypal.revalidate(session, id) : null;
+        send(200, requests.action(session, id, action, input.digest, proof));
+      }
     } catch (error) {
       send(error instanceof Failure ? error.status : 500,
         { error: error instanceof Failure ? error.message : 'INTERNAL_ERROR' });

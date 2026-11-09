@@ -1,0 +1,16 @@
+{
+  "at": "2026-11-09T11:30:55.552Z",
+  "operations": [
+    {
+      "operation": "oauth",
+      "http_status": 200
+    }
+  ],
+  "order_creation": 0,
+  "captures": 0,
+  "refunds": 0,
+  "authorizations": 0,
+  "current_order_verified": false,
+  "oauth_authenticated": true,
+  "blocker": "No current order configured; historical 404 order not queried."
+}

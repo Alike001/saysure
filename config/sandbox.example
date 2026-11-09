@@ -1,0 +1,12 @@
+# Copy to .env privately (ignored by Git), chmod 600 .env.
+# Existing localhost origin, RP ID and credential database remain unchanged.
+PAYPAL_READ_ENABLED=false
+PAYPAL_ENV=sandbox
+PAYPAL_CLIENT_ID=replace-with-private-sandbox-client-id
+PAYPAL_CLIENT_SECRET=replace-with-private-sandbox-secret
+PAYPAL_MERCHANT_ID=REPLACE_WITH_CONFIRMED_SANDBOX_MERCHANT_ID
+# Comma-separated current order IDs approved by the operator; empty means none allowed.
+PAYPAL_ALLOWED_ORDER_IDS=
+# Only the explicit readiness script uses this optional field; never use the historical 404 order.
+PAYPAL_CURRENT_ORDER_ID=
+# No setting here enables order creation, capture, authorization or refunds.

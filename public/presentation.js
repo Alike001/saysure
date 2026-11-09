@@ -8,6 +8,17 @@ export function exactAmount(s) {
 export function paymentSummary(item, now = Date.now()) {
   const s = item.snapshot;
   const state = s.expires_at <= now && ['pending', 'approved'].includes(item.status) ? 'expired' : item.status;
+  if (s.kind === 'paypal' && item.paypal_evidence) {
+    const evidence = item.paypal_evidence;
+    const current = evidence.current && now - evidence.observed_at < 60000 && evidence.observed_at <= now;
+    return `${evidence.provenance === 'mock-paypal-fixture' ? 'MOCK PayPal fixture. No real API verification.' : 'PayPal sandbox order.'} ` +
+      `Recorded amount: ${exactAmount(s)}. Payee reference: ${s.provider.payee_id}. Shop identity unverified. ` +
+      `Order: ${s.provider.order_id}. Recorded provider status: ${s.provider.status}. Local consent: ${state}. ` +
+      `Revision: ${s.revision}. Expires: ${new Date(s.expires_at).toLocaleString()}. ` +
+      s.provider.units.map(u => `Purchase unit ${u.index}: ${exactAmount(u)}. `).join('') +
+      `${evidence.provenance === 'mock-paypal-fixture' ? 'Mock data only; no real API verification.' : current ? 'API evidence was recently read. The server must recheck before consent.' : 'Evidence unavailable or stale. Do not approve from this review.'} ` +
+      'SaySure consent is separate from PayPal buyer approval. No payment is made by this app.';
+  }
   if (item.synthetic !== true) throw new Error('Payment evidence is unavailable. Do not approve.');
   return `Synthetic request. No real money. Amount: ${exactAmount(s)}. ` +
     `Helper-supplied merchant name, unverified: ${s.merchant_name}. Merchant ID, unverified: ${s.merchant_id}. ` +

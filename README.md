@@ -2,7 +2,7 @@
 
 **Your money. Your final say.**
 
-SaySure is the working name for this standalone accessible payment-consent experiment, testing additional transaction-specific consent. It has a disconnected, mock-tested PayPal read adapter and a separate Groq comprehension evaluation; the buyer app performs no payment operations and uses no payment credentials or real money. The name has no claimed trademark or domain clearance; this is not a production-ready product or a claim of accessibility for all users. All requests and merchant identities are synthetic and unverified.
+SaySure is the working name for this standalone accessible payment-consent experiment, testing additional transaction-specific consent. It supports server-authenticated PayPal sandbox order reading and transaction-bound local consent, plus synthetic consent and a separate constrained Groq evaluation. Reads are disabled by default; no current-order GET or complete PayPal checkout has yet been verified. Genuine OAuth connectivity was verified. No real money or payment operations are performed. The name has no claimed trademark or domain clearance; this is not a production-ready product or a claim of accessibility for all users. Synthetic requests remain explicitly labelled; PayPal API payee evidence does not independently verify a shop identity. See the current [PayPal integration milestone](docs/PAYPAL-INTEGRATION-MILESTONE.md) for evidence and limitations.
 
 ## How to Test
 
@@ -59,7 +59,7 @@ Tests launch installed Google Chrome through Playwright (`channel: chrome`), cre
 
 ## Synthetic requests and actual PayPal operations
 
-All requests created here are synthetic local records, including records marked approved or consumed. The prototype cannot charge a PayPal account. No actual PayPal order creation, payment approval, capture, refund or Live operation is implemented or permitted in this test. Synthetic results do not qualify a PayPal integration.
+Synthetic and PayPal-backed requests are distinct. Approved/consumed are local consent states, never proof of PayPal approval or payment completion. Enabled PayPal reads require private sandbox credentials, a confirmed expected merchant ID and operator-allowlisted current orders. There is no payment API route. A separate creation adapter is disabled by default and must not be executed without new approval. No creation, capture, refund, authorization or Live operation was performed. The historical 404 order is not active evidence.
 
 ## Cross-device HTTPS requirements
 
@@ -71,7 +71,7 @@ A future local cross-device setup needs a stable DNS hostname, HTTPS certificate
 
 Provisioning fixes helper/buyer roles and issues separate random bootstrap secrets. Buyer passkeys are one per buyer; there is no recovery/replacement or role/ownership-change endpoint. Protect the buyer's secret before first enrollment. A compromised bootstrap, local administrator, shared authenticator unlock, synced passkey account or malicious server can undermine ownership. Passkeys authenticate credential control and user verification; they do not prove real-world identity or understanding of the signed purchase. The generic browser prompt does not independently display or attest the transaction wording.
 
-Session cookies are HttpOnly and SameSite Strict; Secure is unavailable on this plain-HTTP localhost configuration. Cookies are stored hashed in SQLite, rotated on login and checked with expiry. Mutations require same origin and session CSRF token. Never expose this localhost research server to an untrusted network. `.local/`, dependencies, private keys and secrets are ignored by Git. The buyer app sends no transaction data to Groq or PayPal; an explicit evaluation script sends fixed synthetic questions to Groq. Browser/OS speech voices may use their own services; no biometric samples are requested or stored. WebAuthn passes public credential/assertion data and verification flags.
+Session cookies are HttpOnly and SameSite Strict; Secure is unavailable on this plain-HTTP localhost configuration. Cookies are stored hashed in SQLite, rotated on login and checked with expiry. Mutations require same origin and session CSRF token. Never expose this localhost research server to an untrusted network. `.local/`, dependencies, private keys and secrets are ignored by Git. The browser communicates only with this localhost backend. When explicitly configured, the backend sends allowlisted order IDs to the sandbox Orders API; raw payer information is omitted from storage/UI. Separate explicit evaluation scripts send only fixed synthetic questions/items to Groq; the app has no live AI chat. Browser/OS speech voices may use their own services; no biometric samples are requested or stored. WebAuthn passes public credential/assertion data and verification flags.
 
 
 ## Accessible buyer review milestone — 9 November 2026
@@ -92,3 +92,18 @@ The app displays ordinary help, not live AI chat. A fresh six-question synthetic
 
 
 Milestone verification: **39/39 automated tests passed**, including every original security test; syntax/source-size checks and production dependency audit passed (zero vulnerabilities). Actual audio and intended-user screen-reader testing remain manual gates. Full changed-file inventory and limitations are in [the milestone report](docs/MILESTONE.md#final-verification-and-file-inventory).
+
+
+## Milestone 3 — current PayPal integration status
+
+[Full integration report, exact browser procedure, operator gate and submission checklist](docs/PAYPAL-INTEGRATION-MILESTONE.md).
+
+- Real sandbox OAuth: HTTP 200. No current order is configured, so **no genuine order GET or order-bound checkout success is claimed**.
+- Backend OAuth/GET, payee/order allowlisting, exact multi-purchase-unit totals, distinct canonical PayPal consent binding, approval/consumption revalidation and refusal-preserving revisions are implemented and mock-tested.
+- Existing localhost credentials remain intact. A private `.env` can be prepared from [config/sandbox.example](config/sandbox.example). Keep reads disabled until the operator confirms the merchant and current order allowlist. No environment flag enables order creation.
+- Run `npm run check`, `npm test`, and `npm audit --omit=dev` for offline validation. Focused provider/browser checks: `node --test test/paypal-client.test.mjs test/paypal-flow.test.mjs` (explicitly mocked provider transport, real verifier).
+- An explicit read-only real probe is `node scripts/paypal-readiness.mjs` with private SaySure configuration; it authenticates, and GETs only a separately configured current allowlisted order. Never use the historical 404 order as current evidence.
+- The item-question AI experiment covers unfamiliar terms and expected-versus-recorded items. It included all required grounded references in 6/6 cases, but matched exact requested focus in only 3/6. Ordinary help already contained the same facts; usefulness remains unproven. No real provider data is sent to AI.
+- Next actual test is **NO-GO until separate approval** for one fixed 1.00 USD sandbox order, confirmed merchant, current GET and legitimate human approval observation. No capture. Public repository/remote push, license choice, judge access, demo video and reviewed deployment remain separate release gates.
+
+Milestone 3 verification: **55/55 tests passed**, including all previous 39. Syntax/size checks passed and production dependency audit reported zero vulnerabilities. Real API evidence is OAuth only; genuine current-order GET remains blocked.

@@ -32,6 +32,11 @@
 <label for="description">Description</label><textarea id="description" name="description" maxlength="500" required></textarea>
 <label for="lifetime">Request lifetime in minutes (1–30)</label><input id="lifetime" name="lifetime_minutes" type="number" min="1" max="30" value="10" required>
 <button id="save-request">Create synthetic request</button><button id="cancel-edit" type="button" hidden>Cancel revision</button></form></section>
+<section id="paypal-helper" hidden aria-labelledby="paypal-heading"><h2 id="paypal-heading">Review a PayPal sandbox order</h2>
+<p>Enter only an operator-allowlisted current order ID. The server reads the amount and payee from PayPal. This does not create an order or make a payment. Reading must be enabled in private configuration.</p>
+<form id="paypal-import"><label for="paypal-buyer">App buyer account (not proof of PayPal payer identity)</label><select id="paypal-buyer" name="buyer_id" required></select>
+<label for="paypal-order">PayPal sandbox order ID</label><input id="paypal-order" name="order_id" pattern="[A-Z0-9]{5,32}" maxlength="32" required>
+<button>Read and prepare PayPal order review</button></form></section>
 <section id="inbox" hidden aria-labelledby="inbox-heading"><h2 id="inbox-heading">Requests</h2>
 <p>Refresh to check for new requests or changes. Revisions invalidate prior approval.</p>
 <button id="refresh" type="button">Refresh requests</button><div id="requests"></div></section>

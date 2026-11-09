@@ -7,7 +7,7 @@ import { openStore } from '../src/store.mjs';
 import { provision } from '../src/identity.mjs';
 import { makeApp } from '../src/app.mjs';
 
-export async function harness() {
+export async function harness(extraConfig = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'synthetic-consent-'));
   const dbPath = join(dir, 'test.sqlite');
   let store = openStore(dbPath);
@@ -21,7 +21,7 @@ export async function harness() {
       port = probe.address().port; await new Promise(resolve => probe.close(resolve));
     }
     origin = `http://localhost:${port}`;
-    app = makeApp(store, { origin, rpID: 'localhost' });
+    app = makeApp(store, { ...extraConfig, origin, rpID: 'localhost' });
     app.server.listen(port, '127.0.0.1'); await once(app.server, 'listening');
   }
   await start();

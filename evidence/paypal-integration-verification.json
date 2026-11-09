@@ -1,0 +1,53 @@
+{
+  "recorded_at": "2026-11-09T11:41:47.735Z",
+  "baseline_commit": "e3910e9",
+  "baseline": {
+    "passed": 39,
+    "failed": 0
+  },
+  "complete_suite": {
+    "passed": 55,
+    "failed": 0,
+    "skipped": 0,
+    "log_description": "Node test runner; all prior 39 retained"
+  },
+  "focused_provider_rerun": {
+    "passed": 5,
+    "failed": 0
+  },
+  "checks": {
+    "syntax_size": "PASS; existing 208-line security test advisory",
+    "production_dependency_audit": "0 vulnerabilities",
+    "diff_whitespace": "PASS"
+  },
+  "real_paypal": {
+    "oauth_requests": 1,
+    "oauth_status": 200,
+    "order_gets": 0,
+    "order_creates": 0,
+    "captures": 0,
+    "refunds": 0,
+    "authorizations": 0
+  },
+  "groq": {
+    "requests": 2,
+    "http_statuses": [
+      400,
+      200
+    ],
+    "fixed_fixture_cases": 6,
+    "grounded_target_inclusion": 6,
+    "exact_focus_matches": 3,
+    "usefulness": "UNPROVEN"
+  },
+  "browser": "Chrome; real WebAuthn verifier with virtual authenticators, mocked provider HTTP, speech API stubs, mobile reflow and axe",
+  "preservation": {
+    "rp_id": "localhost",
+    "origin": "http://localhost:3100",
+    "credential_store_reset": false,
+    "paytale_changed": false,
+    "remote_push": false,
+    "deployment": false
+  },
+  "next_actual_sandbox_test": "NO-GO until separate operator approval and confirmed merchant; current GET and legitimate human sandbox approval still required"
+}
