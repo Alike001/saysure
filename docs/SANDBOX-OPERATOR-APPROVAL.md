@@ -1,5 +1,9 @@
 # Controlled sandbox operator approval sheet
 
+**Current checkpoint — Stage 2 consumed:** The operator subsequently gave explicit authorization for prerequisite sandbox OAuth, the reserved single order POST and one GET. The prepared private workflow has completed that bounded experiment. The permanent execution marker remains in place; this grant cannot be reused. Sanitized transaction evidence and the post-execution preservation check remain exclusively in ignored, mode-0600 `.local/paypal-one-order/` files. No transaction identifiers or private evidence are committed. No retry, extra order, additional read, buyer checkout or payment execution is authorized. Existing passkey/account storage and PayTale configuration/records were verified unchanged. Targeted offline tests: 25/25 passed; syntax and whitespace checks passed.
+
+The approval/preflight statements below describe **Stage 1 before the subsequent authorization and execution**, and are retained as the reviewed procedure. The approval file now exists privately and is bound to the consumed attempt. Real order-bound passkey consent remains pending separately authorized revalidation reads.
+
 9 November 2026, Stage 1 complete. **NOT APPROVED. No PayPal network request was made, including OAuth.** This sheet supersedes the earlier preflight's open app-association question and proposed allowance of five GETs. The current authorization scope is **one create POST and one GET**, plus prerequisite OAuth. No additional consent-flow GETs are authorized yet.
 
 ## Verified scope and provenance
