@@ -28,10 +28,17 @@ export function requestService(store) {
       provenance: e?.provenance ?? 'unavailable', merchant_identity_verified: false };
   }
   function assertEvidence(row, proof) {
-    if (intact(row).kind !== 'paypal') return;
+    const snapshot = intact(row);
+    if (snapshot.kind !== 'paypal') return;
+    ensure(['mock-paypal-fixture', 'authenticated-sandbox-api'].includes(snapshot.evidence_provenance) &&
+      evidence(row.id).provenance === snapshot.evidence_provenance &&
+      proof?.provenance === snapshot.evidence_provenance, 'ORDER_PROVENANCE_CHANGED');
     ensure(proof?.digest === row.digest && fresh(proof.observedAt) && evidence(row.id).current, 'ORDER_EVIDENCE_STALE');
   }
-  function owned(id, session) { return visible(store.request(id), session); }
+  function owned(id, session, { expire = true } = {}) {
+    const row = expire ? store.request(id) : store.get('SELECT * FROM requests WHERE id=?', id);
+    ensure(row, 'REQUEST_NOT_FOUND', 404); return visible(row, session);
+  }
   function create(session, input) {
     helper(session);
     const data = fields(input);
@@ -70,15 +77,20 @@ export function requestService(store) {
   }
   function action(session, id, action, expectedDigest, proof = null) {
     buyer(session);
-    return store.atomic(() => {
-      const row = owned(id, session); intact(row);
+    const committed = store.atomic(() => {
+      const row = owned(id, session, { expire: action !== 'consume' }), snapshot = intact(row);
+      let consumedAt;
       ensure(row.digest === expectedDigest, 'DETAILS_CHANGED_REVIEW_AGAIN');
       if (action === 'consume') {
         assertEvidence(row, proof);
         ensure(row.status === 'approved' && row.consent_digest === row.digest && !row.consumed_at,
           'CONSENT_NOT_AVAILABLE');
-        const result = store.run("UPDATE requests SET status='consumed',consumed_at=? WHERE id=? AND status='approved'",
-          Date.now(), id);
+        consumedAt = Date.now(); // The sole authoritative acceptance/event timestamp for this consumption.
+        ensure(Number.isSafeInteger(consumedAt) && Number.isSafeInteger(snapshot.expires_at) &&
+          consumedAt < snapshot.expires_at, 'REQUEST_EXPIRED');
+        const result = store.run(`UPDATE requests SET status='consumed',consumed_at=? WHERE id=? AND status='approved'
+          AND digest=? AND consent_digest=? AND consumed_at IS NULL AND json_extract(snapshot,'$.expires_at')>?`,
+        consumedAt, id, expectedDigest, expectedDigest, consumedAt);
         ensure(result.changes === 1, 'CONSENT_ALREADY_CONSUMED');
       } else {
         ensure(action === 'reject' ? ['pending', 'invalidated'].includes(row.status) : row.status === 'approved', 'REQUEST_CLOSED');
@@ -86,9 +98,17 @@ export function requestService(store) {
           action === 'reject' ? 'rejected' : 'withdrawn', id);
       }
       store.run('UPDATE challenges SET used=2 WHERE request_id=?', id);
-      store.event(session.user_id, action, id);
-      return view(store.request(id));
+      const eventResult = store.event(session.user_id, action, id, consumedAt);
+      const item = view(store.request(id));
+      if (action !== 'consume') return item;
+      const event = store.get('SELECT seq,at,event,request_id FROM events WHERE seq=?', Number(eventResult.lastInsertRowid));
+      return { ...item, consumption_receipt: { version: 1, request_id: id, buyer_id: snapshot.buyer_id, status: item.status,
+        consent_digest: row.digest, consumed_at: item.consumed_at,
+        event: { id: event.seq, type: event.event, request_id: event.request_id, at: event.at } } };
     });
+    // This acknowledgement is attached only after COMMIT returned successfully.
+    if (committed.consumption_receipt) committed.consumption_receipt.committed = true;
+    return committed;
   }
   function list(session) {
     store.expire();

@@ -68,7 +68,7 @@ npm test
 npm audit --omit=dev
 ```
 
-Tests launch installed Google Chrome through Playwright (`channel: chrome`), create isolated browser contexts and use **CDP virtual CTAP2 authenticators**. SimpleWebAuthn generates/verifies real protocol messages and signatures; the verifier is not mocked. These tests are not physical authenticator evidence. They use a separate temporary SQLite database and local-only network routing. Results are written to `evidence/security-results.json`. See [PASSKEY-EXPERIMENT.md](PASSKEY-EXPERIMENT.md) for actual outcomes and gaps.
+Tests launch installed Google Chrome through Playwright (`channel: chrome`), create isolated browser contexts and use **CDP virtual CTAP2 authenticators**. SimpleWebAuthn generates/verifies real protocol messages and signatures; the verifier is not mocked. These tests are not physical authenticator evidence. They use a separate temporary SQLite database and local-only network routing. New test results are written only inside the temporary test directory and removed on cleanup; the historical `evidence/security-results.json` is preserved. See [PASSKEY-EXPERIMENT.md](PASSKEY-EXPERIMENT.md) for actual outcomes and gaps.
 
 ## Synthetic requests and actual PayPal operations
 

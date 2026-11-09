@@ -1,7 +1,16 @@
 import { ensure, Failure } from './core.mjs';
 export const SANDBOX = 'https://api-m.sandbox.paypal.com';
 const idPattern = /^[A-Z0-9]{5,32}$/;
-export function sandboxClient(config, { transport = fetch, observe = () => {}, now = Date.now, initialToken } = {}) {
+const nativeFetch = globalThis.fetch;
+const adapters = new WeakMap(); // Only this fixed-endpoint constructor can register an adapter.
+export const sandboxAdapterProvenance = client => adapters.get(client);
+export function sandboxClient(config, settings = {}) {
+  const mocked = Object.hasOwn(settings, 'transport');
+  const transport = mocked ? settings.transport : nativeFetch;
+  ensure(typeof transport === 'function', 'PAYPAL_TRANSPORT_INVALID');
+  const { observe = () => {}, now = Date.now, initialToken,
+    beforeRequest = () => {}, afterResponse = () => {}, onRequestError = () => {},
+    beforeOrder = () => {}, afterOrder = () => {}, onOrderError = () => {} } = settings;
   ensure(config.PAYPAL_ENV === 'sandbox' && (!config.PAYPAL_MODE || config.PAYPAL_MODE === 'sandbox') &&
     (!config.PAYPAL_BASE_URL || config.PAYPAL_BASE_URL === SANDBOX), 'SANDBOX_ONLY_CONFIG_REQUIRED', 503);
   for (const key of ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET']) {
@@ -15,10 +24,15 @@ export function sandboxClient(config, { transport = fetch, observe = () => {}, n
       initialToken.expires_at > now(), 'PAYPAL_TOKEN_INVALID', 502);
     token = initialToken.access_token; expiry = initialToken.expires_at;
   }
-  async function request(path, options, operation) {
+  async function request(path, options, operation, onReadReserved = () => {}) {
+    let reservation;
     try {
-      const response = await transport(`${SANDBOX}${path}`, { ...options, redirect: 'error', signal: AbortSignal.timeout(15000) });
+      reservation = beforeRequest(operation); // Policy hooks cannot replace transport or responses.
+      if (operation === 'order_get') onReadReserved();
+      const response = await transport(`${SANDBOX}${path}`, { ...options, redirect: 'error', signal: options.signal ? AbortSignal.any([options.signal, AbortSignal.timeout(15000)]) : AbortSignal.timeout(15000) });
       observe({ operation, http_status: response.status });
+      const debug = response.headers.get('paypal-debug-id');
+      afterResponse(reservation, { http_status: response.status, debug_id: /^[a-f0-9]{8,64}$/i.test(debug ?? '') ? debug : null });
       if (!response.ok) throw new Failure(`PAYPAL_HTTP_${response.status}`, 502);
       // Bound responses, never log/persist raw JSON or provider error bodies.
       let length = 0, chunks = [];
@@ -27,6 +41,7 @@ export function sandboxClient(config, { transport = fetch, observe = () => {}, n
       }
       return JSON.parse(Buffer.concat(chunks).toString('utf8'));
     } catch (error) {
+      onRequestError(reservation);
       if (error instanceof Failure) throw error;
       throw new Failure('PAYPAL_NETWORK_OR_RESPONSE_UNAVAILABLE', 502);
     }
@@ -47,16 +62,29 @@ export function sandboxClient(config, { transport = fetch, observe = () => {}, n
     })();
     try { return await inflight; } finally { inflight = undefined; }
   }
-  async function getOrder(id) {
+  async function getOrder(id, { signal, onReadReserved = () => {} } = {}) {
     ensure(typeof id === 'string' && idPattern.test(id), 'INVALID_ORDER_ID', 400);
-    const bearer = await authenticate();
+    beforeOrder(id);
     try {
-      return await request(`/v2/checkout/orders/${id}`, { method: 'GET',
-        headers: { Authorization: `Bearer ${bearer}`, Accept: 'application/json' } }, 'order_get');
+      const started = now();
+      ensure(!signal?.aborted, 'CONSUMPTION_TIMED_OUT', 504);
+      const bearer = await authenticate();
+      ensure(!signal?.aborted, 'CONSUMPTION_TIMED_OUT', 504);
+      const raw = await request(`/v2/checkout/orders/${id}`, { method: 'GET', signal,
+        headers: { Authorization: `Bearer ${bearer}`, Accept: 'application/json' } }, 'order_get', onReadReserved);
+      // Validation/ledger hooks receive a copy; their return values never become evidence.
+      await afterOrder(structuredClone(raw), id, started);
+      return raw;
     } catch (error) {
       if (error.message === 'PAYPAL_HTTP_401') { token = undefined; expiry = 0; }
+      onOrderError();
       throw error; // No hidden retries or arbitrary URL/write method.
     }
   }
-  return { provenance: transport === fetch ? 'authenticated-sandbox-api' : 'mock-paypal-fixture', getOrder, async probeAuthentication() { await authenticate(); return { authenticated: true }; } };
+  // Any explicit transport override is mock, even the captured/global fetch reference.
+  const provenance = mocked ? 'mock-paypal-fixture' : 'authenticated-sandbox-api';
+  const client = Object.freeze({ provenance, getOrder,
+    async probeAuthentication() { await authenticate(); return { authenticated: true }; } });
+  adapters.set(client, provenance);
+  return client;
 }

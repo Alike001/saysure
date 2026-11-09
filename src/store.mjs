@@ -20,6 +20,13 @@ export function openStore(path) {
       challenge TEXT NOT NULL, expires INTEGER NOT NULL, used INTEGER NOT NULL DEFAULT 0);
     CREATE TABLE IF NOT EXISTS paypal_bindings(request_id TEXT PRIMARY KEY REFERENCES requests(id),
       order_id TEXT NOT NULL UNIQUE, observed_at INTEGER NOT NULL, available INTEGER NOT NULL, provenance TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS consumption_claims(request_id TEXT PRIMARY KEY REFERENCES requests(id),
+      owner TEXT NOT NULL, started_at INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS consumption_diagnostics(seq INTEGER PRIMARY KEY, at INTEGER NOT NULL,
+      correlation_id TEXT NOT NULL, stage TEXT NOT NULL, request_tag TEXT, code TEXT NOT NULL,
+      http_status INTEGER, event_id INTEGER, size_bytes INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS consumption_rejections(code TEXT PRIMARY KEY, first_at INTEGER NOT NULL,
+      last_at INTEGER NOT NULL, count INTEGER NOT NULL, http_status INTEGER, size_bytes INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS events(seq INTEGER PRIMARY KEY, at INTEGER NOT NULL,
       actor TEXT NOT NULL, event TEXT NOT NULL, request_id TEXT);`);
   function atomic(fn) {
@@ -30,8 +37,8 @@ export function openStore(path) {
   const get = (sql, ...args) => db.prepare(sql).get(...args);
   const all = (sql, ...args) => db.prepare(sql).all(...args);
   const run = (sql, ...args) => db.prepare(sql).run(...args);
-  const event = (actor, name, id = null) => run(
-    'INSERT INTO events(at,actor,event,request_id) VALUES(?,?,?,?)', Date.now(), actor, name, id);
+  const event = (actor, name, id = null, at = Date.now()) => run(
+    'INSERT INTO events(at,actor,event,request_id) VALUES(?,?,?,?)', at, actor, name, id);
   function expire(now = Date.now()) {
     // Expiry is an authoritative state transition, never only a browser timer.
     for (const row of all("SELECT * FROM requests WHERE status IN ('pending','approved')")) {

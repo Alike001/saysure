@@ -1,16 +1,18 @@
 {
   "name": "isolated-accessible-consent-passkey",
-  "description": "SaySure — Your money. Your final say. Isolated synthetic payment-consent passkey experiment; no payment operations.",
+  "description": "SaySure \u2014 Your money. Your final say. Isolated synthetic payment-consent passkey experiment; no payment operations.",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "account": "node scripts/account.mjs",
     "start": "node src/server.mjs",
     "check": "node scripts/check.mjs",
-    "test": "node --test --test-concurrency=1 test/*.test.mjs",
+    "test": "node --import ./scripts/offline-test-guard.mjs --test --test-concurrency=1 test/*.test.mjs",
     "demo": "node scripts/demo.mjs",
     "audit:release": "node scripts/release-audit.mjs"
   },

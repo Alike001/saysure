@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { adapterProvenance } from './paypal-provenance.mjs';
 import { ensure, random, digest } from './core.mjs';
 import { helper, buyer } from './identity.mjs';
 import { normalizeSandboxOrder, reviewable, sameOrder, fresh } from './paypal-order.mjs';
@@ -6,12 +7,14 @@ export function paypalRequests(store, requests, integration) {
   function configured(orderId) {
     ensure(integration?.client && integration.allowedOrders?.includes(orderId), 'PAYPAL_ORDER_NOT_CONFIGURED', 503);
   }
-  async function read(orderId) {
+  async function read(orderId, options = {}) {
     configured(orderId);
+    const client = integration.client, provenance = adapterProvenance(client);
     const started = Date.now();
-    const raw = await integration.client.getOrder(orderId);
+    const raw = await client.getOrder(orderId, options);
+    ensure(integration.client === client && adapterProvenance(client) === provenance, 'ORDER_PROVENANCE_CHANGED');
     const provider = normalizeSandboxOrder(raw, orderId, integration.merchantId, started);
-    reviewable(provider); return { provider, observedAt: started };
+    reviewable(provider); return { provider, observedAt: started, provenance };
   }
   function invalidate(row) {
     store.atomic(() => {
@@ -24,26 +27,40 @@ export function paypalRequests(store, requests, integration) {
   }
   async function revalidate(session, id, expected = {}) {
     buyer(session);
-    const row = requests.owned(id, session), s = requests.intact(row);
+    const row = requests.owned(id, session, { expire: !expected.consumption }), s = requests.intact(row);
+    if (expected.consumption) ensure(Date.now() < s.expires_at, 'REQUEST_EXPIRED');
     if (s.kind !== 'paypal') return null;
     ensure(['pending', 'approved'].includes(row.status), 'REQUEST_CLOSED');
     if (expected.status) ensure(row.status === expected.status, 'CONSENT_NOT_AVAILABLE');
     if (expected.digest) ensure(row.digest === expected.digest, 'DETAILS_CHANGED_REVIEW_AGAIN');
     try {
-      const result = await read(s.provider.order_id);
+      const binding = store.get('SELECT provenance FROM paypal_bindings WHERE request_id=?', id);
+      ensure(s.evidence_provenance && binding?.provenance === s.evidence_provenance &&
+        adapterProvenance(integration?.client) === s.evidence_provenance, 'ORDER_PROVENANCE_CHANGED');
+      ensure(!expected.signal?.aborted, 'CONSUMPTION_TIMED_OUT', 504);
+      const result = await read(s.provider.order_id, { signal: expected.signal,
+        onReadReserved: () => expected.trace?.('read_reserved') });
+      ensure(result.provenance === s.evidence_provenance, 'ORDER_PROVENANCE_CHANGED');
+      ensure(!expected.signal?.aborted, 'CONSUMPTION_TIMED_OUT', 504);
       ensure(sameOrder(result.provider, s.provider), 'ORDER_DETAILS_CHANGED');
+      expected.trace?.('provider_revalidated');
       return store.atomic(() => {
-        const current = requests.owned(id, session); requests.intact(current);
+        const current = requests.owned(id, session, { expire: !expected.consumption });
+        const snapshot = requests.intact(current);
+        if (expected.consumption) ensure(Date.now() < snapshot.expires_at, 'REQUEST_EXPIRED');
         ensure(current.digest === row.digest && current.status === row.status &&
           ['pending', 'approved'].includes(current.status), 'DETAILS_CHANGED_REVIEW_AGAIN');
         ensure(fresh(result.observedAt), 'ORDER_EVIDENCE_STALE');
         store.run('UPDATE paypal_bindings SET observed_at=?,available=1 WHERE request_id=?', result.observedAt, id);
-        return { digest: current.digest, observedAt: result.observedAt };
+        return { digest: current.digest, observedAt: result.observedAt, provenance: result.provenance };
       });
-    } catch (error) { invalidate(row); throw error; }
+    } catch (error) {
+      if (!(expected.consumption && error.message === 'REQUEST_EXPIRED')) invalidate(row);
+      throw error;
+    }
   }
-  function snapshot(id, buyerId, provider, revision) {
-    return { kind: 'paypal', request_id: id, buyer_id: buyerId, provider,
+  function snapshot(id, buyerId, provider, revision, provenance) {
+    return { kind: 'paypal', evidence_provenance: provenance, request_id: id, buyer_id: buyerId, provider,
       merchant_id: provider.payee_id, merchant_name: `PayPal payee ${provider.payee_id} (shop identity unverified)`,
       amount_minor: provider.amount_minor, currency: provider.currency,
       description: 'Sandbox order. Merchant free text omitted for privacy. Purchase-unit totals are included in this review.',
@@ -61,11 +78,11 @@ export function paypalRequests(store, requests, integration) {
     return store.atomic(() => {
       ensure(fresh(result.observedAt), 'ORDER_EVIDENCE_STALE');
       ensure(!store.get('SELECT request_id FROM paypal_bindings WHERE order_id=?', input.order_id), 'ORDER_ALREADY_BOUND');
-      const s = snapshot(`PAYPAL-${randomUUID()}`, input.buyer_id, result.provider, 1);
+      const s = snapshot(`PAYPAL-${randomUUID()}`, input.buyer_id, result.provider, 1, result.provenance);
       store.run('INSERT INTO requests(id,helper_id,buyer_id,snapshot,digest,status) VALUES(?,?,?,?,?,?)',
         s.request_id, session.user_id, s.buyer_id, JSON.stringify(s), digest(s), 'pending');
       store.run('INSERT INTO paypal_bindings VALUES(?,?,?,1,?)', s.request_id, input.order_id, result.observedAt,
-        integration.client.provenance ?? 'mock-paypal-fixture');
+        result.provenance);
       store.event(session.user_id, 'paypal_order_bound', s.request_id);
       return requests.view(store.request(s.request_id));
     });
@@ -82,7 +99,8 @@ export function paypalRequests(store, requests, integration) {
       const current = requests.owned(id, session);
       ensure(current.digest === row.digest && ['pending', 'approved', 'invalidated'].includes(current.status), 'DETAILS_CHANGED_REVIEW_AGAIN');
       ensure(fresh(result.observedAt), 'ORDER_EVIDENCE_STALE');
-      const s = snapshot(id, prior.buyer_id, result.provider, prior.revision + 1);
+      ensure(result.provenance === prior.evidence_provenance, 'ORDER_PROVENANCE_CHANGED');
+      const s = snapshot(id, prior.buyer_id, result.provider, prior.revision + 1, result.provenance);
       store.run("UPDATE requests SET snapshot=?,digest=?,status='pending',consent_digest=NULL WHERE id=?",
         JSON.stringify(s), digest(s), id);
       store.run('UPDATE paypal_bindings SET observed_at=?,available=1 WHERE request_id=?', result.observedAt, id);
@@ -91,5 +109,5 @@ export function paypalRequests(store, requests, integration) {
       return requests.view(store.request(id));
     });
   }
-  return { create, refresh, revalidate };
+  return { create, refresh, revalidate, invalidate };
 }

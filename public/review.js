@@ -1,3 +1,5 @@
+import { validateConsumptionReceipt } from './consumption.js';
+import { reviewedEvidence } from './evidence-provenance.js';
 import { answer, topics } from './comprehension.js';
 import { addAudio, stopAudio, exactAmount } from './presentation.js';
 function element(tag, text) {
@@ -24,18 +26,18 @@ export function renderRequests(items, session, tools) {
     heading.id = `heading-${id}`; article.setAttribute('aria-labelledby', heading.id);
     article.append(heading);
     if (s.kind === 'paypal') {
-      const e = item.paypal_evidence;
-      article.append(element('p', e.provenance === 'mock-paypal-fixture' ? 'MOCK PayPal fixture — no real API verification.' : 'PayPal sandbox API evidence — shop identity is not independently verified.'));
+      const e = reviewedEvidence(item);
+      article.append(element('p', e.provenance === 'mock-paypal-fixture' ? 'MOCK PayPal fixture — no real API verification.' : e.provenance === 'authenticated-sandbox-api' ? 'PayPal sandbox API evidence — shop identity is not independently verified.' : 'PayPal evidence provenance unavailable; verification blocked.'));
       const verification = element('p'), approval = element('p'); article.append(verification, approval);
       const paintEvidence = () => {
-        const current = e.current && e.observed_at <= Date.now() && Date.now() - e.observed_at < 60000 && s.expires_at > Date.now();
+        const current = reviewedEvidence(item).current;
         const genuine = e.provenance === 'authenticated-sandbox-api';
-        verification.textContent = `${genuine && current ? 'PayPal order verified. ' : ''}Order verification: ${!genuine ? 'MOCK fixture only' : current ? 'recent authenticated server read' : 'unavailable or stale; re-review required'}. Local buyer consent: ${item.status}.`;
+        verification.textContent = `${genuine && current ? 'PayPal order verified. ' : ''}Order verification: ${e.provenance === 'mock-paypal-fixture' ? 'MOCK fixture only' : genuine && current ? 'recent authenticated server read' : 'unavailable or stale; re-review required'}. Local buyer consent: ${item.status}.`;
         approval.textContent = `Recorded provider status: ${s.provider.status}. PayPal buyer approval: ${genuine && current && s.provider.status === 'APPROVED' ? 'reported APPROVED by the recorded API evidence' : 'not established by current evidence'}. Payment authorization and completion: not established. This app never captures. ${genuine && current && s.provider.status === 'CREATED' ? 'PayPal buyer approval not established. Payment not captured in this CREATED order observation.' : ''}`;
       };
       paintEvidence(); expiryChecks.push(paintEvidence);
       article.append(element('p', `PayPal order ID: ${s.provider.order_id}.`));
-      article.append(element('p', `Evidence read: ${new Date(e.observed_at).toLocaleString()}. App buyer identity is not proof of PayPal payer identity.`));
+      article.append(element('p', `Evidence read: ${e.observed_at ? new Date(e.observed_at).toLocaleString() : 'unavailable'}. App buyer identity is not proof of PayPal payer identity.`));
       for (const unit of s.provider.units) article.append(element('p', `Purchase unit ${unit.index}: ${exactAmount(unit)}`));
     } else article.append(element('p', 'SYNTHETIC DATA — merchant details are helper-supplied and unverified.'));
     if (session.user.role === 'buyer') {
@@ -82,7 +84,7 @@ export function renderRequests(items, session, tools) {
           await tools.api(`${base}/approve`, { challengeId: options.challengeId, response });
           await tools.refresh(); tools.notify('Consent approved for these exact details. No payment was authorized or made.');
         }, tools.perform);
-        if (s.kind === 'paypal' && (!item.paypal_evidence.current || item.status === 'invalidated')) approve.disabled = true;
+        if (s.kind === 'paypal' && (!reviewedEvidence(item).current || item.status === 'invalidated')) approve.disabled = true;
         addButton(article, 'Decline / Reject this request', async () => {
           await tools.api(`${base}/reject`, { digest: item.digest });
           await tools.refresh(); tools.notify('Request rejected. No approval or payment was made.');
@@ -90,9 +92,17 @@ export function renderRequests(items, session, tools) {
       }
       if (item.status === 'approved') {
         article.append(element('p', 'Buyer consent approved. Consent recorded. No payment has been authorized or made.'));
-        addButton(article, 'Consume consent once (local test only)', async () => {
-          await tools.api(`${base}/consume`, { digest: item.digest });
-          await tools.refresh(); tools.notify('Consent consumed once for this local test. No payment operation occurred.');
+        const consume = addButton(article, 'Consume consent once (local test only)', async () => {
+          consume.dataset.locked = 'true';
+          const consumed = await validateConsumptionReceipt(await tools.api(`${base}/consume`, { digest: item.digest }), item);
+          // Render the validated receipt immediately; a later list error must not revive this button.
+          renderRequests(items.map(i => i.snapshot.request_id === id ? consumed : i), session, tools);
+          try { await tools.refresh({ consumption: consumed }); }
+          catch {
+            tools.notify('Consent consumed once for this local test; the committed receipt was confirmed. The request list could not be refreshed consistently. Do not consume again. No payment operation occurred.');
+            return;
+          }
+          tools.notify('Consent consumed once for this local test. No payment operation occurred.');
         }, tools.perform);
         addButton(article, 'Withdraw consent', async () => {
           await tools.api(`${base}/withdraw`, { digest: item.digest });

@@ -71,7 +71,7 @@ export async function harness(extraConfig = {}) {
     };
     return { page, context, call, register, assertion, cdp, authenticatorId };
   }
-  return { actor, accounts, forbidden, browser,
+  return { actor, accounts, forbidden, browser, databasePath: dbPath,
     get store() { return store; }, get origin() { return origin; },
     async restart() {
       const port = app.server.address().port;

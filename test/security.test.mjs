@@ -198,7 +198,7 @@ test('Real Chrome WebAuthn API with virtual authenticators: synthetic security e
       assert.ok(['consumed', 'withdrawn'].includes(status(item)));
     }
   });
-  await writeFile(new URL('../evidence/security-results.json', import.meta.url), JSON.stringify({
+  await writeFile(`${h.databasePath}.security-results.json`, JSON.stringify({
     checked_at: new Date().toISOString(), browser: browserVersion,
     authenticator: 'Chrome CDP virtual CTAP2 with resident keys and UV; NOT a physical/user passkey',
     financial_data: 'synthetic only', mock_verifier: false, forbidden_network_origins: h.forbidden,

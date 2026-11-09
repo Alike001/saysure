@@ -1,3 +1,4 @@
+import { matchesConsumedState, validateReviewedEvidence } from './consumption.js';
 import { stopAudio } from './presentation.js';
 import { renderRequests } from './review.js';
 const $ = id => document.getElementById(id);
@@ -25,8 +26,12 @@ export async function api(path, body, method = 'POST') {
     headers: body === undefined ? {} : { 'Content-Type': 'application/json', 'X-CSRF-Token': session?.csrf ?? '' },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
   const data = await response.json();
-  if (!response.ok) throw new Error(explanations[data.error] ??
-    `The action was refused (${data.error}). Refresh and check the request. No payment was made.`);
+  if (!response.ok) {
+    const correlation = response.headers.get('X-Consumption-Correlation-Id');
+    const reference = /^[a-f0-9-]{36}$/.test(correlation ?? '') ? ` Reference: ${correlation}.` : '';
+    throw new Error((explanations[data.error] ??
+      `The action was refused (${data.error}). Refresh and check the request. No payment was made.`) + reference);
+  }
   return data;
 }
 export async function perform(button, fn) {
@@ -36,7 +41,7 @@ export async function perform(button, fn) {
     notify(error.name === 'NotAllowedError' || error.name === 'WebAuthnError'
       ? 'Your authenticator did not complete the request. Nothing was approved. You may try again or reject.'
       : error.message);
-  } finally { button.disabled = false; }
+  } finally { if (button.dataset.locked !== 'true') button.disabled = false; }
 }
 async function load() {
   stopAudio();
@@ -58,8 +63,12 @@ async function load() {
   }
   await refresh();
 }
-export async function refresh() {
+export async function refresh({ consumption } = {}) {
   const items = await api('/api/requests', undefined, 'GET');
+  await Promise.all(items.map(validateReviewedEvidence));
+  if (consumption && !matchesConsumedState(items.find(i => i.snapshot.request_id === consumption.snapshot.request_id), consumption)) {
+    throw new Error('The refreshed list does not match the committed consumption receipt.');
+  }
   renderRequests(items, session, { api, perform, notify, refresh, edit });
 }
 function resetForm() {

@@ -1,3 +1,7 @@
+import { randomUUID } from 'node:crypto';
+import { classifyRoute } from './routes.mjs';
+import { consumptionService } from './consumption.mjs';
+import { consumptionDiagnostics } from './consumption-diagnostics.mjs';
 import { paypalRequests } from './paypal-requests.mjs';
 import { assertLocalExperiment } from './origin.mjs';
 import { createServer } from 'node:http';
@@ -12,7 +16,10 @@ const assets = new Map([
   ['/', ['public/index.html', 'text/html']], ['/app.js', ['public/app.js', 'text/javascript']],
   ['/comprehension.js', ['public/comprehension.js', 'text/javascript']],
   ['/presentation.js', ['public/presentation.js', 'text/javascript']],
-  ['/review.js', ['public/review.js', 'text/javascript']], ['/style.css', ['public/style.css', 'text/css']],
+  ['/review.js', ['public/review.js', 'text/javascript']],
+  ['/consumption.js', ['public/consumption.js', 'text/javascript']],
+  ['/evidence-provenance.js', ['public/evidence-provenance.js', 'text/javascript']],
+  ['/consent-shape.js', ['public/consent-shape.js', 'text/javascript']], ['/style.css', ['public/style.css', 'text/css']],
   ['/webauthn.js', ['node_modules/@simplewebauthn/browser/dist/bundle/index.umd.min.js', 'text/javascript']],
 ]);
 async function jsonBody(req) {
@@ -34,11 +41,28 @@ export function makeApp(store, config) {
   assertLocalExperiment(config);
   const requests = requestService(store);
   const paypal = paypalRequests(store, requests, config.paypal);
+  const diagnostics = consumptionDiagnostics(store, config.consumptionDiagnostics);
+  const consumption = consumptionService(store, requests, paypal, config.consumption);
   const passkeys = passkeyService(store, requests, config, paypal);
   const attempts = new Map();
   const cookie = token => `consent_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800${
     config.origin.startsWith('https:') ? '; Secure' : ''}`;
   const server = createServer(async (req, res) => {
+    let route;
+    let correlationId = null;
+    let lastStage = 'attempt_received';
+    const trace = (stage, code = 'OK', eventId) => {
+      lastStage = stage;
+      // Correlation survives telemetry failure. The committed consume event/receipt is authoritative.
+      // Operational diagnostics intentionally cannot authorize, reject or undo consumption.
+      if (correlationId) diagnostics.record(correlationId, stage, { requestId: route.id, code, eventId });
+    };
+    function admitConsumptionTrace() {
+      correlationId = randomUUID();
+      res.setHeader('X-Consumption-Correlation-Id', correlationId); trace('attempt_received');
+      res.once('finish', () => diagnostics.record(correlationId, 'response_finished', { status: res.statusCode, code: 'OK' }));
+      res.once('close', () => { if (!res.writableFinished) diagnostics.record(correlationId, 'response_closed', { code: 'INTERNAL_ERROR' }); });
+    }
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('Content-Security-Policy', "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'");
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -52,8 +76,8 @@ export function makeApp(store, config) {
       ensure(req.headers.host === new URL(config.origin).host, 'INVALID_HOST', 403);
       ensure(!req.headers['sec-fetch-site'] || ['same-origin', 'none'].includes(req.headers['sec-fetch-site']),
         'CROSS_SITE_DENIED', 403);
-      const url = new URL(req.url, config.origin);
-      ensure(!url.search, 'QUERY_NOT_SUPPORTED', 400);
+      route = classifyRoute(req.url, req.method);
+      const url = route;
       if (req.method === 'GET' && assets.has(url.pathname)) {
         const [file, type] = assets.get(url.pathname);
         res.writeHead(200, { 'Content-Type': `${type}; charset=utf-8` });
@@ -90,6 +114,10 @@ export function makeApp(store, config) {
       }
       ensure(session, 'LOGIN_REQUIRED', 401);
       ensure(req.headers['x-csrf-token'] === session.csrf, 'CSRF_REQUIRED', 403);
+      if (route.consumption) {
+        ensure(session.role === 'buyer', 'BUYER_SESSION_REQUIRED', 403);
+        admitConsumptionTrace();
+      }
       if (req.method === 'POST' && url.pathname === '/api/logout') {
         keys(input, []);
         store.atomic(() => {
@@ -111,24 +139,31 @@ export function makeApp(store, config) {
       if (req.method === 'POST' && url.pathname === '/api/paypal/requests') {
         send(201, await paypal.create(session, input)); return;
       }
-      const match = url.pathname.match(/^\/api\/requests\/((?:SYNTH|PAYPAL)-[a-f0-9-]{36})(?:\/(options|approve|reject|withdraw|consume|refresh-provider))?$/);
-      ensure(match, 'ROUTE_NOT_FOUND', 404);
-      const [, id, action] = match;
+      ensure(route.id, 'ROUTE_NOT_FOUND', 404);
+      const { id, action } = route;
       if (req.method === 'PATCH' && !action) { send(200, requests.revise(session, id, input)); return; }
       ensure(req.method === 'POST' && action, 'ROUTE_NOT_FOUND', 404);
       keys(input, action === 'approve' ? ['challengeId', 'response'] : ['digest']);
       if (action === 'refresh-provider') send(200, await paypal.refresh(session, id, input.digest));
       else if (action === 'options') send(200, await passkeys.approvalOptions(session, id, input.digest));
       else if (action === 'approve') send(200, await passkeys.approve(session, id, input));
-      else {
-        const proof = action === 'consume' ? await paypal.revalidate(session, id, { status: 'approved', digest: input.digest }) : null;
-        send(200, requests.action(session, id, action, input.digest, proof));
+      else if (action === 'consume') {
+        ensure(route.consumption && correlationId, 'CONSUMPTION_ADMISSION_REQUIRED', 500);
+        const result = await consumption.consume(session, id, input.digest, trace);
+        result.consumption_receipt.correlation_id = correlationId;
+        send(200, result);
       }
+      else send(200, requests.action(session, id, action, input.digest));
     } catch (error) {
+      if (correlationId) trace(['attempt_received', 'validation_passed', 'duplicate_wait'].includes(lastStage)
+        ? 'validation_rejected' : 'failed', error instanceof Failure ? error.message : 'INTERNAL_ERROR');
+      else if (route?.consumption) diagnostics.reject(error instanceof Failure ? error.message : 'INTERNAL_ERROR',
+        error instanceof Failure ? error.status : 500);
       send(error instanceof Failure ? error.status : 500,
         { error: error instanceof Failure ? error.message : 'INTERNAL_ERROR' });
     }
   });
+  server.once('close', () => diagnostics.close());
   server.requestTimeout = 15_000; server.headersTimeout = 10_000;
   return { server, requests, passkeys };
 }

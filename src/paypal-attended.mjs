@@ -37,7 +37,8 @@ export function loadAttended(directory, config) {
     fixed.merchant_id === plan.merchant_id, 'ATTENDED_BINDING_CHANGED');
   return plan;
 }
-export async function executeAttended({ directory, config, attended = false, transport = fetch, now = Date.now }) {
+export async function executeAttended(options) {
+  const { directory, config, attended = false, transport = fetch, now = Date.now } = options;
   ensure(attended === true, 'ATTENDED_OPERATOR_REQUIRED', 403);
   const plan = loadAttended(directory, config);
   let approval, info;
@@ -71,6 +72,7 @@ export async function executeAttended({ directory, config, attended = false, tra
   // The single OAuth already happened in this same process. No refresh is allowed.
   privateJson(`${readDirectory}/oauth-1.json`, { ...result.operations[0], shared_from_parent: true,
     parent_plan_digest: plan.digest, provenance: result.provenance });
-  const integration = consentReadIntegration(config, readDirectory, { transport, initialToken });
+  const integration = consentReadIntegration(config, readDirectory, {
+    ...(Object.hasOwn(options, 'transport') ? { transport } : {}), initialToken });
   return { integration, result, deadline };
 }

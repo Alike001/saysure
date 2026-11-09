@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 // Standalone static fixture viewer: no database, accounts, cookies, WebAuthn or external transport.
 const files = new Map([['/', ['demo.html', 'text/html']], ['/demo.js', ['demo.js', 'text/javascript']],
   ['/buyer-help.js', ['buyer-help.js', 'text/javascript']], ['/presentation.js', ['presentation.js', 'text/javascript']],
+  ['/evidence-provenance.js', ['evidence-provenance.js', 'text/javascript']],
   ['/style.css', ['style.css', 'text/css']]]);
 export function demoServer() {
   const server = createServer(async (req, res) => {

@@ -1,4 +1,5 @@
-import { orderTuple } from './order-shape.mjs';
+import { canonical } from '../public/consent-shape.js';
+export { canonical } from '../public/consent-shape.js';
 import { createHash, randomBytes } from 'node:crypto';
 
 export class Failure extends Error {
@@ -32,14 +33,6 @@ export function fields(input) {
   return { merchant_id: text(input.merchant_id, 'MERCHANT_ID', 80),
     merchant_name: text(input.merchant_name, 'MERCHANT_NAME'), amount_minor: minor.toString(),
     currency: input.currency, description: text(input.description, 'DESCRIPTION', 500), minutes };
-}
-// Fixed ordered tuple, versioned domain, no arbitrary client JSON serialization.
-export function canonical(s) {
-  if (s.kind === 'paypal') return JSON.stringify(['paypal-consent-v1', s.request_id, s.buyer_id,
-    s.merchant_id, s.merchant_name, s.amount_minor, s.currency, s.description,
-    orderTuple(s.provider), s.nonce, s.expires_at, s.revision]);
-  return JSON.stringify(['synthetic-consent-v1', s.request_id, s.merchant_id, s.merchant_name,
-    s.amount_minor, s.currency, s.description, s.buyer_id, s.nonce, s.expires_at, s.revision]);
 }
 export const digest = snapshot => sha(canonical(snapshot));
 export function displayAmount(s) {

@@ -1,4 +1,5 @@
 // Presentation uses the exact server snapshot, never AI-generated payment fields.
+import { reviewedEvidence } from './evidence-provenance.js';
 export function exactAmount(s) {
   const exponent = { USD: 2, EUR: 2, NGN: 2, JPY: 0 }[s.currency];
   if (exponent === undefined || !/^\d+$/.test(s.amount_minor)) throw new Error('Unavailable amount evidence.');
@@ -9,9 +10,9 @@ export function paymentSummary(item, now = Date.now()) {
   const s = item.snapshot;
   const state = s.expires_at <= now && ['pending', 'approved'].includes(item.status) ? 'expired' : item.status;
   if (s.kind === 'paypal' && item.paypal_evidence) {
-    const evidence = item.paypal_evidence;
-    const current = evidence.current && now - evidence.observed_at < 60000 && evidence.observed_at <= now;
-    return `${evidence.provenance === 'mock-paypal-fixture' ? 'MOCK PayPal fixture. No real API verification.' : 'PayPal sandbox order.'} ` +
+    const evidence = reviewedEvidence(item, now);
+    const current = evidence.current;
+    return `${evidence.provenance === 'mock-paypal-fixture' ? 'MOCK PayPal fixture. No real API verification.' : evidence.provenance === 'authenticated-sandbox-api' ? 'PayPal sandbox order.' : 'PayPal evidence provenance unavailable.'} ` +
       `Recorded amount: ${exactAmount(s)}. Payee reference: ${s.provider.payee_id}. Shop identity unverified. ` +
       `Order: ${s.provider.order_id}. Recorded provider status: ${s.provider.status}. Local consent: ${state}. ` +
       `Revision: ${s.revision}. Expires: ${new Date(s.expires_at).toLocaleString()}. ` +
