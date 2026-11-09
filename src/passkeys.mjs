@@ -77,9 +77,9 @@ export function passkeyService(store, requests, config, paypal) {
     const row = requests.owned(id, session); requests.intact(row);
     ensure(row.status === 'pending', 'REQUEST_NOT_PENDING');
     ensure(row.digest === expectedDigest, 'DETAILS_CHANGED_REVIEW_AGAIN');
-    const proof = await paypal?.revalidate(session, id);
     const key = credential(session.user_id);
     ensure(key, 'ENROLL_BUYER_PASSKEY_FIRST');
+    const proof = await paypal?.revalidate(session, id);
     const options = await generateAuthenticationOptions({ rpID: config.rpID, timeout: 120_000,
       userVerification: 'required', allowCredentials: [{ id: key.id, transports: JSON.parse(key.transports) }] });
     // Recheck after the asynchronous library call, before binding the challenge.

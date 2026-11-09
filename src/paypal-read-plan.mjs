@@ -1,0 +1,110 @@
+// Operator-only read budget. Not an order creator and never a cached-response provider.
+import { readFileSync, openSync, closeSync, writeFileSync, fsyncSync, statSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { sha, ensure } from './core.mjs';
+import { sandboxClient, SANDBOX } from './paypal-sandbox.mjs';
+import { normalizeSandboxOrder, reviewable } from './paypal-order.mjs';
+export const READ_APPROVAL = 'I authorize one sandbox OAuth and at most four GETs for the reviewed SaySure order-bound consent plan; no payment execution or new order.';
+export const readJson = path => JSON.parse(readFileSync(path, 'utf8'));
+export function privateJson(path, value, exclusive = true) {
+  const fd = openSync(path, exclusive ? 'wx' : 'w', 0o600);
+  try { writeFileSync(fd, JSON.stringify(value, null, 2) + '\n'); fsyncSync(fd); } finally { closeSync(fd); }
+  const parent = openSync(dirname(path), 'r');
+  try { fsyncSync(parent); } finally { closeSync(parent); }
+}
+export function readPlan(directory) {
+  const plan = readJson(`${directory}/plan.json`);
+  const { digest, ...data } = plan;
+  ensure(digest === sha(JSON.stringify(data)) && plan.version === 1 && plan.host === SANDBOX &&
+    plan.max_gets === 4 && plan.max_oauth === 1 && plan.buyer_id === 'buyer-a' && /^[A-Z0-9]{5,32}$/.test(plan.order_id) &&
+    plan.merchant_id === '7TSZELT2DA9JJ' && plan.amount === '1.00' && plan.currency === 'USD' &&
+    plan.intent === 'CAPTURE' && plan.status === 'CREATED', 'READ_PLAN_INVALID');
+  return plan;
+}
+export function prepareReadPlan(directory, attemptDirectory) {
+  const attempt = readJson(`${attemptDirectory}/attempt.json`);
+  const marker = readJson(`${attemptDirectory}/execution-started.json`);
+  const result = readJson(`${attemptDirectory}/result.json`);
+  const { review_digest, ...data } = attempt;
+  ensure(review_digest === sha(JSON.stringify(data)) && marker.review_digest === review_digest &&
+    result.review_digest === review_digest && result.validated === true &&
+    result.provenance === 'authenticated-sandbox-api', 'HISTORICAL_PROVENANCE_INVALID');
+  const p = result.provider_fields;
+  ensure(p?.id === result.order_id && p.purchase_units?.length === 1, 'HISTORICAL_ORDER_INVALID');
+  const unit = p.purchase_units[0];
+  const value = { version: 1, host: SANDBOX, order_id: p.id, merchant_id: unit.merchant_id,
+    amount: unit.amount.value, currency: unit.amount.currency_code, intent: p.intent, status: p.status,
+    app_fingerprint: attempt.app_fingerprint, source_review_digest: review_digest,
+    buyer_id: 'buyer-a', max_gets: 4, max_oauth: 1,
+    stages: ['initial review', 'before challenge', 'after signature', 'before consumption'] };
+  value.digest = sha(JSON.stringify(value));
+  mkdirSync(directory, { recursive: true, mode: 0o700 });
+  try { privateJson(`${directory}/plan.json`, value); } catch (e) { if (e.code !== 'EEXIST') throw e; }
+  const existing = readPlan(directory);
+  ensure(existing.digest === value.digest, 'PRIOR_READ_PLAN_CHANGED');
+  return existing;
+}
+export function consentReadIntegration(config, directory, { transport = fetch } = {}) {
+  const plan = readPlan(directory);
+  ensure(sha(config.PAYPAL_CLIENT_ID ?? '') === plan.app_fingerprint, 'READ_APP_MISMATCH');
+  function approved() {
+    const current = readPlan(directory);
+    ensure(current.digest === plan.digest, 'READ_PLAN_CHANGED');
+    let approval, info;
+    try {
+      info = statSync(`${directory}/operator-approval.json`);
+      approval = readJson(`${directory}/operator-approval.json`);
+    } catch { ensure(false, 'READ_OPERATOR_APPROVAL_REQUIRED', 503); }
+    ensure(info.isFile() && !(info.mode & 0o077) && info.uid === process.getuid() &&
+      approval.statement === READ_APPROVAL && approval.plan_digest === plan.digest, 'READ_OPERATOR_APPROVAL_REQUIRED', 503);
+    try { statSync(`${directory}/stopped.json`); } catch (e) { if (e.code === 'ENOENT') return; throw e; }
+    ensure(false, 'READ_EXPERIMENT_STOPPED', 503);
+  }
+  approved(); // Even server construction refuses missing approval, without network.
+  function stop(code) {
+    try { privateJson(`${directory}/stopped.json`, { at: new Date().toISOString(), code }); }
+    catch (e) { if (e.code !== 'EEXIST') throw e; }
+  }
+  function reserve(operation) {
+    approved();
+    const ceiling = operation === 'oauth' ? plan.max_oauth : plan.max_gets;
+    for (let n = 1; n <= ceiling; n++) {
+      const path = `${directory}/${operation}-${n}.json`;
+      const event = { operation, at: new Date().toISOString(), plan_digest: plan.digest,
+        provenance: transport === fetch ? 'authenticated-sandbox-api' : 'mock-paypal-fixture', http_status: null, debug_id: null };
+      try { privateJson(path, event); return { path, event }; }
+      catch (e) { if (e.code !== 'EEXIST') throw e; }
+    }
+    ensure(false, 'READ_BUDGET_EXHAUSTED', 503);
+  }
+  const client = sandboxClient(config, { transport: async (url, options) => {
+    const operation = url === `${SANDBOX}/v1/oauth2/token` && options.method === 'POST' ? 'oauth' :
+      url === `${SANDBOX}/v2/checkout/orders/${plan.order_id}` && options.method === 'GET' ? 'get' : null;
+    ensure(operation, 'READ_OPERATION_FORBIDDEN', 403);
+    const slot = reserve(operation);
+    try {
+      const response = await transport(url, options);
+      slot.event.http_status = response.status;
+      const debug = response.headers.get('paypal-debug-id');
+      slot.event.debug_id = /^[a-f0-9]{8,64}$/i.test(debug ?? '') ? debug : null;
+      privateJson(slot.path, slot.event, false);
+      if (!response.ok) stop('PROVIDER_HTTP_FAILURE');
+      return response;
+    } catch (error) { stop('NETWORK_OR_LEDGER_FAILURE'); throw error; }
+  } });
+  // Wrapper transport must never make mocked data appear genuine.
+  const provenance = transport === fetch ? 'authenticated-sandbox-api' : 'mock-paypal-fixture';
+  return { merchantId: plan.merchant_id, allowedOrders: [plan.order_id], buyerId: plan.buyer_id,
+    refreshAllowed: false, client: { provenance, async getOrder(id) {
+      ensure(id === plan.order_id, 'READ_ORDER_FORBIDDEN', 403); approved();
+      try {
+        const started = Date.now(), raw = await client.getOrder(id);
+        const p = normalizeSandboxOrder(raw, id, plan.merchant_id, started); reviewable(p);
+        ensure(raw.purchase_units.length === 1 && p.intent === plan.intent && p.status === plan.status &&
+          p.currency === plan.currency && p.units[0].amount_value === plan.amount, 'READ_FIXED_ORDER_CHANGED');
+        privateJson(`${directory}/observation-${Date.now()}-${process.pid}.json`, {
+          provenance, observed_at: started, provider: p, plan_digest: plan.digest });
+        return raw;
+      } catch (error) { stop('ORDER_UNVERIFIABLE_OR_CHANGED'); throw error; }
+    } } };
+}

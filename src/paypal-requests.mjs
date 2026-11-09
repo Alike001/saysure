@@ -22,10 +22,13 @@ export function paypalRequests(store, requests, integration) {
       store.run('UPDATE challenges SET used=2 WHERE request_id=?', row.id);
     });
   }
-  async function revalidate(session, id) {
+  async function revalidate(session, id, expected = {}) {
     buyer(session);
     const row = requests.owned(id, session), s = requests.intact(row);
     if (s.kind !== 'paypal') return null;
+    ensure(['pending', 'approved'].includes(row.status), 'REQUEST_CLOSED');
+    if (expected.status) ensure(row.status === expected.status, 'CONSENT_NOT_AVAILABLE');
+    if (expected.digest) ensure(row.digest === expected.digest, 'DETAILS_CHANGED_REVIEW_AGAIN');
     try {
       const result = await read(s.provider.order_id);
       ensure(sameOrder(result.provider, s.provider), 'ORDER_DETAILS_CHANGED');
@@ -51,6 +54,9 @@ export function paypalRequests(store, requests, integration) {
     ensure(Object.keys(input).every(k => ['order_id', 'buyer_id'].includes(k)), 'UNKNOWN_FIELD', 400);
     ensure(typeof input.buyer_id === 'string' && store.get("SELECT id FROM users WHERE id=? AND role='buyer'", input.buyer_id),
       'UNKNOWN_BUYER', 400);
+    ensure(!integration?.buyerId || input.buyer_id === integration.buyerId, 'READ_BUYER_FORBIDDEN', 403);
+    configured(input.order_id);
+    ensure(!store.get('SELECT request_id FROM paypal_bindings WHERE order_id=?', input.order_id), 'ORDER_ALREADY_BOUND');
     const result = await read(input.order_id);
     return store.atomic(() => {
       ensure(fresh(result.observedAt), 'ORDER_EVIDENCE_STALE');
@@ -66,6 +72,7 @@ export function paypalRequests(store, requests, integration) {
   }
   async function refresh(session, id, expectedDigest) {
     helper(session);
+    ensure(integration?.refreshAllowed !== false, 'READ_REFRESH_NOT_AUTHORIZED', 403);
     const row = requests.owned(id, session), prior = requests.intact(row);
     ensure(prior.kind === 'paypal' && row.digest === expectedDigest, 'DETAILS_CHANGED_REVIEW_AGAIN');
     ensure(['pending', 'approved', 'invalidated'].includes(row.status), 'REQUEST_CLOSED');

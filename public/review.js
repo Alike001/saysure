@@ -30,10 +30,11 @@ export function renderRequests(items, session, tools) {
       const paintEvidence = () => {
         const current = e.current && e.observed_at <= Date.now() && Date.now() - e.observed_at < 60000 && s.expires_at > Date.now();
         const genuine = e.provenance === 'authenticated-sandbox-api';
-        verification.textContent = `Order verification: ${!genuine ? 'MOCK fixture only' : current ? 'recent authenticated server read' : 'unavailable or stale; re-review required'}. Local buyer consent: ${item.status}.`;
-        approval.textContent = `Recorded provider status: ${s.provider.status}. PayPal buyer approval: ${genuine && current && s.provider.status === 'APPROVED' ? 'reported APPROVED by the recorded API evidence' : 'not established by current evidence'}. Payment authorization and completion: not established. This app never captures.`;
+        verification.textContent = `${genuine && current ? 'PayPal order verified. ' : ''}Order verification: ${!genuine ? 'MOCK fixture only' : current ? 'recent authenticated server read' : 'unavailable or stale; re-review required'}. Local buyer consent: ${item.status}.`;
+        approval.textContent = `Recorded provider status: ${s.provider.status}. PayPal buyer approval: ${genuine && current && s.provider.status === 'APPROVED' ? 'reported APPROVED by the recorded API evidence' : 'not established by current evidence'}. Payment authorization and completion: not established. This app never captures. ${genuine && current && s.provider.status === 'CREATED' ? 'PayPal buyer approval not established. Payment not captured in this CREATED order observation.' : ''}`;
       };
       paintEvidence(); expiryChecks.push(paintEvidence);
+      article.append(element('p', `PayPal order ID: ${s.provider.order_id}.`));
       article.append(element('p', `Evidence read: ${new Date(e.observed_at).toLocaleString()}. App buyer identity is not proof of PayPal payer identity.`));
       for (const unit of s.provider.units) article.append(element('p', `Purchase unit ${unit.index}: ${exactAmount(unit)}`));
     } else article.append(element('p', 'SYNTHETIC DATA — merchant details are helper-supplied and unverified.'));
@@ -88,7 +89,7 @@ export function renderRequests(items, session, tools) {
         }, tools.perform);
       }
       if (item.status === 'approved') {
-        article.append(element('p', 'Consent recorded. No payment has been authorized or made.'));
+        article.append(element('p', 'Buyer consent approved. Consent recorded. No payment has been authorized or made.'));
         addButton(article, 'Consume consent once (local test only)', async () => {
           await tools.api(`${base}/consume`, { digest: item.digest });
           await tools.refresh(); tools.notify('Consent consumed once for this local test. No payment operation occurred.');
@@ -99,7 +100,7 @@ export function renderRequests(items, session, tools) {
         }, tools.perform);
       }
       if (item.status === 'expired') article.append(element('p', 'This request expired. It cannot be approved or consumed.'));
-      if (item.status === 'consumed') article.append(element('p', 'Local consent already consumed. It cannot be reused. No payment was made.'));
+      if (item.status === 'consumed') article.append(element('p', 'Consent consumed. Local consent already consumed. It cannot be reused. No payment was made.'));
     }
     if (s.kind === 'paypal') {
       let stale = false;

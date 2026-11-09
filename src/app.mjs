@@ -121,7 +121,7 @@ export function makeApp(store, config) {
       else if (action === 'options') send(200, await passkeys.approvalOptions(session, id, input.digest));
       else if (action === 'approve') send(200, await passkeys.approve(session, id, input));
       else {
-        const proof = action === 'consume' ? await paypal.revalidate(session, id) : null;
+        const proof = action === 'consume' ? await paypal.revalidate(session, id, { status: 'approved', digest: input.digest }) : null;
         send(200, requests.action(session, id, action, input.digest, proof));
       }
     } catch (error) {
