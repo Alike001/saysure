@@ -1,0 +1,46 @@
+{
+  "recorded_at": "2026-11-09T11:56:35.825Z",
+  "baseline_commit": "6c7e497",
+  "baseline_tests": {
+    "passed": 55,
+    "failed": 0
+  },
+  "final_tests": {
+    "passed": 59,
+    "failed": 0,
+    "skipped": 0
+  },
+  "checks": {
+    "syntax_size": "PASS; prior 208-line security test advisory",
+    "production_dependency_audit": "0 vulnerabilities",
+    "diff_whitespace": "PASS"
+  },
+  "browser_checks": "Original real-verifier Chrome journeys plus standalone fixture demo keyboard/axe/320px reflow; actual audio and intended-user screen readers not tested",
+  "preservation": {
+    "rp_id": "localhost",
+    "origin": "http://localhost:3100",
+    "credentials": 1,
+    "requests": 1,
+    "credentials_and_consent_snapshot_fingerprint_unchanged": true,
+    "paytale_modified": false
+  },
+  "paypal_requests_this_checkpoint": 0,
+  "order_creation_enabled": false,
+  "groq": {
+    "requests": 1,
+    "http_status": 200,
+    "old_exact_focus": "3/6",
+    "new_original_six_exact_focus": 6,
+    "ordinary_question_routing": "13/17",
+    "ai_question_routing": "17/17",
+    "comprehension_benefit": "UNPROVEN"
+  },
+  "release": {
+    "license": "Operator choice pending; MIT recommended, no license installed",
+    "repository_created": false,
+    "pushed": false,
+    "deployed": false,
+    "video_created": false
+  },
+  "next_gate": "Confirm sandbox REST app + merchant + receiving/buyer-approval limitations, then explicitly authorize the fixed 1.00 USD create/read attempt; no capture"
+}

@@ -1,0 +1,27 @@
+{
+  "at": "2026-11-09T11:51:45.582Z",
+  "method": "Local files and read-only SQLite only; no PayPal network requests",
+  "paypal_requests_this_run": 0,
+  "saysure_config_present": false,
+  "paytale_environment": "sandbox",
+  "client_id_sha256_prefix": "2faa5ef4c17b",
+  "matches_historical_app_fingerprint": true,
+  "app_display_name": "Not independently available from saved data; operator dashboard confirmation required",
+  "historical_payee": "7TSZELT2DA9JJ",
+  "historical_payee_matches_saved": true,
+  "merchant_country": "NG per prior user dashboard report; not freshly verified",
+  "buyer_country": "NG per prior user dashboard report; not freshly verified",
+  "saved_scopes": {
+    "observed_at": "2026-11-04T19:42:57.057Z",
+    "count": 26,
+    "payment_authcapture": true,
+    "webhooks": true,
+    "full_scope_list_retained": false,
+    "current_scopes_refreshed": false
+  },
+  "current_merchant_configured": false,
+  "current_order_configured": false,
+  "receiving_eligibility": "Not established",
+  "creation_enabled": false,
+  "decision": "NO-GO execution; merchant/app mapping and receiving/buyer-approval eligibility require operator confirmation plus explicit create authorization"
+}

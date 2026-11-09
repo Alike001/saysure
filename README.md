@@ -6,6 +6,19 @@ SaySure is the working name for this standalone accessible payment-consent exper
 
 ## How to Test
 
+**Judge/demo quick start — no private keys or credentials needed:**
+
+```sh
+npm ci --ignore-scripts
+npm run demo
+```
+
+Open **http://localhost:3200**. This is a **deterministic fixture demo**: no real PayPal responses, accounts, passkeys, live AI calls or payments. Every consent transition is explicitly simulated. It does not access the working localhost:3100 app or its saved evidence. Try quantity changes, decline, single simulated consumption and the six grounded buyer questions. Node 24+ is required.
+
+For actual verification, install Google Chrome and run `npm run check`, `npm test`, `npm audit --omit=dev` and `npm run audit:release`. The Chrome suite uses virtual authenticators with the real verifier and labelled mock provider transports. No operator PayPal/Groq credentials are required. [Submission pack / three-minute outline](docs/SUBMISSION-READINESS.md) · [Sandbox operator approval sheet](docs/SANDBOX-OPERATOR-APPROVAL.md).
+
+**Working local app and physical passkeys:**
+
 Node 24+, npm and a WebAuthn-capable browser are required. This checkout was provisioned locally; **do not rerun setup on it**. For a fresh checkout only:
 
 ```sh
@@ -107,3 +120,12 @@ Milestone verification: **39/39 automated tests passed**, including every origin
 - Next actual test is **NO-GO until separate approval** for one fixed 1.00 USD sandbox order, confirmed merchant, current GET and legitimate human approval observation. No capture. Public repository/remote push, license choice, judge access, demo video and reviewed deployment remain separate release gates.
 
 Milestone 3 verification: **55/55 tests passed**, including all previous 39. Syntax/size checks passed and production dependency audit reported zero vulnerabilities. Real API evidence is OAuth only; genuine current-order GET remains blocked.
+
+
+## Submission-readiness checkpoint
+
+The current [submission pack](docs/SUBMISSION-READINESS.md) distinguishes genuine OAuth evidence from fixture demonstrations, documents the license decision and remaining release gates, and supplies a credential-free judge setup. The [read-only sandbox preflight](docs/SANDBOX-OPERATOR-APPROVAL.md) matched the current private client fingerprint to the historical app record; merchant/app dashboard confirmation and receiving eligibility remain open. **No PayPal network requests were made in this checkpoint.** Creation remains disabled.
+
+The revised fixed-question AI evaluation matched 17/17 intended topics versus 13/17 ordinary keyword routes; it resolved the original three irrelevant-definition selections. This demonstrates bounded paraphrase routing, not proven human comprehension or completed payments. The fixture demo uses deterministic answers and ordinary browser speech, with no model dependency.
+
+Readiness acceptance: **59/59 tests passed** (baseline 55), with the registered credential and saved consent record unchanged. See [the final acceptance evidence](docs/SUBMISSION-READINESS.md#final-acceptance-evidence). License choice, current merchant/app confirmation, new sandbox creation authorization, genuine current GET, public publication and demo-video recording remain operator gates.

@@ -6,3 +6,9 @@ playwright-report/
 .env*
 *.key
 *.pem
+*.har
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+trace.zip

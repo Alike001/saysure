@@ -1,0 +1,12 @@
+{
+  "at": "2026-11-09T11:56:36.467Z",
+  "tracked_files_scanned": 73,
+  "history_blobs_scanned": 83,
+  "exact_private_values_checked": 6,
+  "findings": [],
+  "passed": true,
+  "limits": "Exact configured credentials/bootstrap secrets, private artifact paths and key markers only. Does not prove absence of unknown secrets, PII, legal/IP or dependency licensing issues.",
+  "remote_configured": false,
+  "license_present": false,
+  "no_push_or_deployment": true
+}

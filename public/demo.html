@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SaySure — deterministic judge demo</title><link rel="stylesheet" href="/style.css"><script type="module" src="/demo.js"></script></head>
+<body><a class="skip" href="#main">Skip to main content</a><header><h1>SaySure</h1><p>Your money. Your final say.</p>
+<p><strong>DEMO ONLY — deterministic fixtures. No real PayPal response, passkey ceremony, AI call or payment.</strong></p></header>
+<main id="main"><p id="message" role="status" aria-live="polite" tabindex="-1"></p>
+<section aria-labelledby="mode-heading"><h2 id="mode-heading">Choose fixture evidence</h2>
+<button id="synthetic">Synthetic request</button><button id="mock">MOCK PayPal order</button>
+<p>Your real localhost passkeys, accounts and consent evidence are not accessed by this demo.</p></section>
+<section aria-labelledby="review-heading"><h2 id="review-heading">Payment review</h2><div id="review"></div>
+<div role="group" aria-label="Simulated choices"><button id="approve">Simulate local consent approval</button><button id="consume">Simulate consuming consent once</button>
+<button id="decline">Simulate decline</button><button id="revise">Change fixture quantity (invalidates simulated consent)</button></div></section>
+<section aria-labelledby="help-heading"><h2 id="help-heading">Grounded buyer questions</h2>
+<p>Deterministic answers and ordinary speech. The separate Groq experiment routes questions to the same grounded answer types; this demo does not call a model.</p>
+<label for="question">Choose a buyer question</label><select id="question">
+<option value="difference">Why does my total differ from what I expected?</option><option value="items">What items am I being charged for?</option>
+<option value="merchant">Is this the same merchant I expected?</option><option value="payment">Has payment already happened?</option>
+<option value="decline">What happens if I decline?</option><option value="simple">Can you explain this in simpler language?</option></select>
+<button id="answer">Explain selected question</button><p id="explanation" role="status" aria-live="polite"></p>
+<button id="read-answer">Read explanation aloud</button><button id="stop-answer">Stop explanation audio</button></section>
+</main><footer><p>Real consent and provider failure checks are available in the automated Chrome suite. Fixture transitions are simulations only.</p></footer></body></html>
