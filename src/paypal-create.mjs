@@ -1,6 +1,6 @@
 import { ensure, Failure } from './core.mjs';
 import { SANDBOX } from './paypal-sandbox.mjs';
-// Separate future capability. No app route, CLI execution path, capture or authorize method.
+// No app route, capture or authorize method. Durable operator CLI: scripts/paypal-once.mjs.
 export function plannedOrder(merchantId) {
   ensure(typeof merchantId === 'string' && /^[A-Z0-9]{5,32}$/.test(merchantId), 'EXPECTED_PAYEE_REQUIRED');
   return { intent: 'CAPTURE', purchase_units: [{ reference_id: 'saysure-test',
