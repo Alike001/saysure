@@ -2,7 +2,7 @@
 
 **Your money. Your final say.**
 
-SaySure is the working name for this standalone accessible payment-consent experiment, testing additional transaction-specific consent. It supports server-authenticated PayPal sandbox order reading and transaction-bound local consent, plus synthetic consent and a separate constrained Groq evaluation. Reads are disabled by default; no current-order GET or complete PayPal checkout has yet been verified. Genuine OAuth connectivity was verified. No real money or payment operations are performed. The name has no claimed trademark or domain clearance; this is not a production-ready product or a claim of accessibility for all users. Synthetic requests remain explicitly labelled; PayPal API payee evidence does not independently verify a shop identity. See the current [PayPal integration milestone](docs/PAYPAL-INTEGRATION-MILESTONE.md) for evidence and limitations.
+SaySure is the working name for this standalone accessible payment-consent experiment, testing additional transaction-specific consent. It supports server-authenticated PayPal sandbox order reading and transaction-bound local consent, plus synthetic consent and a separate constrained Groq evaluation. Reads are disabled by default. One separately authorized sandbox create/GET succeeded; that order is now outside the unchanged local validity window and is not reused. Genuine real-order passkey consent and completed PayPal checkout remain unproved. No real money or payment operations are performed. The name has no claimed trademark or domain clearance; this is not a production-ready product or a claim of accessibility for all users. Synthetic requests remain explicitly labelled; PayPal API payee evidence does not independently verify a shop identity. See the latest [attended test gate](docs/ATTENDED-FINAL-TEST.md) and [submission checklist/demo script](docs/FINAL-SUBMISSION.md). Older milestone reports below are historical evidence.
 
 ## How to Test
 
@@ -72,7 +72,7 @@ Tests launch installed Google Chrome through Playwright (`channel: chrome`), cre
 
 ## Synthetic requests and actual PayPal operations
 
-Synthetic and PayPal-backed requests are distinct. Approved/consumed are local consent states, never proof of PayPal approval or payment completion. Enabled PayPal reads require private sandbox credentials, a confirmed expected merchant ID and operator-allowlisted current orders. There is no payment API route. A separate creation adapter is disabled by default and must not be executed without new approval. No creation, capture, refund, authorization or Live operation was performed. The historical 404 order is not active evidence.
+Synthetic and PayPal-backed requests are distinct. Approved/consumed are local consent states, never proof of PayPal approval or payment completion. Enabled PayPal reads require private sandbox credentials, a confirmed expected merchant ID and operator-allowlisted current orders. There is no payment API route. A separate creation adapter is disabled by default and must not be executed without new approval. One controlled sandbox create/read was performed; its order has since exceeded the local policy window. No capture, refund, payment authorization or Live operation was performed. New operations require the independent attended gate. Historical unavailable/expired-local-window orders are not current evidence.
 
 ## Cross-device HTTPS requirements
 
@@ -107,7 +107,7 @@ The app displays ordinary help, not live AI chat. A fresh six-question synthetic
 Milestone verification: **39/39 automated tests passed**, including every original security test; syntax/source-size checks and production dependency audit passed (zero vulnerabilities). Actual audio and intended-user screen-reader testing remain manual gates. Full changed-file inventory and limitations are in [the milestone report](docs/MILESTONE.md#final-verification-and-file-inventory).
 
 
-## Milestone 3 — current PayPal integration status
+## Milestone 3 — historical PayPal integration checkpoint
 
 [Full integration report, exact browser procedure, operator gate and submission checklist](docs/PAYPAL-INTEGRATION-MILESTONE.md).
 
@@ -130,4 +130,4 @@ The revised fixed-question AI evaluation matched 17/17 intended topics versus 13
 
 Readiness acceptance: **59/59 tests passed** (baseline 55), with the registered credential and saved consent record unchanged. See [the final acceptance evidence](docs/SUBMISSION-READINESS.md#final-acceptance-evidence). License choice, current merchant/app confirmation, new sandbox creation authorization, genuine current GET, public publication and demo-video recording remain operator gates.
 
-The [real order-bound consent milestone](docs/REAL-ORDER-CONSENT.md) prepares a private, durable read-only gate for the existing verified sandbox order. It requires separate authorization for at most one OAuth and four GETs, preserving every existing revalidation boundary. No additional PayPal call or real buyer ceremony was made during preparation. Run only its offline preflight until approved.
+The [real order-bound consent milestone](docs/REAL-ORDER-CONSENT.md) prepared a private read-only gate for an order that is now outside the local validity window. That old order is NO-GO and must not be reused. The [new attended test](docs/ATTENDED-FINAL-TEST.md) has an independent unapproved reservation. The earlier read plan required separate authorization for at most one OAuth and four GETs, preserving every existing revalidation boundary. No additional PayPal call or real buyer ceremony was made during preparation. For the new attempt, run only its offline preflight until separately approved.

@@ -69,7 +69,7 @@ async function responseData(response) {
   }
   return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 }
-export async function executeOnce({ directory, config, expectedFingerprint, approval, transport = fetch }) {
+export async function executeOnce({ directory, config, expectedFingerprint, approval, transport = fetch, onAuthenticated = () => {}, beforeRequest = () => {} }) {
   const record = await load(`${directory}/attempt.json`);
   validate(record, binding(config, expectedFingerprint));
   check(approval?.statement === APPROVAL && approval?.review_digest === record.review_digest,
@@ -84,6 +84,7 @@ export async function executeOnce({ directory, config, expectedFingerprint, appr
   async function request(operation, path, options) {
     const event = { operation, attempted_at: new Date().toISOString(), http_status: null, debug_id: null };
     result.operations.push(event); await save(); // Write-ahead: unknown outcome is never retried.
+    beforeRequest({ operation, path });
     const response = await transport(`${SANDBOX}${path}`, { ...options, redirect: 'error', signal: AbortSignal.timeout(15000) });
     event.http_status = response.status; event.debug_id = safeDebug(response.headers.get('paypal-debug-id'));
     await save();
@@ -105,6 +106,7 @@ export async function executeOnce({ directory, config, expectedFingerprint, appr
         'Content-Type': 'application/x-www-form-urlencoded' }, body: 'grant_type=client_credentials' });
     check(typeof auth.access_token === 'string' && /^[\x21-\x7e]+$/.test(auth.access_token) &&
       auth.token_type?.toLowerCase() === 'bearer', 'INVALID_TOKEN');
+    onAuthenticated({ access_token: auth.access_token, token_type: auth.token_type, expires_in: auth.expires_in });
     const headers = { Authorization: `Bearer ${auth.access_token}`, Accept: 'application/json' };
     const created = await request('order_create', '/v2/checkout/orders', { method: 'POST',
       headers: { ...headers, 'Content-Type': 'application/json', 'PayPal-Request-Id': record.request_id,

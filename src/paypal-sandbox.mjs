@@ -1,7 +1,7 @@
 import { ensure, Failure } from './core.mjs';
 export const SANDBOX = 'https://api-m.sandbox.paypal.com';
 const idPattern = /^[A-Z0-9]{5,32}$/;
-export function sandboxClient(config, { transport = fetch, observe = () => {}, now = Date.now } = {}) {
+export function sandboxClient(config, { transport = fetch, observe = () => {}, now = Date.now, initialToken } = {}) {
   ensure(config.PAYPAL_ENV === 'sandbox' && (!config.PAYPAL_MODE || config.PAYPAL_MODE === 'sandbox') &&
     (!config.PAYPAL_BASE_URL || config.PAYPAL_BASE_URL === SANDBOX), 'SANDBOX_ONLY_CONFIG_REQUIRED', 503);
   for (const key of ['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENT_SECRET']) {
@@ -9,6 +9,12 @@ export function sandboxClient(config, { transport = fetch, observe = () => {}, n
       !/^(your|replace|<)/i.test(config[key]), 'PAYPAL_CREDENTIALS_REQUIRED', 503);
   }
   let token, expiry = 0, inflight;
+  if (initialToken) {
+    ensure(typeof initialToken.access_token === 'string' && /^[\x21-\x7e]+$/.test(initialToken.access_token) &&
+      initialToken.token_type?.toLowerCase() === 'bearer' && Number.isFinite(initialToken.expires_at) &&
+      initialToken.expires_at > now(), 'PAYPAL_TOKEN_INVALID', 502);
+    token = initialToken.access_token; expiry = initialToken.expires_at;
+  }
   async function request(path, options, operation) {
     try {
       const response = await transport(`${SANDBOX}${path}`, { ...options, redirect: 'error', signal: AbortSignal.timeout(15000) });

@@ -1,5 +1,7 @@
 # SaySure — real order-bound passkey consent gate
 
+**Superseded for execution:** The referenced order exceeded the unchanged three-hour local window. It is NO-GO; this read plan must not be executed. The [fresh attended preparation](ATTENDED-FINAL-TEST.md) uses a new independent reservation and grant. This document remains the historical reviewed read-only scope.
+
 **Current decision: local implementation ready for review; external reads NOT AUTHORIZED.** No new PayPal request, including OAuth, was made in this milestone. The previous one-create/one-read grant is consumed. Its permanent execution marker is intact. Previous authenticated create/read evidence is historical only; it cannot establish current order availability or authorize local consent.
 
 ## Exact proposed external operations

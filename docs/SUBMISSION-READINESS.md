@@ -1,8 +1,8 @@
 # SaySure — submission preparation
 
-**Latest checkpoint:** A separately authorized one-order sandbox create/read succeeded and is preserved privately. That grant is consumed; order availability is not assumed current. The [real order-bound consent milestone](REAL-ORDER-CONSENT.md) prepares the next bounded read authorization and preserves existing passkeys/security. Real order-bound human consent remains unproved. The earlier results and next-action statements below are historical; no new order is authorized.
+**Historical checkpoint (superseded by [final preparation](FINAL-SUBMISSION.md) and [fresh attended gate](ATTENDED-FINAL-TEST.md)):** A separately authorized one-order sandbox create/read succeeded and is preserved privately. That grant is consumed; order availability is not assumed current. The [real order-bound consent milestone](REAL-ORDER-CONSENT.md) prepares the next bounded read authorization and preserves existing passkeys/security. Real order-bound human consent remains unproved. The earlier results and next-action statements below are historical; no new order is authorized.
 
-Target supplied by the operator: November 12, 2026, 12:00 PM Pacific / 9:00 PM WAT. This is a bounded release-preparation checkpoint, not a submission, deployment or claim of payment completion.
+Target: submit before November 12, 2026; verify the exact cutoff and timezone on the submission form. This is a bounded release-preparation checkpoint, not a submission, deployment or claim of payment completion.
 
 ## Accurate product pitch
 

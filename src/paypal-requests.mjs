@@ -47,7 +47,7 @@ export function paypalRequests(store, requests, integration) {
       merchant_id: provider.payee_id, merchant_name: `PayPal payee ${provider.payee_id} (shop identity unverified)`,
       amount_minor: provider.amount_minor, currency: provider.currency,
       description: 'Sandbox order. Merchant free text omitted for privacy. Purchase-unit totals are included in this review.',
-      revision, nonce: random(), expires_at: Math.min(Date.now() + 600000, provider.provider_window_end) };
+      revision, nonce: random(), expires_at: Math.min(Date.now() + 600000, provider.provider_window_end, integration.deadline ?? Infinity) };
   }
   async function create(session, input) {
     helper(session);
