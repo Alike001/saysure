@@ -1,3 +1,4 @@
+import { assertLocalExperiment } from './origin.mjs';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { Failure, ensure } from './core.mjs';
@@ -8,6 +9,8 @@ import { passkeyService } from './passkeys.mjs';
 const root = new URL('../', import.meta.url);
 const assets = new Map([
   ['/', ['public/index.html', 'text/html']], ['/app.js', ['public/app.js', 'text/javascript']],
+  ['/comprehension.js', ['public/comprehension.js', 'text/javascript']],
+  ['/presentation.js', ['public/presentation.js', 'text/javascript']],
   ['/review.js', ['public/review.js', 'text/javascript']], ['/style.css', ['public/style.css', 'text/css']],
   ['/webauthn.js', ['node_modules/@simplewebauthn/browser/dist/bundle/index.umd.min.js', 'text/javascript']],
 ]);
@@ -27,6 +30,7 @@ function keys(input, allowed) {
   ensure(Object.keys(input).every(k => allowed.includes(k)), 'UNKNOWN_FIELD', 400);
 }
 export function makeApp(store, config) {
+  assertLocalExperiment(config);
   const requests = requestService(store), passkeys = passkeyService(store, requests, config);
   const attempts = new Map();
   const cookie = token => `consent_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800${

@@ -1,3 +1,5 @@
+import { answer, topics } from './comprehension.js';
+import { addAudio, stopAudio, exactAmount } from './presentation.js';
 function element(tag, text) {
   const node = document.createElement(tag);
   if (text !== undefined) node.textContent = text;
@@ -8,20 +10,35 @@ function addButton(parent, title, handler, perform) {
   button.addEventListener('click', () => perform(button, handler)); parent.append(button);
   return button;
 }
+let expiryTimer;
 export function renderRequests(items, session, tools) {
+  clearInterval(expiryTimer);
+  const expiryChecks = [];
+  stopAudio();
   const host = document.getElementById('requests'); host.replaceChildren();
   if (!items.length) { host.append(element('p', 'No requests for this account.')); return; }
   for (const item of items) {
     const s = item.snapshot, id = s.request_id, base = `/api/requests/${id}`;
     const article = element('article');
-    const heading = element('h3', `${item.display_amount} — ${s.merchant_name}`);
+    const heading = element('h3', `${exactAmount(s)} — ${s.merchant_name}`);
     heading.id = `heading-${id}`; article.setAttribute('aria-labelledby', heading.id);
     article.append(heading);
     article.append(element('p', 'SYNTHETIC DATA — merchant details are helper-supplied and unverified.'));
+    if (session.user.role === 'buyer') {
+      addAudio(article, item, tools.notify);
+      const help = element('details'), title = element('summary', 'Questions about these details');
+      help.append(title);
+      for (const [topic, question] of Object.entries(topics)) {
+        const detail = element('details');
+        detail.append(element('summary', question), element('p', answer(topic, item))); help.append(detail);
+      }
+      article.append(help);
+      article.append(element('p', 'Audio may be heard by others. Your browser or OS supplies the voice.'));
+    }
     const list = element('dl');
     for (const [label, value] of [
       ['Request', id], ['Merchant ID', s.merchant_id], ['Merchant displayed name (unverified)', s.merchant_name],
-      ['Exact amount and currency', item.display_amount], ['Minor units', s.amount_minor],
+      ['Exact amount and currency', exactAmount(s)], ['Minor units', s.amount_minor],
       ['Description', s.description], ['Buyer account', s.buyer_id], ['Revision', String(s.revision)],
       ['Expires', new Date(s.expires_at).toLocaleString()], ['Status', item.status],
     ]) list.append(element('dt', label), element('dd', value));
@@ -36,14 +53,16 @@ export function renderRequests(items, session, tools) {
         label.htmlFor = check.id;
         label.append(check, document.createTextNode(' I reviewed this exact amount, currency, merchant and description. Approval records app consent only; it does not make a payment.'));
         article.append(label);
+        if (item.synthetic !== true) { article.append(element('p', 'Payment evidence unavailable. Approval blocked.')); host.append(article); continue; }
         addButton(article, 'Approve this synthetic request with my passkey', async () => {
           if (!check.checked) { check.focus(); throw new Error('Review the details and check the confirmation before using your passkey.'); }
+          stopAudio();
           const options = await tools.api(`${base}/options`, { digest: item.digest });
           const response = await window.SimpleWebAuthnBrowser.startAuthentication({ optionsJSON: options.options });
           await tools.api(`${base}/approve`, { challengeId: options.challengeId, response });
           await tools.refresh(); tools.notify('Consent approved for these exact details. No payment was authorized or made.');
         }, tools.perform);
-        addButton(article, 'Reject this request', async () => {
+        addButton(article, 'Decline / Reject this request', async () => {
           await tools.api(`${base}/reject`, { digest: item.digest });
           await tools.refresh(); tools.notify('Request rejected. No approval or payment was made.');
         }, tools.perform);
@@ -62,6 +81,24 @@ export function renderRequests(items, session, tools) {
       if (item.status === 'expired') article.append(element('p', 'This request expired. It cannot be approved or consumed.'));
       if (item.status === 'consumed') article.append(element('p', 'Local consent already consumed. It cannot be reused. No payment was made.'));
     }
+    if (['pending', 'approved'].includes(item.status)) {
+      let expired = false;
+      const expire = () => {
+        if (expired || s.expires_at > Date.now()) return;
+        expired = true; stopAudio();
+        // Keep audio available for historical review; disable consent mutations only.
+        for (const button of article.querySelectorAll(':scope > button')) button.disabled = true;
+        for (const check of article.querySelectorAll('input[type=checkbox]')) { check.checked = false; check.disabled = true; }
+        const notice = element('p', 'This review expired. Refresh requests. It cannot be approved or consumed.');
+        notice.setAttribute('role', 'status'); article.append(notice);
+        const help = article.querySelector('details');
+        if (help) for (const [i, p] of [...help.querySelectorAll('details p')].entries()) {
+          p.textContent = answer(Object.keys(topics)[i], item);
+        }
+      };
+      expire(); expiryChecks.push(expire);
+    }
     host.append(article);
   }
+  expiryTimer = setInterval(() => expiryChecks.forEach(check => check()), 1000);
 }

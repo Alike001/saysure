@@ -1,3 +1,4 @@
+import { stopAudio } from './presentation.js';
 import { renderRequests } from './review.js';
 const $ = id => document.getElementById(id);
 let session;
@@ -35,6 +36,7 @@ export async function perform(button, fn) {
   } finally { button.disabled = false; }
 }
 async function load() {
+  stopAudio();
   session = await api('/api/session', undefined, 'GET');
   const user = session.user;
   $('login-panel').hidden = !!user;

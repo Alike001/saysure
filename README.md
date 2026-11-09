@@ -2,7 +2,7 @@
 
 **Your money. Your final say.**
 
-SaySure is the working name for this standalone accessible payment-consent experiment, testing additional transaction-specific consent. It has no PayPal/Groq integration, payment credentials or real money. The name has no claimed trademark or domain clearance; this is not a production-ready product or a claim of accessibility for all users. All requests and merchant identities are synthetic and unverified.
+SaySure is the working name for this standalone accessible payment-consent experiment, testing additional transaction-specific consent. It has a disconnected, mock-tested PayPal read adapter and a separate Groq comprehension evaluation; the buyer app performs no payment operations and uses no payment credentials or real money. The name has no claimed trademark or domain clearance; this is not a production-ready product or a claim of accessibility for all users. All requests and merchant identities are synthetic and unverified.
 
 ## How to Test
 
@@ -71,4 +71,24 @@ A future local cross-device setup needs a stable DNS hostname, HTTPS certificate
 
 Provisioning fixes helper/buyer roles and issues separate random bootstrap secrets. Buyer passkeys are one per buyer; there is no recovery/replacement or role/ownership-change endpoint. Protect the buyer's secret before first enrollment. A compromised bootstrap, local administrator, shared authenticator unlock, synced passkey account or malicious server can undermine ownership. Passkeys authenticate credential control and user verification; they do not prove real-world identity or understanding of the signed purchase. The generic browser prompt does not independently display or attest the transaction wording.
 
-Session cookies are HttpOnly and SameSite Strict; Secure is unavailable on this plain-HTTP localhost configuration. Cookies are stored hashed in SQLite, rotated on login and checked with expiry. Mutations require same origin and session CSRF token. Never expose this localhost research server to an untrusted network. `.local/`, dependencies, private keys and secrets are ignored by Git. No data is sent to an external service by application code; no biometric samples are requested or stored. WebAuthn passes public credential/assertion data and verification flags.
+Session cookies are HttpOnly and SameSite Strict; Secure is unavailable on this plain-HTTP localhost configuration. Cookies are stored hashed in SQLite, rotated on login and checked with expiry. Mutations require same origin and session CSRF token. Never expose this localhost research server to an untrusted network. `.local/`, dependencies, private keys and secrets are ignored by Git. The buyer app sends no transaction data to Groq or PayPal; an explicit evaluation script sends fixed synthetic questions to Groq. Browser/OS speech voices may use their own services; no biometric samples are requested or stored. WebAuthn passes public credential/assertion data and verification flags.
+
+
+## Accessible buyer review milestone — 9 November 2026
+
+The physical Chrome/phone passkey test is now recorded as **user-reported manual evidence**: separate sessions, enrollment, synthetic Example Store 1.00 USD review, phone screen-lock PIN authentication, approval and one consumption ending in `consumed`. This is not a fresh automated test or independent production audit. See [milestone evidence, phone blocker, PayPal plan and AI evaluation](docs/MILESTONE.md).
+
+To try the new experience on this already-provisioned checkout:
+
+1. If an older server is running, stop it with Ctrl+C in its terminal, then run `npm start`. Do not rerun setup or delete `.local/`.
+2. Open **http://localhost:3100** in separate Helper and Buyer profiles. Retrieve your own secret privately with `npm run account -- helper` or `npm run account -- buyer-a`. Reuse buyer-a's enrolled passkey; do not register again.
+3. As Helper create a synthetic request for buyer-a: merchant `SYNTH-SHOP-1`, name `Example Store`, amount `1.00`, currency `USD`, description `Synthetic notebook — no real money`, lifetime `10` minutes.
+4. As Buyer select **Refresh requests**. Confirm amount, currency, merchant reference/name, description, expiry, revision and the synthetic/unverified notice. Select **Read payment details aloud**; try **Pause audio**, **Resume audio**, **Stop audio**. No action approves automatically. Try **Questions about these details** for ordinary grounded answers.
+5. Use Tab/Shift+Tab, Enter and Space to navigate. First use **Decline / Reject this request** on a throwaway request. Create another, review it, check the confirmation and explicitly choose **Approve this synthetic request with my passkey**. Complete your existing native phone-assisted authenticator flow. Approval is local consent only.
+6. Optionally consume once using the local test control. Try the existing revision/expiry procedures above: stale details must be refused. With a one-minute request, expiry disables consent controls without approving anything. Listening remains available for historical details.
+7. Test browser zoom and a narrow window; then your actual screen reader. Report voice pronunciation, pause behavior, focus and any misunderstanding. Direct phone-browser review is blocked pending a separate reviewed HTTPS environment and fresh enrollment for that domain.
+
+The app displays ordinary help, not live AI chat. A fresh six-question synthetic Groq evaluation selected 6/6 expected categories, but no incremental comprehension benefit was demonstrated. An explicit optional rerun is `node scripts/evaluate-comprehension.mjs`; it requires the existing private Groq configuration and sends only fixed synthetic questions. Automated tests never call Groq or PayPal.
+
+
+Milestone verification: **39/39 automated tests passed**, including every original security test; syntax/source-size checks and production dependency audit passed (zero vulnerabilities). Actual audio and intended-user screen-reader testing remain manual gates. Full changed-file inventory and limitations are in [the milestone report](docs/MILESTONE.md#final-verification-and-file-inventory).

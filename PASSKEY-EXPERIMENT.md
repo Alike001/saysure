@@ -2,7 +2,7 @@
 
 **Your money. Your final say.** SaySure is a working name only; no trademark or domain clearance is claimed.
 
-5 November 2026. **The implemented mechanism passes automated browser/protocol tests; the experiment is not fully qualified until a human-controlled authenticator completes registration and approval.** The user elected to perform the manual test; no result has yet been recorded here. No complete hackathon product is started.
+5 November 2026 baseline, updated 9 November. **The user now reports successful physical phone-assisted enrollment and approval in Chrome**, followed by one local consent consumption. This is user-reported manual evidence, not independent production qualification. Earlier pending statements below describe historical runs. See the current milestone record.
 
 ## SaySure working-name verification — 9 November 2026
 
@@ -78,7 +78,7 @@ Automated Chrome uses separate contexts/cookies for helper, buyer-a and buyer-b,
 
 The [unmodified tool-browser check](evidence/browser-capability.json) found a secure localhost context, WebAuthn API and browser bundle available, but **no user-verifying platform authenticator**. No physical registration was attempted from that browser. This observation does not rule out a user browser, passkey provider or security key.
 
-**Human passkey result: PENDING.** The user elected to test in their own browser. [README manual steps](README.md#real-passkey-manual-procedure) explain independent profiles, private secret retrieval, registration, review, approval, rejection, revisions, restart and second-buyer testing. Record user-reported outcomes separately from backend observations. Do not claim physical enrollment, independent-device approval, human comprehension, mobile compatibility or screen-reader success before those results exist.
+**Historical human passkey status at the original run: PENDING; superseded by the user-reported milestone below.** The user elected to test in their own browser. [README manual steps](README.md#real-passkey-manual-procedure) explain independent profiles, private secret retrieval, registration, review, approval, rejection, revisions, restart and second-buyer testing. Record user-reported outcomes separately from backend observations. Do not claim physical enrollment, independent-device approval, human comprehension, mobile compatibility or screen-reader success before those results exist.
 
 ## Transaction-binding guarantees and limits
 
@@ -103,3 +103,10 @@ All request data is synthetic, but users can still type sensitive text: do not d
 ## Viability and next step
 
 **Provisionally technically viable at the browser/protocol level; physical-user consent and accessibility qualification remain open.** Full product development stays NO-GO. Complete the human-controlled enrollment/approval and independent-session check first. If it fails, preserve the failure, identify the actual browser/provider limitation and do not substitute virtual success or reduce required verification. If it passes, next observe a screen-reader user independently reviewing, rejecting and approving revised synthetic requests; broader PayPal/AI work remains outside this experiment.
+
+
+## Current buyer-review milestone — 9 November 2026
+
+The user reports completing independent Helper/Buyer sessions in the actual Chrome app, buyer enrollment, preparation/review of a synthetic 1.00 USD Example Store request as buyer-a, physical phone screen-lock PIN verification, approval, one consumption and final `consumed` status. No new physical test was executed by the agent. This does not prove phone-browser review, screen-reader comprehension, production security or completed PayPal integration.
+
+[The milestone report](docs/MILESTONE.md) records the new accessible review, deterministic speech/help, read-only mocked PayPal adapter and separate synthetic Groq evaluation. The original transaction-bound consent protocol and local enrollment are preserved. Historical NO-GO statements apply to the earlier full-product proposal; this authorized bounded prototype milestone does not authorize deployment or payment operations.

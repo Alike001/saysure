@@ -1,0 +1,28 @@
+{
+  "recorded_at": "2026-11-09T11:21:26.632910+00:00",
+  "baseline_commit": "51fcaf417b14e6518b4019f518f635cee33729bf",
+  "baseline_tests": {
+    "passed": 28,
+    "failed": 0
+  },
+  "final_tests": {
+    "command": "npm test",
+    "passed": 39,
+    "failed": 0,
+    "skipped": 0
+  },
+  "checks": {
+    "npm run check": "PASS; existing 208-line advisory",
+    "npm audit --omit=dev": "PASS; 0 vulnerabilities",
+    "git diff --check": "PASS"
+  },
+  "browser_evidence": "Chrome virtual authenticators; speech API stubs; axe and responsive viewport; no physical audio or phone browser audit",
+  "manual_evidence": "User reports actual Chrome + physical phone screen-lock PIN, local approval and one consumption ending consumed; not independently verified",
+  "paypal_calls": 0,
+  "paypal_write_operations": 0,
+  "deployments": 0,
+  "remote_pushes": 0,
+  "groq_evaluation": "One actual request with six fixed synthetic questions; 6 expected topic matches; incremental comprehension usefulness not demonstrated",
+  "paytale_modified": false,
+  "local_store_reprovisioned_or_migrated": false
+}
