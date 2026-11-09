@@ -1,5 +1,6 @@
 {
   "name": "isolated-accessible-consent-passkey",
+  "description": "SaySure — Your money. Your final say. Isolated synthetic payment-consent passkey experiment; no payment operations.",
   "version": "0.1.0",
   "private": true,
   "type": "module",

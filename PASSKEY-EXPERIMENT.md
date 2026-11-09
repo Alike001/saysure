@@ -1,6 +1,21 @@
-# Isolated accessible consent passkey experiment
+# SaySure — isolated accessible consent passkey experiment
+
+**Your money. Your final say.** SaySure is a working name only; no trademark or domain clearance is claimed.
 
 5 November 2026. **The implemented mechanism passes automated browser/protocol tests; the experiment is not fully qualified until a human-controlled authenticator completes registration and approval.** The user elected to perform the manual test; no result has yet been recorded here. No complete hackathon product is started.
+
+## SaySure working-name verification — 9 November 2026
+
+- Initial working tree was clean; expected commit `0d8bb21` was HEAD and remains in history. No Git remote is configured. No directory or file was renamed. The sibling PayTale repository remains at `674aba330e2abbba3c4d8b8a054a919352db0cbe`, with its existing untracked `docs/research/` untouched. Relevant prior REPORT, ARCHITECTURE and TESTS research was read as historical context, not treated as new execution evidence.
+- Updated the HTML page title/heading/tagline, README, this experiment record and package description. Package name, lockfile, all source logic, scripts, tests, schema, endpoints, session cookie name and credential identifiers are unchanged. No migration is needed. The authenticator RP display name intentionally remains `Synthetic consent experiment`; SaySure is the page's working name.
+- Unchanged configuration: listener `127.0.0.1:3100`, expected origin `http://localhost:3100`, RP ID `localhost`, store `.local/consent.sqlite`, cookie `consent_session`. Required UV, signature verification, Host/Origin/CSRF checks, CSP and one-time atomic consent transitions are unchanged. Current SimpleWebAuthn [RP and verifier documentation](https://simplewebauthn.dev/docs/packages/server) was checked through Context7.
+- Inspected the static allowlist and all routes: session/login/logout, helper buyer list and request creation/revision, buyer enrollment options/verification, filtered requests and request options/approve/reject/withdraw/consume. Inspected all scripts, test cases, schema and security configuration. Setup was not rerun; no secrets were printed. Read-only SQLite quick-check returned `ok`: three provisioned users, zero credentials/sessions/requests/challenges/events at inspection. Private files retain mode 0600 under a 0700 directory. There were no existing enrolled passkeys to exercise physically; code and association storage were preserved.
+- Local startup: `npm start` succeeded; HTTP GET `/` returned the SaySure title/tagline and `/api/session` reported the exact expected origin and RP ID. Listener confirmed loopback-only. The server was left running for the operator; if it later stops, use the README startup command.
+- Regression run: `npm run check` PASS (existing advisory: security test file is 208 lines, target 200, below the 300-line limit); `npm test` **28/28 PASS**, zero failures/skips; `npm audit --omit=dev` reported zero vulnerabilities. Evidence timestamp: `2026-11-09T10:43:36.350Z`; browser `153.0.8010.52`. The suite uses isolated temporary SQLite and virtual CTAP2 authenticators; no live local enrollment or request was created by those tests.
+- All existing security scenarios passed, including buyer/helper separation, snapshot binding, signed wrong origin/RP fields, invalid signature, challenge/request expiry, single-use challenges, 100 assertion replays, amount/merchant/currency tampering, credential/session persistence on restart, concurrent duplicates and withdrawal/consumption races. No security regression was observed in this bounded suite. A future security failure is NO-GO.
+- **Physical phone-backed result: NOT EXECUTED; operator interaction required.** Use the README's exact manual procedure. Native phone pairing availability is unverified. A hybrid phone authenticator does not prove that review occurred independently on the phone; the current phone browser cannot reach this computer's loopback listener. No virtual result is substituted for physical evidence.
+- Remaining gates: actual registration/approval on the buyer's own device; intended-user screen-reader/keyboard testing; independent ownership and comprehension observations; timing/recovery limitations. Authentication proves credential control and required local verification, not human comprehension. No claim of universal accessibility or production readiness is made.
+- PayPal remains unintegrated. Earlier research recorded an unresolved sandbox approval restriction and an existing-order GET 404; neither was re-probed here. Genuine fresh provider evidence, merchant verification and a separately authorized integration remain blockers. No PayPal requests, new orders, captures, refunds, financial operations, deployment, remote push or reference-repository edits occurred. Full product development remains NO-GO.
 
 ## Architecture and implementation
 
@@ -14,7 +29,7 @@ Standalone repository: `/home/ali/Desktop/paypal/accessible-consent-passkey`. Pa
 | `src/core.mjs` | Exact integer currency conversion; fixed canonical snapshot encoding and SHA-256 digest; input checks |
 | `src/requests.mjs` | Helper creation/revision; immutable buyer ownership; filtered inbox; reject/withdraw; one-time consent consumption |
 | `src/passkeys.mjs` | Maintained-library registration and assertion verification; buyer/credential/session binding; required UV; expiring single-use challenges |
-| `public/` | Minimal semantic forms, buyer inbox/review, native authenticator calls, plain state feedback/focus; no branding or marketing |
+| `public/` | Minimal semantic forms, buyer inbox/review, native authenticator calls, plain state feedback/focus; SaySure working-name heading and tagline; synthetic/security limitations retained |
 | `test/` | Canonical/amount tests, separate browser contexts and virtual authenticators, negative protocol/signature tests, restart/concurrency and accessibility checks |
 | `README.md`, `QUALITY.md`, `evidence/` | Exact manual instructions, local verification gates and recorded actual test evidence |
 
