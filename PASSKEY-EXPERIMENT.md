@@ -2,9 +2,18 @@
 
 **Your money. Your final say.** SaySure is a working name only; no trademark or domain clearance is claimed.
 
+
+## Current approved baseline and release verification
+
+Final independent security approval covers commit **22c116be7f0a88843a50d6ff3f5cf6464c152177** (`22c116b`), with **186/186 tests passed** and no outstanding security findings. This approves the local prototype, not payment completion, comprehension, deployment or publication.
+
+The subsequent release-readiness audit verified a temporary fresh local clone on the existing Linux host: Node 24.14.1, npm 11.13.0, installed Google Chrome/system libraries and the host npm cache. Dependency installation, 186 tests, syntax checks, default synthetic app startup, Helper/Buyer screens and the isolated demo passed without private configuration. Production-only and full dependency audits reported zero known vulnerabilities at that check. This is not cross-platform or blank-machine verification.
+
+Historical PayPal-order consumption remains unconfirmed. The old attended instructions are archived; its authorization and execution marker must never be reused or reset. No provider operation is authorized by this record. See the [API reference](docs/API.md) and [current release preparation](docs/FINAL-SUBMISSION.md). Dated test counts and observations below retain their historical meaning.
+
 5 November 2026 baseline, updated 9 November. **The user now reports successful physical phone-assisted enrollment and approval in Chrome**, followed by one local consent consumption. This is user-reported manual evidence, not independent production qualification. Earlier pending statements below describe historical runs. See the current milestone record.
 
-## SaySure working-name verification — 9 November 2026
+## Historical SaySure working-name verification — 9 November 2026
 
 - Initial working tree was clean; expected commit `0d8bb21` was HEAD and remains in history. No Git remote is configured. No directory or file was renamed. The sibling PayTale repository remains at `674aba330e2abbba3c4d8b8a054a919352db0cbe`, with its existing untracked `docs/research/` untouched. Relevant prior REPORT, ARCHITECTURE and TESTS research was read as historical context, not treated as new execution evidence.
 - Updated the HTML page title/heading/tagline, README, this experiment record and package description. Package name, lockfile, all source logic, scripts, tests, schema, endpoints, session cookie name and credential identifiers are unchanged. No migration is needed. The authenticator RP display name intentionally remains `Synthetic consent experiment`; SaySure is the page's working name.
@@ -25,9 +34,15 @@ Standalone repository: `/home/ali/Desktop/paypal/accessible-consent-passkey`. Pa
 | --- | --- |
 | `src/server.mjs`, `src/app.mjs` | Loopback server, exact Host/Origin, bounded JSON, CSRF, CSP, explicit static-file allowlist and role-checked API |
 | `src/identity.mjs`, `scripts/setup.mjs`, `scripts/account.mjs` | Fixed helper/buyer-a/buyer-b provisioning; separate random secrets; scrypt hashes; hashed opaque session cookies, login rotation, expiry/logout |
-| `src/store.mjs` | Private durable SQLite, WAL/FULL sync, immediate transactions, users/credentials/sessions/requests/challenges/events |
-| `src/core.mjs` | Exact integer currency conversion; fixed canonical snapshot encoding and SHA-256 digest; input checks |
-| `src/requests.mjs` | Helper creation/revision; immutable buyer ownership; filtered inbox; reject/withdraw; one-time consent consumption |
+| `src/store.mjs` | Private durable SQLite, WAL/FULL sync, immediate transactions, users/credentials/sessions/requests/challenges/events plus PayPal bindings, durable consumption claims and independent diagnostic tables |
+| `src/core.mjs`, `public/consent-shape.js`, `src/order-shape.mjs` | Exact amounts; shared ordered canonical tuples and SHA-256 binding; synthetic v1, PayPal v2 and legacy v1 byte compatibility |
+| `src/requests.mjs` | Helper creation/revision, ownership and inbox; reject/withdraw; atomic consumption/state/event/challenge changes and committed receipt |
+| `src/routes.mjs`, `src/consumption.mjs` | Canonical route admission; live session/digest/expiry checks; cross-process claims, timeout/abort and no duplicate provider read |
+| `src/paypal-sandbox.mjs`, `src/paypal-provenance.mjs`, `src/paypal-requests.mjs` | Fixed sandbox adapter authority, mock classification, server normalization/revalidation and immutable provenance |
+| `src/paypal-read-plan.mjs`, `src/paypal-attended.mjs` | Separately authorized operator policies and persistent read ceilings; historical grants cannot be reset or reused |
+| `src/consumption-diagnostics.mjs` | Best-effort bounded traces and separate rejection counters; allowlisted metadata, independent of mandatory consume events |
+| `public/consumption.js`, `public/evidence-provenance.js` | Reviewed-snapshot/digest/receipt validation, source consistency and safe acknowledgement/refresh behavior |
+| `scripts/release-audit.mjs` | Non-destructive stdout release scan, explicit report output and safe failures without sibling configuration |
 | `src/passkeys.mjs` | Maintained-library registration and assertion verification; buyer/credential/session binding; required UV; expiring single-use challenges |
 | `public/` | Minimal semantic forms, buyer inbox/review, native authenticator calls, plain state feedback/focus; SaySure working-name heading and tagline; synthetic/security limitations retained |
 | `test/` | Canonical/amount tests, separate browser contexts and virtual authenticators, negative protocol/signature tests, restart/concurrency and accessibility checks |
@@ -35,7 +50,7 @@ Standalone repository: `/home/ali/Desktop/paypal/accessible-consent-passkey`. Pa
 
 Helper and buyers authenticate using distinct provisioned secrets; roles come from the database, not tabs, parameters, form choices or a client cookie role. One buyer credential is accepted per account. The helper has no enrollment, approval, rejection or consumption privilege, cannot change buyer ownership, and cannot enroll a replacement. The local administrator's initial provisioning and secret distribution are trusted; this is not verified civil identity or PayPal account ownership.
 
-States: pending → approved → consumed, with rejected/withdrawn/expired terminal alternatives. A permitted helper revision of an unconsumed pending/approved request increments revision, rotates nonce and expiry, resets to pending, clears consent and invalidates challenges. Closed requests cannot be edited. “Consumed” is a local test action, never a payment operation.
+States: pending → approved → consumed, with rejected/withdrawn/expired terminal alternatives and an invalidated state for changed/unavailable PayPal evidence. A permitted helper revision of an unconsumed pending/approved request increments revision, rotates nonce and expiry, resets to pending, clears consent and invalidates challenges. Closed requests cannot be edited. “Consumed” is a local test action, never a payment operation.
 
 ## Dependencies and documentation
 

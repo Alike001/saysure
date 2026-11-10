@@ -1,4 +1,16 @@
-# SaySure — final attended sandbox test
+# SaySure — historical attended sandbox test archive
+
+**HISTORICAL — DO NOT EXECUTE THESE INSTRUCTIONS.** This reservation has execution/result records. Its old authorization is consumed and must not be reused. Preserve the old authorization files, request/idempotency identifiers, read-budget files and execution marker unchanged. Do not delete, reset, edit, replay or repurpose a marker/grant, and do not rerun preflight or execution as a release-preparation step. Historical PayPal-order consumption remains unconfirmed; later code fixes do not repair that outcome.
+
+Final independent security approval covers commit **22c116be7f0a88843a50d6ff3f5cf6464c152177** (`22c116b`), with **186/186 tests passed** and no outstanding security findings. This approves the local prototype, not payment completion, comprehension, deployment or publication.
+
+The subsequent release-readiness audit verified a temporary fresh local clone on the existing Linux host: Node 24.14.1, npm 11.13.0, installed Google Chrome/system libraries and the host npm cache. Dependency installation, 186 tests, syntax checks, default synthetic app startup, Helper/Buyer screens and the isolated demo passed without private configuration. Production-only and full dependency audits reported zero known vulnerabilities at that check. This is not cross-platform or blank-machine verification.
+
+Any future provider experiment needs a new separately reviewed scope and explicit authorization. None is authorized here. MIT licensing and original-code ownership are owner-confirmed; the root [LICENSE](../LICENSE) is prepared with `Copyright (c) 2026 Hammed Ali Oyeleye`. Current next actions are documentation and an honest demo recording; public publication remains separately gated. See [release preparation](FINAL-SUBMISSION.md).
+
+## Original preparation record — superseded
+
+Statements below such as “no approval file, execution marker or new order exists” describe the earlier preparation checkpoint only. Commands and approval wording are retained for historical traceability, not as valid instructions or reusable authorization.
 
 **Preparation only. No new external request is authorized or executed.** The prior order failed the unchanged three-hour local policy and must not be read/imported/reused. Its create marker and prior read plan are preserved. This is one new independently reviewed reservation, not an automatic retry or replacement after a failure in this attempt.
 

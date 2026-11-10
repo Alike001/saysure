@@ -1,5 +1,12 @@
 # SaySure Milestone 3 — PayPal Orders integration
 
+
+**Historical milestone.** Provider observations, counts and next-action proposals below belong to this dated checkpoint. They grant no current operations. Do not reuse the old attended authorization or execution marker; historical PayPal-order consumption remains unconfirmed.
+
+Final independent security approval covers commit **22c116be7f0a88843a50d6ff3f5cf6464c152177** (`22c116b`), with **186/186 tests passed** and no outstanding security findings. This approves the local prototype, not payment completion, comprehension, deployment or publication.
+
+Current contract: [API reference](API.md), [consumption corrections](CONSUMPTION-CORRECTIONS.md) and [architecture map](../PASSKEY-EXPERIMENT.md#architecture-and-implementation).
+
 9 November 2026. Starting commit `e3910e9`, clean working tree; baseline **39/39 tests passed** before changes. Localhost origin, RP ID, enrollment, account secrets and credential storage are preserved. No setup/re-enrollment, database reset, deployment or remote push was performed. The existing physical phone-backed result remains user-reported manual evidence, not a fresh agent-run test.
 
 ## Decision
@@ -29,11 +36,17 @@ Normalization validates returned ID, CAPTURE intent, known status, creation time
 
 Supported currencies remain USD, EUR, NGN and JPY. A conservative local three-hour window from provider creation and ten-minute request deadline are enforced; these are **application limits, not a provider expiry guarantee**. Each network observation must be less than 60 seconds old, measured from read start. Orders with extensions or unsupported structures can be rejected safely. Real order item names, descriptions, shipping, payer and free text are deliberately omitted from the persisted/UI projection to avoid leaking personal information embedded in them. The real UI currently shows purchase-unit totals, not provider item-name explanations. Numerical unit totals are not a full itemization or fee guarantee.
 
+## Current implementation addendum — approved `22c116b`
+
+New PayPal snapshots use `paypal-consent-v2`, adding immutable evidence provenance to the ordered consent tuple. Legacy v1 bytes remain readable but cannot obtain new authenticated evidence or consumption receipts. The fixed sandbox constructor alone registers genuine adapter identities; every explicit transport override is mock.
+
+`src/consumption.mjs` coordinates durable SQLite claims before provider reads and rechecks session/ownership/expiry after I/O. `src/consumption-diagnostics.mjs` maintains separate bounded authenticated traces and rejection aggregates. `src/requests.mjs` atomically commits the state, timestamp, challenge invalidation and mandatory consume event; the receipt is marked committed only after COMMIT. `public/consumption.js` validates it against the reviewed snapshot before announcing success. New tables are `consumption_claims`, `consumption_diagnostics` and `consumption_rejections`, alongside `paypal_bindings`.
+
 ## Consent binding and state transitions
 
-Synthetic requests retain the original `synthetic-consent-v1` canonical bytes. PayPal requests use a distinct `paypal-consent-v1` tuple binding order ID, sandbox environment, intent, recorded provider status, exact purchase-unit values and total, currency, expected payee, provider creation/window, application buyer, request ID, revision, nonce, description and local expiry. These cannot be edited through the synthetic helper API. One durable binding per sandbox order prevents rebinding an already consumed order to another app buyer.
+Synthetic requests retain the original `synthetic-consent-v1` canonical bytes. At this historical milestone, PayPal requests used a distinct `paypal-consent-v1` tuple binding order ID, sandbox environment, intent, recorded provider status, exact purchase-unit values and total, currency, expected payee, provider creation/window, application buyer, request ID, revision, nonce, description and local expiry. These cannot be edited through the synthetic helper API. One durable binding per sandbox order prevents rebinding an already consumed order to another app buyer.
 
-Only an additive `paypal_bindings` table is introduced; no credential column, RP ID, origin or existing snapshot is migrated. It records observation freshness, availability and genuine-versus-mock provenance. Injected mock transports remain explicitly labelled **MOCK PayPal fixture** in UI and speech.
+At that checkpoint only an additive `paypal_bindings` table was introduced; no credential column, RP ID, origin or existing snapshot is migrated. It records observation freshness, availability and genuine-versus-mock provenance. Injected mock transports remain explicitly labelled **MOCK PayPal fixture** in UI and speech.
 
 The server re-reads evidence before issuing a challenge, after verifying the buyer's passkey signature, and before local consent consumption. It compares the full normalized payment tuple, then checks the current digest, status, challenge, session, freshness and evidence availability in the atomic state transition. Network I/O stays outside SQLite transactions. Any detected material change or failed read invalidates consent/challenges and requires a helper re-read plus a fresh buyer review. A helper re-read always increments revision, rotates nonce and clears prior consent, even if financial values are unchanged.
 

@@ -1,6 +1,13 @@
-# Consumption security corrections — pending review
+# Consumption security corrections — approved baseline
 
-This uncommitted change set addresses the original acknowledgement/concurrency/audit gaps and the three subsequent medium review findings. It does not establish the exact historical failure trigger, modify a historical consent, authorize a new provider operation or retry an old grant. No commit, staging, deployment or push is included.
+The change set committed as `22c116b` addresses the original acknowledgement/concurrency/audit gaps and the three subsequent medium review findings. It does not establish the exact historical failure trigger, modify a historical consent, authorize a new provider operation or retry an old grant. No historical evidence was repaired or replaced by that commit. This document grants no provider operation, deployment or publication.
+
+
+Final independent security approval covers commit **22c116be7f0a88843a50d6ff3f5cf6464c152177** (`22c116b`), with **186/186 tests passed** and no outstanding security findings. This approves the local prototype, not payment completion, comprehension, deployment or publication.
+
+The subsequent release-readiness audit verified a temporary fresh local clone on the existing Linux host: Node 24.14.1, npm 11.13.0, installed Google Chrome/system libraries and the host npm cache. Dependency installation, 186 tests, syntax checks, default synthetic app startup, Helper/Buyer screens and the isolated demo passed without private configuration. Production-only and full dependency audits reported zero known vulnerabilities at that check. This is not cross-platform or blank-machine verification.
+
+Current release preparation is documentation and non-destructive audit tooling only. Historical PayPal-order consumption remains unconfirmed. See the [current API reference](API.md) for endpoint and receipt contracts.
 
 ## One authoritative consumption timestamp
 
@@ -74,7 +81,9 @@ The preload is a best-effort loopback-only fetch/TCP guard plus UDP-creation blo
 
 The regression set covers exact expiry boundaries/clock advancement/rollback, original-snapshot retention and every transaction-field mutation, canonical byte compatibility, valid receipts and post-commit refresh failure, unauthenticated flooding and independent retention, real overlapping requests with one read slot, cross-instance claims, duplicate rejection, late-response cancellation, wrong actors, provider changes and restart persistence.
 
-## Previous verification and pending files
+## Historical verification rounds and file inventories
+
+The following rounds record their state before final independent approval. References to an uncommitted tree or pending review below are historical, not the current release status.
 
 Full offline suite: **154/154 passed**, zero failures/skips; all 121 prior cases plus 33 additional cases. The focused boundary/snapshot/diagnostic run passed 36/36. Actual overlapping HTTP requests with one GET slot, shared-store coordination, SQLite rollback, timeout/late response and restart tests pass. Syntax/source-size and whitespace checks pass, retaining the existing 208-line security-test advisory. Offline dependency audit reported zero vulnerabilities without a fresh registry lookup. Exact configured-secret/private-key scanning of 95 source/document files found zero findings. All 34 historical/private baseline hashes match, including the saved security-results artifact. PayTale's pre-existing state is unchanged. No provider call, real credential operation, historical-order operation, staging, commit, deployment or push occurred.
 
@@ -85,7 +94,7 @@ Complete uncommitted change set relative to HEAD (including the earlier correcti
 - Tests: `test/harness.mjs`, `test/security.test.mjs`, `test/consumption.test.mjs`, `test/consumption-boundaries.test.mjs`, `test/consumption-snapshot.test.mjs`, `test/consumption-diagnostics.test.mjs`.
 - Tooling/documentation: `package.json`, `scripts/offline-test-guard.mjs`, `README.md`, `docs/CONSUMPTION-CORRECTIONS.md`.
 
-Status: implementation and offline verification complete; review/approval pending. Historical consumption remains unconfirmed and is not retroactively repaired by these source changes.
+Historical status at that checkpoint: implementation and offline verification complete; review/approval was pending. Historical consumption remains unconfirmed and is not retroactively repaired by these source changes.
 
 The final two-finding correction round changes exactly these files relative to the previous uncommitted implementation:
 
@@ -96,7 +105,7 @@ The final two-finding correction round changes exactly these files relative to t
 
 Final-round verification: **178/178 passed**, zero failures/skips, including all 154 existing cases plus 24 new cases. Both original exploit regressions now fail safely. Normal canonical consumption and inert query strings receive correlation IDs and committed traces; raw malformed paths perform zero provider reads and create no consumption events. Browser tests cover contradictory receipt provenance, retained mock labels, authenticated-shape synthetic labels and failed post-commit refresh. Separate OS processes sharing SQLite permit exactly one provider entry and one consumption event. The standalone synthetic demo also passes after adding its shared static-module dependency.
 
-Syntax and whitespace checks pass (the existing 208-line security-test advisory remains). Offline dependency audit, including development dependencies, reports zero vulnerabilities without a current registry lookup. Exact configured-secret/bootstrap-secret and private-key/path scanning covers 102 tracked/untracked source/document files with zero findings. A fresh independent SHA-256 baseline covers 44 historical/private files with zero content changes. No provider request, real passkey operation, historical-order operation, staging, commit, deployment or push occurred. Optional diagnostics remain best effort; mandatory consumption-event persistence remains atomic. Independent security approval is still pending.
+Syntax and whitespace checks pass (the existing 208-line security-test advisory remains). Offline dependency audit, including development dependencies, reports zero vulnerabilities without a current registry lookup. Exact configured-secret/bootstrap-secret and private-key/path scanning covers 102 tracked/untracked source/document files with zero findings. A fresh independent SHA-256 baseline covers 44 historical/private files with zero content changes. No provider request, real passkey operation, historical-order operation, staging, commit, deployment or push occurred. Optional diagnostics remain best effort; mandatory consumption-event persistence remains atomic. Independent security approval was pending at that historical checkpoint.
 
 ## Low-severity qualification corrections
 
@@ -106,4 +115,4 @@ Correlation availability and mandatory committed business events are distinguish
 
 Files changed in this qualification round: `src/paypal-provenance.mjs`, `src/paypal-sandbox.mjs`, `src/paypal-read-plan.mjs`, `src/paypal-attended.mjs`, `src/consumption-diagnostics.mjs`, `src/app.mjs`, `test/paypal-provenance-authority.test.mjs`, `test/consumption-telemetry.test.mjs`, and this document. Earlier uncommitted corrections remain in place. Native construction tests inspect adapter identity only, without invoking native OAuth or GET; all exercised response paths use explicitly mocked transports and isolated synthetic records.
 
-Qualification-round verification: **186/186 passed**, zero failures/skips: all 178 existing tests plus five authority/fixed-endpoint tests and three telemetry-failure tests. The focused authority/telemetry/consumption run passed 25/25; the adapter/read-grant/attended run passed 27/27. Full coverage includes separate-process SQLite contention, bounded GET reservations, canonical route/provenance checks, expiry, rollback, duplicate handling, restart, the standalone demo and virtual WebAuthn protocol verification. Syntax and whitespace checks pass; the existing 208-line advisory remains. Offline dependency audit (including dev dependencies) reports zero vulnerabilities, without current registry verification. The local configured-secret/bootstrap-secret/private-key/path scan covers 104 source/document files with zero findings. All 44 historical/private SHA-256 baselines match; no private files were added. No provider request, real passkey/credential operation, historical-order operation, staging, commit, deployment or push occurred. Both low-severity qualifications are addressed in code/documentation and await final independent review.
+Qualification-round verification: **186/186 passed**, zero failures/skips: all 178 existing tests plus five authority/fixed-endpoint tests and three telemetry-failure tests. The focused authority/telemetry/consumption run passed 25/25; the adapter/read-grant/attended run passed 27/27. Full coverage includes separate-process SQLite contention, bounded GET reservations, canonical route/provenance checks, expiry, rollback, duplicate handling, restart, the standalone demo and virtual WebAuthn protocol verification. Syntax and whitespace checks pass; the existing 208-line advisory remains. Offline dependency audit (including dev dependencies) reports zero vulnerabilities, without current registry verification. The local configured-secret/bootstrap-secret/private-key/path scan covers 104 source/document files with zero findings. All 44 historical/private SHA-256 baselines match; no private files were added. No provider request, real passkey/credential operation, historical-order operation, staging, commit, deployment or push occurred. Both low-severity qualifications were subsequently resolved by final independent review; the approved implementation is committed as `22c116b`.

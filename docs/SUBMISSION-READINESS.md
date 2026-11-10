@@ -1,5 +1,14 @@
 # SaySure — submission preparation
 
+**Current release addendum.** Final independent security approval covers commit **22c116be7f0a88843a50d6ff3f5cf6464c152177** (`22c116b`), with **186/186 tests passed** and no outstanding security findings. This approves the local prototype, not payment completion, comprehension, deployment or publication.
+
+The subsequent release-readiness audit verified a temporary fresh local clone on the existing Linux host: Node 24.14.1, npm 11.13.0, installed Google Chrome/system libraries and the host npm cache. Dependency installation, 186 tests, syntax checks, default synthetic app startup, Helper/Buyer screens and the isolated demo passed without private configuration. Production-only and full dependency audits reported zero known vulnerabilities at that check. This is not cross-platform or blank-machine verification.
+
+The earlier next-action proposals below are archived. Do not reuse the old attended reservation, authorization or execution marker. Historical PayPal-order consumption remains unconfirmed. Follow [current release preparation](FINAL-SUBMISSION.md) and the [README](../README.md); no new PayPal operation is authorized.
+
+**Current licensing clarification.** The project owner has explicitly confirmed ownership of the original SaySure code and assets and approved MIT licensing. The root [LICENSE](../LICENSE) is prepared with the complete standard MIT text and `Copyright (c) 2026 Hammed Ali Oyeleye`; package and lockfile root metadata declare MIT, and README links to LICENSE. The independent release review approved the licensing implementation. Third-party dependencies retain their respective licenses and required notices. Pending-license statements in the historical records below describe the earlier checkpoint and are superseded by this clarification. License approval and preparation do not authorize or establish public publication, push, deployment or submission.
+
+
 **Historical checkpoint (superseded by [final preparation](FINAL-SUBMISSION.md) and [fresh attended gate](ATTENDED-FINAL-TEST.md)):** A separately authorized one-order sandbox create/read succeeded and is preserved privately. That grant is consumed; order availability is not assumed current. The [real order-bound consent milestone](REAL-ORDER-CONSENT.md) prepares the next bounded read authorization and preserves existing passkeys/security. Real order-bound human consent remains unproved. The earlier results and next-action statements below are historical; no new order is authorized.
 
 Target: submit before November 12, 2026; verify the exact cutoff and timezone on the submission form. This is a bounded release-preparation checkpoint, not a submission, deployment or claim of payment completion.
@@ -47,13 +56,15 @@ Fresh real Groq evaluation: **17/17 topic matches**, including **6/6** original 
 
 ## License decision — operator approval pending
 
+This section preserves the historical pending decision. The current licensing clarification above records the subsequent MIT approval and prepared LICENSE file.
+
 **Recommendation: MIT** for SaySure's original source, subject to confirming the copyright holder and the operator's explicit choice. The [OSI MIT license](https://opensource.org/license/mit) permits broad reuse subject to retaining its notice and includes a warranty disclaimer. This is a recommendation, not a license grant. No LICENSE is installed until approval. Apache-2.0 remains an alternative if the operator prefers its terms; do not select it by assumption.
 
 Installed direct dependency metadata: SimpleWebAuthn server/browser MIT, Playwright Apache-2.0, axe Playwright MPL-2.0. Third-party licenses/notices remain their own; adopting MIT for original code does not relicense dependencies. These four metadata observations are not a complete transitive/IP audit. The operator must confirm authorship and license choice before publication. A choice was requested during this task; absent an explicit answer, this blocker remains open.
 
 ## Public release safety
 
-`npm run audit:release` scans tracked current files and Git history blobs against the exact configured PayPal/Groq/bootstrap secret values privately, rejects private artifact paths and checks private key markers. It reports locations/reasons only, never matching values. New ignores cover HAR, SQLite/database files and traces. `.env`, `.local/`, key files, dependency folders and browser reports remain ignored. The scan must be rerun after staging all final files so new files are included.
+`npm run audit:release` now prints JSON to stdout without overwriting tracked evidence. It scans tracked and nonignored untracked files and Git history blobs against the exact configured PayPal/Groq/bootstrap secret values privately, rejects private artifact paths and checks private key markers. It reports locations/reasons only, never matching values. New ignores cover HAR, SQLite/database files and traces. `.env`, `.local/`, key files, dependency folders and browser reports remain ignored. New nonignored source files are included without staging. Optional `--output PATH` writes an untracked report with exclusive creation; `--overwrite` is required for an existing report. Tracked evidence and linked/private output targets remain protected. It reads only this repository's optional configuration/accounts and process environment, never sibling repositories.
 
 This audit cannot certify unknown/unconfigured secrets, all PII, legal rights or every dependency. Public merchant/order references in historical documentation are evidence identifiers, not login credentials; review whether to redact them before wider distribution. No operator token, password, private key, saved passkey or real account credential may be published. If a genuine secret is ever found in Git history, stop and rotate/rewrite under a separate reviewed action; a current-file deletion is insufficient.
 
@@ -74,9 +85,9 @@ Use a separate credential store, accounts and enrollment for the final HTTPS dom
 
 ## Release decision and next action
 
-**GO:** record an honest local fixture + existing synthetic-passkey demonstration, complete the public-ready documentation and choose a license. **NO-GO:** executing sandbox creation, claiming current GET/payment success, public publishing or deployment without the explicit gates.
+**GO:** record an honest local fixture + existing synthetic-passkey demonstration, complete the public-ready documentation and retain the approved MIT license and notices. **NO-GO:** executing sandbox creation, claiming current GET/payment success, public publishing or deployment without the explicit gates.
 
-The highest-impact next action is operator confirmation of the intended Sandbox REST app/merchant and legitimate account capability, followed by the tightly scoped approval in [the operator sheet](SANDBOX-OPERATOR-APPROVAL.md). This can turn prepared code into a genuine new order/GET observation. While that is pending, record the short truthful demo and settle the license; do not spend the remaining deadline window adding payment features.
+The current next actions are to finish documentation and non-destructive tooling verification and record the truthful fixture/protocol demo. MIT licensing and original-code rights confirmation are complete as clarified above; public publication remains separately gated. The earlier operator-confirmation/create proposal is superseded. Do not execute the old attended reservation or reuse its authorization, keys or execution marker. No new PayPal operation is included in release preparation.
 
 ## Final acceptance evidence
 

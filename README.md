@@ -2,39 +2,74 @@
 
 **Your money. Your final say.**
 
-SaySure is the working name for this standalone accessible payment-consent experiment, testing additional transaction-specific consent. It supports server-authenticated PayPal sandbox order reading and transaction-bound local consent, plus synthetic consent and a separate constrained Groq evaluation. Reads are disabled by default. One separately authorized sandbox create/GET succeeded; that order is now outside the unchanged local validity window and is not reused. Genuine real-order passkey consent and completed PayPal checkout remain unproved. No real money or payment operations are performed. The name has no claimed trademark or domain clearance; this is not a production-ready product or a claim of accessibility for all users. Synthetic requests remain explicitly labelled; PayPal API payee evidence does not independently verify a shop identity. See the latest [attended test gate](docs/ATTENDED-FINAL-TEST.md) and [submission checklist/demo script](docs/FINAL-SUBMISSION.md). Older milestone reports below are historical evidence.
+Getting help with a digital payment should not mean giving someone else the final say. People who need assistance completing payments, including people who cannot comfortably operate conventional payment interfaces, still need a way to review the details and decide for themselves.
 
-## How to Test
+SaySure separates the **Helper**, who prepares a request, from the **Buyer**, who independently reviews the exact amount, currency, merchant reference and description. Readable details, optional speech and grounded questions support that review. Only the Buyer can record passkey-backed local consent; changing reviewed details invalidates it. The Buyer can decline without a passkey.
 
-**Judge/demo quick start — no private keys or credentials needed:**
+This is a localhost prototype for exploring that separation. It does not execute payments. Accessibility, comprehension benefits and suitability for intended users have not been established through user research; passkey authentication proves credential control and required user verification, not understanding of a purchase.
+
+## HOW TO TEST — judge quick start
+
+Requires **Node.js 24+ and npm**. Run from the repository directory:
 
 ```sh
 npm ci --ignore-scripts
 npm run demo
 ```
 
-Open **http://localhost:3200**. This is a **deterministic fixture demo**: no real PayPal responses, accounts, passkeys, live AI calls or payments. Every consent transition is explicitly simulated. It does not access the working localhost:3100 app or its saved evidence. Try quantity changes, decline, single simulated consumption and the six grounded buyer questions. Node 24+ is required.
+Open **http://localhost:3200**. This is an **isolated synthetic demonstration**. No PayPal account, credentials, passkey or live AI service is required. Select Synthetic request or **MOCK PayPal order**, try quantity changes and decline, then simulate approval and single consumption. Mock PayPal evidence remains visibly labelled. Simulated consumption changes browser fixture state only; it is not a PayPal payment. No real payment occurs and the demo never reads the authenticated app's private store.
 
-For actual verification, install Google Chrome and run `npm run check`, `npm test`, `npm audit --omit=dev` and `npm run audit:release`. The Chrome suite uses virtual authenticators with the real verifier and labelled mock provider transports. No operator PayPal/Groq credentials are required. [Submission pack / three-minute outline](docs/SUBMISSION-READINESS.md) · [Sandbox operator approval sheet](docs/SANDBOX-OPERATOR-APPROVAL.md).
+## Automated verification
 
-**Working local app and physical passkeys:**
-
-Node 24+, npm and a WebAuthn-capable browser are required. This checkout was provisioned locally; **do not rerun setup on it**. For a fresh checkout only:
+Install **Google Chrome** separately; the tests launch its `chrome` channel through Playwright. With dependencies installed:
 
 ```sh
-npm ci --ignore-scripts
+npm run check
+npm test
+npm run test:release
+npm run audit:release
+```
+
+The approved security baseline is commit **22c116be7f0a88843a50d6ff3f5cf6464c152177**, with final independent security approval and **186/186 tests passed**. Phase A verification passed **196/196 tests**, including all 186 baseline cases plus 10 new release-tooling tests. These uncommitted release changes do not extend the earlier independent security approval. Protocol tests use temporary synthetic accounts, virtual CTAP2 authenticators, labelled mock provider transports and the real WebAuthn verifier. No operator accounts or real passkeys are used. The test preload is a best-effort JavaScript network guard, not an OS firewall.
+
+The release-readiness audit verified a fresh local clone on the existing **Linux environment, Node 24.14.1, npm 11.13.0 and installed Google Chrome**: dependency installation, 186 tests, syntax checks, both servers and Helper/Buyer/demo screens passed. It reused host tools, system libraries and the npm cache. Other operating systems and a blank-machine installation have not been verified. No `.env` is needed for the demo, tests or default synthetic application.
+
+`npm audit --omit=dev` optionally checks production dependency advisories using the npm registry; it is a networked dependency check, not an offline application-security audit.
+
+## Authenticated local application — separate from the demo
+
+For a **fresh, unprovisioned checkout only**, after installing dependencies:
+
+```sh
 npm run setup
 npm start
 ```
 
-For this machine:
+Open **http://localhost:3100** exactly. The listener is loopback-only; expected origin is `http://localhost:3100` and RP ID is `localhost`. Do not substitute a LAN address, `127.0.0.1` in the browser, or a different port. If the port is occupied, identify and stop the conflicting process before using this checkout.
+
+Setup creates separate Helper, buyer-a and buyer-b accounts in ignored private storage. Retrieve each account's secret in a private interactive terminal with `npm run account -- helper` or `npm run account -- buyer-a`. Use separate browser profiles: the Helper creates a synthetic request; the Buyer refreshes their inbox, reviews exact details, and chooses decline or explicit passkey consent. Optional local consumption is single-use and does not move money. A manual passkey test requires the Buyer's own supported authenticator; the detailed procedure follows below.
+
+**Existing provisioned checkouts:** run `npm start` and reuse their accounts/enrollment. Do not rerun setup, delete `.local/`, or replace a credential. PayPal reads remain **disabled by default**. Enabling sandbox reads requires private SaySure configuration, a confirmed payee, allowlisted current orders and separately authorized operations; see [config/sandbox.example](config/sandbox.example). Judge testing does not require enabling them.
+
+## Non-destructive release scan
+
+Git is required for the release scan. `npm run audit:release` prints a JSON report to stdout and writes no file by default. It scans tracked and nonignored untracked source files and Git history; exact private-value comparisons use only this repository's optional `.env`, local account secrets and process environment. It does not read sibling repositories or private order evidence. A clean clone can run it without private configuration. Findings return exit status 1; a pass cannot establish absence of unknown secrets, PII or rights issues.
+
+For an optional report, supply an **untracked** output path whose parent directory exists:
 
 ```sh
-cd /home/ali/Desktop/paypal/accessible-consent-passkey
-npm start
+npm run audit:release -- --output /tmp/saysure-release-report.json
 ```
 
-The agent may already have the server running. If port 3100 is busy, use that existing server rather than launching another. Open **http://localhost:3100** exactly. RP ID is **localhost**, origin **http://localhost:3100**. Do not substitute `127.0.0.1`, a LAN IP or a different port.
+Existing files are refused unless `--overwrite` is explicitly added. Tracked files (including historical evidence), private input filenames and linked output files remain protected even with that flag. Reports contain counts, safe findings and limitations, never credential values. To capture JSON without npm's command banner, use `npm run --silent audit:release`.
+
+## Current scope and evidence
+
+The implementation supports synthetic consent and server-authenticated fixed-endpoint PayPal sandbox observations, with provenance bound into `paypal-consent-v2`. Injected provider fixtures remain mock. The fixture demo and constrained historical Groq evaluations are separate from authenticated order evidence. API payee evidence does not independently establish shop identity or PayPal payer ownership. See the [API reference](docs/API.md), [architecture/security record](PASSKEY-EXPERIMENT.md) and [consumption corrections](docs/CONSUMPTION-CORRECTIONS.md).
+
+Historical sandbox create/read observations and user-reported synthetic phone-assisted consent do not establish current provider availability, successful historical PayPal-order consumption, completed checkout or improved comprehension. **Historical PayPal-order consumption remains unconfirmed.** The old attended reservation is used and its instructions are historical: never reuse its authorization or execution marker. No new provider operation is authorized. MIT licensing and ownership of the original SaySure code and assets are owner-confirmed; final demo recording and any public release remain separate gates. See [release preparation](docs/FINAL-SUBMISSION.md) for the earlier preparation record and the [License section](#license) for current licensing.
+
+SaySure is a working name without trademark/domain clearance. This is not a production-ready service or a claim of universal accessibility.
 
 ## Real passkey: manual procedure
 
@@ -72,7 +107,7 @@ Tests launch installed Google Chrome through Playwright (`channel: chrome`), cre
 
 ## Synthetic requests and actual PayPal operations
 
-Synthetic and PayPal-backed requests are distinct. Approved/consumed are local consent states, never proof of PayPal approval or payment completion. Enabled PayPal reads require private sandbox credentials, a confirmed expected merchant ID and operator-allowlisted current orders. There is no payment API route. A separate creation adapter is disabled by default and must not be executed without new approval. One controlled sandbox create/read was performed; its order has since exceeded the local policy window. No capture, refund, payment authorization or Live operation was performed. New operations require the independent attended gate. Historical unavailable/expired-local-window orders are not current evidence.
+Synthetic and PayPal-backed requests are distinct. Approved/consumed are local consent states, never proof of PayPal approval or payment completion. Enabled PayPal reads require private sandbox credentials, a confirmed expected merchant ID and operator-allowlisted current orders. There is no payment API route. A separate creation adapter is disabled by default and must not be executed without new approval. One controlled sandbox create/read was performed; its order has since exceeded the local policy window. No capture, refund, payment authorization or Live operation was performed. Any future provider operation requires a new separately reviewed authorization; the historical attended reservation cannot be reused. Historical unavailable/expired-local-window orders are not current evidence.
 
 ## Cross-device HTTPS requirements
 
@@ -87,7 +122,11 @@ Provisioning fixes helper/buyer roles and issues separate random bootstrap secre
 Session cookies are HttpOnly and SameSite Strict; Secure is unavailable on this plain-HTTP localhost configuration. Cookies are stored hashed in SQLite, rotated on login and checked with expiry. Mutations require same origin and session CSRF token. Never expose this localhost research server to an untrusted network. `.local/`, dependencies, private keys and secrets are ignored by Git. The browser communicates only with this localhost backend. When explicitly configured, the backend sends allowlisted order IDs to the sandbox Orders API; raw payer information is omitted from storage/UI. Separate explicit evaluation scripts send only fixed synthetic questions/items to Groq; the app has no live AI chat. Browser/OS speech voices may use their own services; no biometric samples are requested or stored. WebAuthn passes public credential/assertion data and verification flags.
 
 
-## Accessible buyer review milestone — 9 November 2026
+## Historical experiments and milestones
+
+These dated observations preserve the original results and limitations. They are not current operator instructions or grants. The approved security baseline and current testing instructions are above.
+
+### Accessible buyer review milestone — 9 November 2026
 
 The physical Chrome/phone passkey test is now recorded as **user-reported manual evidence**: separate sessions, enrollment, synthetic Example Store 1.00 USD review, phone screen-lock PIN authentication, approval and one consumption ending in `consumed`. This is not a fresh automated test or independent production audit. See [milestone evidence, phone blocker, PayPal plan and AI evaluation](docs/MILESTONE.md).
 
@@ -114,20 +153,28 @@ Milestone verification: **39/39 automated tests passed**, including every origin
 - Real sandbox OAuth: HTTP 200. No current order is configured, so **no genuine order GET or order-bound checkout success is claimed**.
 - Backend OAuth/GET, payee/order allowlisting, exact multi-purchase-unit totals, distinct canonical PayPal consent binding, approval/consumption revalidation and refusal-preserving revisions are implemented and mock-tested.
 - Existing localhost credentials remain intact. A private `.env` can be prepared from [config/sandbox.example](config/sandbox.example). Keep reads disabled until the operator confirms the merchant and current order allowlist. No environment flag enables order creation.
-- Run `npm run check`, `npm test`, and `npm audit --omit=dev` for offline validation. Focused provider/browser checks: `node --test test/paypal-client.test.mjs test/paypal-flow.test.mjs` (explicitly mocked provider transport, real verifier).
+- Run `npm run check` and `npm test` for local validation; `npm audit --omit=dev` is a separate registry check. Focused provider/browser checks: `node --test test/paypal-client.test.mjs test/paypal-flow.test.mjs` (explicitly mocked provider transport, real verifier).
 - An explicit read-only real probe is `node scripts/paypal-readiness.mjs` with private SaySure configuration; it authenticates, and GETs only a separately configured current allowlisted order. Never use the historical 404 order as current evidence.
 - The item-question AI experiment covers unfamiliar terms and expected-versus-recorded items. It included all required grounded references in 6/6 cases, but matched exact requested focus in only 3/6. Ordinary help already contained the same facts; usefulness remains unproven. No real provider data is sent to AI.
-- Next actual test is **NO-GO until separate approval** for one fixed 1.00 USD sandbox order, confirmed merchant, current GET and legitimate human approval observation. No capture. Public repository/remote push, license choice, judge access, demo video and reviewed deployment remain separate release gates.
+- At that historical checkpoint a separately approved sandbox test was proposed. That proposal is superseded by the used attended reservation and is not a current next action. License choice, judge materials and any later publication remain release gates.
 
 Milestone 3 verification: **55/55 tests passed**, including all previous 39. Syntax/size checks passed and production dependency audit reported zero vulnerabilities. Real API evidence is OAuth only; genuine current-order GET remains blocked.
 
 
 ## Submission-readiness checkpoint
 
-The current [submission pack](docs/SUBMISSION-READINESS.md) distinguishes genuine OAuth evidence from fixture demonstrations, documents the license decision and remaining release gates, and supplies a credential-free judge setup. The [controlled sandbox preflight](docs/SANDBOX-OPERATOR-APPROVAL.md) matched the full private client fingerprint to the historical app record. The operator confirmed the Sandbox PayTale app/NG Business association; receiving eligibility remains unverified. The operator subsequently authorized and completed the reserved one-time sandbox create/read workflow. Its private permanent execution marker prevents reuse; transaction evidence remains ignored. No retry or further order/read is authorized. Real order-bound passkey consent still requires separately authorized revalidation reads. No payment execution route is enabled.
+The historical [submission pack](docs/SUBMISSION-READINESS.md) distinguishes genuine OAuth evidence from fixture demonstrations, documents the license decision and remaining release gates, and supplies a credential-free judge setup. The [controlled sandbox preflight](docs/SANDBOX-OPERATOR-APPROVAL.md) matched the full private client fingerprint to the historical app record. The operator confirmed the Sandbox PayTale app/NG Business association; receiving eligibility remains unverified. The operator subsequently authorized and completed the reserved one-time sandbox create/read workflow. Its private permanent execution marker prevents reuse; transaction evidence remains ignored. No retry or further order/read is authorized. Real order-bound passkey consent still requires separately authorized revalidation reads. No payment execution route is enabled.
 
 The revised fixed-question AI evaluation matched 17/17 intended topics versus 13/17 ordinary keyword routes; it resolved the original three irrelevant-definition selections. This demonstrates bounded paraphrase routing, not proven human comprehension or completed payments. The fixture demo uses deterministic answers and ordinary browser speech, with no model dependency.
 
 Readiness acceptance: **59/59 tests passed** (baseline 55), with the registered credential and saved consent record unchanged. See [the final acceptance evidence](docs/SUBMISSION-READINESS.md#final-acceptance-evidence). License choice, current merchant/app confirmation, new sandbox creation authorization, genuine current GET, public publication and demo-video recording remain operator gates.
 
-The [real order-bound consent milestone](docs/REAL-ORDER-CONSENT.md) prepared a private read-only gate for an order that is now outside the local validity window. That old order is NO-GO and must not be reused. The [new attended test](docs/ATTENDED-FINAL-TEST.md) has an independent unapproved reservation. The earlier read plan required separate authorization for at most one OAuth and four GETs, preserving every existing revalidation boundary. No additional PayPal call or real buyer ceremony was made during preparation. For the new attempt, run only its offline preflight until separately approved.
+The [real order-bound consent milestone](docs/REAL-ORDER-CONSENT.md) and [attended-test archive](docs/ATTENDED-FINAL-TEST.md) retain historical preparation records. Both old orders/grants are NO-GO for reuse. Do not run their preflight or execution instructions as a next release step. The attended attempt has execution/result records, and historical consumption remains unconfirmed; the later security corrections do not repair that historical outcome.
+
+## License
+
+The original SaySure code and assets are licensed under the [MIT License](LICENSE).
+
+Copyright (c) 2026 Hammed Ali Oyeleye
+
+Third-party dependencies retain their respective licenses and copyright notices. SaySure's MIT license does not relicense those dependencies; their license terms and required notices continue to apply.

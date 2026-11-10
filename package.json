@@ -2,6 +2,7 @@
   "name": "isolated-accessible-consent-passkey",
   "description": "SaySure \u2014 Your money. Your final say. Isolated synthetic payment-consent passkey experiment; no payment operations.",
   "version": "0.1.0",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "engines": {
@@ -14,7 +15,8 @@
     "check": "node scripts/check.mjs",
     "test": "node --import ./scripts/offline-test-guard.mjs --test --test-concurrency=1 test/*.test.mjs",
     "demo": "node scripts/demo.mjs",
-    "audit:release": "node scripts/release-audit.mjs"
+    "audit:release": "node scripts/release-audit.mjs",
+    "test:release": "node --import ./scripts/offline-test-guard.mjs --test test/release-audit.test.mjs"
   },
   "dependencies": {
     "@simplewebauthn/browser": "14.0.0",
