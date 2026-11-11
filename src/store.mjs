@@ -261,6 +261,8 @@ export async function openPostgresStore(connectionString, options = {}) {
   return {
     ...executor,
     transaction,
+    expire: now => transaction(tx => tx.expire(now)),
+    request: id => transaction(tx => tx.request(id)),
     ping: async () => { await pool.query('SELECT 1 AS ready'); return true; },
     close: () => pool.end()
   };
