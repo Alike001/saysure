@@ -67,7 +67,7 @@ test('AI-selected PayPal topics produce grounded local answers, never model-writ
     paypal_evidence: { provenance: 'authenticated-sandbox-api', observed_at: now,
       current: true, merchant_identity_verified: false }
   };
-  assert.match(answer('amount', paypalItem, now), /Recorded order amount: 1\\.00 USD/);
+  assert.match(answer('amount', paypalItem, now), /Recorded order amount: 1\.00 USD/);
   assert.match(answer('merchant', paypalItem, now), /MOCKPAYEE123.*not independently verified/);
   assert.match(answer('consent', paypalItem, now), /does not approve a PayPal checkout or capture a payment/);
   assert.match(answer('availability', paypalItem, now), /PAYER_ACTION_REQUIRED.*re-read the order/);
