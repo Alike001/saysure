@@ -20,7 +20,7 @@ README supplies a credential-free path: Node 24+, `npm ci --ignore-scripts`, `np
 
 For protocol evidence, install Google Chrome and run `npm run check` and `npm test`. Tests use temporary accounts/databases, mocked provider responses and virtual CTAP2 authenticators with the real verifier. They are not physical phone evidence. A judge who wants physical authentication uses their own fresh checkout/enrollment; never distribute the operator's passkeys/accounts. Existing operator enrollment is retained solely in the working local app.
 
-## Public repository safety checklist (publication remains gated)
+## Public repository safety checklist (final release publication remains gated)
 
 - Review the complete intended source/docs and run `npm run audit:release`; it prints to stdout without changing tracked evidence and scans tracked/nonignored untracked files and history for exact configured credentials/bootstrap values, prohibited private paths and private-key markers. A pass does not prove absence of unknown secrets, PII, rights or licensing issues.
 - Keep `.env*`, all `.local/` attempts/grants/evidence/SQLite/accounts, HARs, tokens, credentials/assertions, native QR screenshots and browser traces ignored/untracked. Do not upload this machine's evidence bundle. Review public order/merchant references and historical docs separately before wider distribution.
@@ -64,6 +64,6 @@ The earlier 17/17 versus 13/17 result covers question-topic routing on fixed, no
 2. The Phase A release-preparation notes above are historical. Review the current feature branch locally, run the full verification suite and security/release scan, then decide whether to merge it. The feature branch has been pushed to the public repository; it has not been merged to master or deployed.
 3. Preserve the subsequently approved and prepared MIT license, `Copyright (c) 2026 Hammed Ali Oyeleye`, matching package metadata and all third-party notices. License approval and preparation are complete; public publication remains separately gated.
 4. Record/export the under-three-minute labelled fixture demonstration and captions. Use actual existing evidence only when its scope is stated accurately; no current provider observation or successful historical consumption is inferred. Review for private information and unsupported claims.
-5. Complete intended-user speech/screen-reader checks, confirm deadline/eligibility/required entry fields with the operator, and obtain separate public-repository/push/hosting/submission authorization if needed.
+5. Complete intended-user speech/screen-reader checks and confirm deadline/eligibility/required entry fields with the operator. Review and test the public feature branch before merging; deployment/hosting and final submission remain separate gates.
 
 Avoid expanding the product, changing payment operations, tuning AI, redesigning enrollment or weakening security to meet the deadline. No public publication action is included here.
