@@ -66,6 +66,27 @@ export function renderRequests(items, session, tools) {
         detail.append(element('summary', question), element('p', answer(topic, item))); help.append(detail);
       }
       explain.append(help);
+      const questionLabel = element('label', 'Ask a question in your own words');
+      const questionInput = element('input');
+      questionInput.id = `buyer-question-${id}`;
+      questionInput.type = 'text'; questionInput.maxLength = 300; questionInput.autocomplete = 'off';
+      questionInput.placeholder = 'e.g. Does my passkey make a payment?';
+      questionLabel.htmlFor = questionInput.id;
+      const questionNote = element('p', 'A redacted version of your question may be sent to Groq for topic selection. No request record is attached. Avoid personal, merchant or payment details.');
+      questionNote.id = `buyer-question-note-${id}`;
+      questionInput.setAttribute('aria-describedby', questionNote.id);
+      const questionResult = element('p');
+      questionResult.setAttribute('role', 'status');
+      explain.append(questionLabel, questionInput, questionNote);
+      addButton(explain, 'Ask SaySure', async () => {
+        const question = questionInput.value.trim();
+        if (question.length < 3) { questionInput.focus(); throw new Error('Enter a question of at least three characters.'); }
+        const match = await tools.api('/api/buyer-question', { question });
+        const selected = topics[match.topic] ?? topics.unknown;
+        const source = match.source === 'ai' ? 'AI matched your question' : 'Local matching was used';
+        questionResult.textContent = source + ': ' + selected + ' ' + answer(match.topic, item);
+      }, tools.perform);
+      explain.append(questionResult);
       explain.append(element('p', 'Audio may be heard by others. Your browser or OS supplies the voice.'));
     }
     const list = element('dl');
