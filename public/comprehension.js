@@ -7,7 +7,24 @@ export const topics = Object.freeze({
 });
 // Both ordinary help and model-selected topics use these same deterministic answers.
 export function answer(topic, item, now = Date.now()) {
-  if (item.snapshot.kind === 'paypal') return `${reviewedEvidence(item, now).provenance === 'mock-paypal-fixture' ? 'MOCK PayPal fixture. No real API verification.' : reviewedEvidence(item, now).provenance === 'authenticated-sandbox-api' ? 'Recorded authenticated sandbox observation.' : 'PayPal evidence provenance unavailable.'} ${reviewedEvidence(item, now).current ? 'This review is recent; the server must revalidate.' : 'This evidence is historical or stale. Do not approve.'} This is a PayPal sandbox order review. Check the recorded API evidence, payee reference and purchase-unit totals. Shop identity is unverified. Local consent does not authorize or complete a payment. Stale or unavailable evidence requires a new review.`;
+  if (item.snapshot.kind === 'paypal') {
+    const evidence = reviewedEvidence(item, now), s = item.snapshot;
+    const source = evidence.provenance === 'mock-paypal-fixture' ? 'MOCK PayPal fixture; no authenticated API verification.' :
+      evidence.provenance === 'authenticated-sandbox-api' ? 'Recorded authenticated PayPal sandbox observation.' :
+        'PayPal evidence provenance unavailable.';
+    const freshness = evidence.current ? 'The observation is recent, but the server must revalidate it before consent.' :
+      'This evidence is historical or stale. Do not approve until it is refreshed and verified.';
+    const answers = {
+      amount: 'Recorded order amount: ' + exactAmount(s) + '.',
+      merchant: 'Recorded payee reference: ' + s.merchant_id + '. Displayed label: ' + s.merchant_name + '. Shop identity is not independently verified.',
+      consent: 'SaySure records local consent only. A passkey does not approve a PayPal checkout or capture a payment.',
+      availability: 'Recorded provider status: ' + s.provider.status + '. ' +
+        (evidence.current ? 'The server must re-read the order before accepting consent.' : 'This observation is stale or historical; ask the Helper to re-read it.'),
+      fees: 'The recorded order review does not independently establish taxes, delivery, extra fees, refunds or seller trust.',
+      unknown: 'This prototype cannot safely answer that from the available order evidence. Review the recorded details and seek independent evidence.'
+    };
+    return source + ' ' + freshness + ' ' + (answers[topic] ?? answers.unknown);
+  }
   if (item.synthetic !== true) return 'Current payment evidence is unavailable. Do not approve.';
   const s = item.snapshot;
   const live = item.status === 'pending' && s.expires_at > now;
