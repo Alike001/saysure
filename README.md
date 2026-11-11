@@ -21,6 +21,14 @@ Open **http://localhost:3200**. This is an **isolated synthetic demonstration**.
 
 The demo also includes an **AI-assisted question** control. To enable live Groq classification, supply your own `GROQ_API_KEY` privately in the environment or an ignored `.env`, or run `npm run configure:ai` if a key is already available in the existing local configuration. Never include a key in a video, issue or commit. Without a key, the control uses local deterministic matching. The model receives only a best-effort redacted question string, not the transaction snapshot or order data, and returns a fixed topic; SaySure generates the explanation locally. Do not include personal, merchant or payment details in questions. Redaction is best-effort, not a guarantee. See [AI question-routing boundary](docs/AI-QUESTION-ROUTING.md).
 
+## Public interactive demo — Design 8 deployment
+
+A new **navy, electric-blue and white** judge experience is prepared on branch `feat/design8-hosted-demo`. It includes an interactive transaction preview, grounded explanation flow, simulated decisions and the optional Groq-assisted free-text question feature. The authenticated Buyer/Helper app shares the updated palette, while retaining its separate protected localhost-only WebAuthn workflows.
+
+The public service has a deliberately isolated start command: `npm run start:public-demo`. It does **not** expose the protected application, open local SQLite data, execute PayPal APIs or perform actual passkey ceremonies. A public HTTPS URL will be added after deployment is verified; do not claim it is live before then. See [Render deployment and safety boundary](docs/PUBLIC-DEMO-DEPLOYMENT.md).
+
+**Release verification still required:** the previous 206/206 passing tests predate the visual redesign. Run `npm run check && npm test && npm run audit:release && npm run test:release` after checking out this branch and before merging. Once the public service is live, separately verify the AI result indicates `AI matched your question` with a privately configured Groq key.
+
 ## Automated verification
 
 **Latest local verification (November 11, 2026): 206/206 automated tests passed on merged `master`, with no failures or skips; `npm run check` also passed.** These results were run on the contributor's local Linux machine; remote CI and cross-platform accessibility certification are not established. The following earlier checkpoints remain historical.
