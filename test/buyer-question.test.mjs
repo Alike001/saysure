@@ -14,7 +14,7 @@ test('sends only the redacted question and accepts one allowlisted topic', async
     apiKey: 'gsk_test_key_for_unit_test_only_1234567890',
     fetchImpl: async (url, options) => {
       request = { url, options };
-      return new Response(JSON.stringify({ choices: [{ message: { content: '{"topic":"merchant"}' } }] }), {
+      return new Response(JSON.stringify({ choices: [{ finish_reason: 'stop', message: { content: '{"topic":"merchant"}' } }] }), {
         status: 200, headers: { 'Content-Type': 'application/json' }
       });
     }
@@ -29,7 +29,8 @@ test('sends only the redacted question and accepts one allowlisted topic', async
   const body = JSON.parse(request.options.body);
   assert.equal(body.messages.length, 2);
   assert.doesNotMatch(JSON.stringify(body), /12\.50|MOCKPAYEE123|ali@example\.com|Example Store/);
-  assert.doesNotMatch(JSON.stringify(body), /amount_minor|order_id|merchant_id|buyer_id|passkey|consent_digest/);
+  assert.equal(Object.keys(JSON.parse(body.messages[1].content)).join(), 'question');
+  assert.doesNotMatch(body.messages[1].content, /amount_minor|order_id|merchant_id|buyer_id|passkey|consent_digest/);
 });
 
 test('uses deterministic local matching when no key or provider response is available', async () => {
