@@ -71,7 +71,7 @@ export function createBuyerQuestionRouter({ apiKey, fetchImpl = fetch, now = Dat
           model: MODEL,
           temperature: 0,
           reasoning_effort: 'low',
-          max_completion_tokens: 120,
+          max_completion_tokens: 200,
           response_format: { type: 'json_object' },
           messages: [
             { role: 'system', content: SYSTEM },
