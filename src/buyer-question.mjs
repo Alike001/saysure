@@ -19,30 +19,30 @@ const SYSTEM = [
 export function redactBuyerQuestion(value) {
   ensure(typeof value === 'string' && value.trim().length >= 3 && value.length <= 500,
     'INVALID_BUYER_QUESTION', 400);
-  let question = value.normalize('NFKC').replace(/[\\u0000-\\u001f\\u007f]/g, ' ')
-    .replace(/\\s+/g, ' ').trim();
+  let question = value.normalize('NFKC').replace(/[\u0000-\u001f\u007f]/g, ' ')
+    .replace(/\s+/g, ' ').trim();
   question = question
-    .replace(/\\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}\\b/gi, '[redacted email]')
-    .replace(/https?:\\/\\/\\S+|www\\.\\S+/gi, '[redacted link]')
-    .replace(/[$€£₦]\\s*\\d[\\d,]*(?:\\.\\d+)?/g, '[redacted amount]')
-    .replace(/\\b\\d[\\d,]*(?:\\.\\d+)?\\s*(?:USD|EUR|NGN|GBP|JPY|CAD|AUD)\\b/gi, '[redacted amount]')
-    .replace(/\\b\\+?\\d[\\d ().-]{7,}\\d\\b/g, '[redacted number]')
-    .replace(/\\b(?:0x)?[a-f0-9]{16,}\\b/gi, '[redacted reference]')
-    .replace(/\\b[A-Z0-9_-]{10,}\\b/g, '[redacted reference]')
-    .replace(/\\b[A-Z][a-z]{2,}(?:\\s+[A-Z][a-z]{2,})+\\b/g, '[redacted name]')
-    .replace(/\\b(?!What\\b|Why\\b|How\\b|Can\\b|Does\\b|Is\\b|Are\\b|Where\\b|When\\b|Who\\b|Which\\b|Please\\b|Tell\\b|Explain\\b|I\\b|My\\b|The\\b|A\\b|An\\b|Do\\b|Could\\b|Would\\b|Should\\b|Will\\b|Has\\b|Have\\b|Did\\b|If\\b|This\\b|That\\b)[A-Z][a-z]{2,}\\b/g, '[redacted name]')
-    .replace(/\\s+/g, ' ').trim();
+    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[redacted email]')
+    .replace(/https?:\/\/\S+|www\.\S+/gi, '[redacted link]')
+    .replace(/[$€£₦]\s*\d[\d,]*(?:\.\d+)?/g, '[redacted amount]')
+    .replace(/\b\d[\d,]*(?:\.\d+)?\s*(?:USD|EUR|NGN|GBP|JPY|CAD|AUD)\b/gi, '[redacted amount]')
+    .replace(/\b\+?\d[\d ().-]{7,}\d\b/g, '[redacted number]')
+    .replace(/\b(?:0x)?[a-f0-9]{16,}\b/gi, '[redacted reference]')
+    .replace(/\b[A-Z0-9_-]{10,}\b/g, '[redacted reference]')
+    .replace(/\b[A-Z][a-z]{2,}(?:\s+[A-Z][a-z]{2,})+\b/g, '[redacted name]')
+    .replace(/\b(?!What\b|Why\b|How\b|Can\b|Does\b|Is\b|Are\b|Where\b|When\b|Who\b|Which\b|Please\b|Tell\b|Explain\b|I\b|My\b|The\b|A\b|An\b|Do\b|Could\b|Would\b|Should\b|Will\b|Has\b|Have\b|Did\b|If\b|This\b|That\b)[A-Z][a-z]{2,}\b/g, '[redacted name]')
+    .replace(/\s+/g, ' ').trim();
   return question.slice(0, 400);
 }
 
 export function localBuyerQuestionTopic(value) {
   const q = String(value ?? '').toLowerCase();
-  if (/\\b(ignore|override|bypass|pretend|claim|guarantee|change|edit|approve for me|make payment|execute|transfer money)\\b/.test(q)) return 'unknown';
-  if (/\\b(fee|fees|tax|taxes|delivery|shipping|surcharge|exchange|refund)\\b/.test(q)) return 'fees';
-  if (/\\b(merchant|seller|shop|store|payee|recipient|business|who am i paying)\\b/.test(q)) return 'merchant';
-  if (/\\b(expire|expired|available|availability|still reviewable|still valid|current|stale)\\b/.test(q)) return 'availability';
-  if (/\\b(amount|total|price|cost|bill|how much)\\b/.test(q)) return 'amount';
-  if (/\\b(passkey|consent|approval|approve|paid|payment|money move|charged)\\b/.test(q)) return 'consent';
+  if (/\b(ignore|override|bypass|pretend|claim|guarantee|change|edit|approve for me|make payment|execute|transfer money)\b/.test(q)) return 'unknown';
+  if (/\b(fee|fees|tax|taxes|delivery|shipping|surcharge|exchange|refund)\b/.test(q)) return 'fees';
+  if (/\b(merchant|seller|shop|store|payee|recipient|business|who am i paying)\b/.test(q)) return 'merchant';
+  if (/\b(expire|expired|available|availability|still reviewable|still valid|current|stale)\b/.test(q)) return 'availability';
+  if (/\b(amount|total|price|cost|bill|how much)\b/.test(q)) return 'amount';
+  if (/\b(passkey|consent|approval|approve|paid|payment|money move|charged)\b/.test(q)) return 'consent';
   return 'unknown';
 }
 
@@ -65,7 +65,7 @@ export function createBuyerQuestionRouter({ apiKey, fetchImpl = fetch, now = Dat
     try {
       const response = await fetchImpl(ENDPOINT, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        headers: { Authorization: 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: MODEL,
           temperature: 0,
