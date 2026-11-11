@@ -16,8 +16,8 @@ if (!key || !/^gsk_[A-Za-z0-9_-]{20,}$/.test(key)) {
   console.error('No valid GROQ_API_KEY was found in the environment or the existing local .env files. No file was changed.');
   process.exitCode = 1;
 } else if (!local.GROQ_API_KEY) {
-  const separator = localText && !localText.endsWith('\\n') ? '\\n' : '';
-  await writeFile(localPath, `${localText}${separator}GROQ_API_KEY=${key}\\n`, { mode: 0o600 });
+  const separator = localText && !localText.endsWith('\n') ? '\n' : '';
+  await writeFile(localPath, localText + separator + 'GROQ_API_KEY=' + key + '\n', { mode: 0o600 });
   await chmod(localPath, 0o600);
   console.log('Groq key copied into this repository’s ignored .env file. Its value was not displayed.');
 } else {
