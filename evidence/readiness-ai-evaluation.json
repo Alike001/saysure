@@ -1,5 +1,5 @@
 {
-  "at": "2026-11-09T11:49:45.981Z",
+  "at": "2026-11-11T07:22:43.684Z",
   "model": "openai/gpt-oss-120b",
   "source": "Fixed synthetic / labelled mock PayPal fixture questions only",
   "case_count": 17,
@@ -196,7 +196,7 @@
   "paypal_calls": 0,
   "comprehension_advantage": "UNPROVEN; no participant, audio or decision-quality measurement",
   "http_status": 200,
-  "latency_ms": 1441,
+  "latency_ms": 1547,
   "accepted": true,
   "baseline_exact_focus": 13,
   "ai_exact_focus": 17,
