@@ -67,16 +67,12 @@ export function renderRequests(items, session, tools) {
       }
       explain.append(help);
       const questionLabel = element('label', 'Ask a question in your own words');
-      const questionInput = element('input');
-      questionInput.id = `buyer-question-${id}`;
-      questionInput.type = 'text'; questionInput.maxLength = 300; questionInput.autocomplete = 'off';
-      questionInput.placeholder = 'e.g. Does my passkey make a payment?';
+      const questionInput = element('input'); questionInput.id = `buyer-question-${id}`;
+      questionInput.type = 'text'; questionInput.maxLength = 300; questionInput.autocomplete = 'off'; questionInput.placeholder = 'e.g. Does my passkey make a payment?';
       questionLabel.htmlFor = questionInput.id;
       const questionNote = element('p', 'A redacted version of your question may be sent to Groq for topic selection. No request record is attached. Avoid personal, merchant or payment details.');
-      questionNote.id = `buyer-question-note-${id}`;
-      questionInput.setAttribute('aria-describedby', questionNote.id);
-      const questionResult = element('p');
-      questionResult.setAttribute('role', 'status');
+      questionNote.id = `buyer-question-note-${id}`; questionInput.setAttribute('aria-describedby', questionNote.id);
+      const questionResult = element('p'); questionResult.setAttribute('role', 'status');
       explain.append(questionLabel, questionInput, questionNote);
       addButton(explain, 'Ask SaySure', async () => {
         const question = questionInput.value.trim();
