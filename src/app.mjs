@@ -10,6 +10,7 @@ import { Failure, ensure } from './core.mjs';
 import { authenticate, issueSession, sessionFor } from './identity.mjs';
 import { requestService } from './requests.mjs';
 import { passkeyService } from './passkeys.mjs';
+import { createBuyerQuestionRouter } from './buyer-question.mjs';
 
 const root = new URL('../', import.meta.url);
 const assets = new Map([
@@ -44,6 +45,7 @@ export function makeApp(store, config) {
   const diagnostics = consumptionDiagnostics(store, config.consumptionDiagnostics);
   const consumption = consumptionService(store, requests, paypal, config.consumption);
   const passkeys = passkeyService(store, requests, config, paypal);
+  const buyerQuestion = createBuyerQuestionRouter(config.ai);
   const attempts = new Map();
   const cookie = token => `consent_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800${
     config.origin.startsWith('https:') ? '; Secure' : ''}`;
@@ -114,6 +116,12 @@ export function makeApp(store, config) {
       }
       ensure(session, 'LOGIN_REQUIRED', 401);
       ensure(req.headers['x-csrf-token'] === session.csrf, 'CSRF_REQUIRED', 403);
+      if (req.method === 'POST' && url.pathname === '/api/buyer-question') {
+        keys(input, ['question']);
+        ensure(session.role === 'buyer', 'BUYER_SESSION_REQUIRED', 403);
+        send(200, await buyerQuestion({ question: input.question, actor: session.user_id }));
+        return;
+      }
       if (route.consumption) {
         ensure(session.role === 'buyer', 'BUYER_SESSION_REQUIRED', 403);
         admitConsumptionTrace();
