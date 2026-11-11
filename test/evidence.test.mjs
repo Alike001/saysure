@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizeOrder, assertCurrentOrder, readOnlyOrders } from '../src/paypal-evidence.mjs';
-import { assertLocalExperiment } from '../src/origin.mjs';
+import { assertOriginConfig } from '../src/origin.mjs';
 import { acceptTopics, answer } from '../public/comprehension.js';
 import { paymentSummary } from '../public/presentation.js';
 const now = 1900000000000;
@@ -85,12 +85,15 @@ test('AI prose, altered financial values, completion claims and unsupported advi
   assert.deepEqual(acceptTopics({ topics: ['merchant', 'unknown'] }, 2), ['merchant', 'unknown']);
   assert.match(answer('invented', item, now), /cannot answer that safely/);
 });
-test('localhost RP credentials cannot be repurposed by changing origin/RP settings', () => {
-  assertLocalExperiment({ origin: 'http://localhost:3100', rpID: 'localhost' });
+test('local HTTP stays loopback-only and public HTTPS requires an exact RP ID', () => {
+  assert.equal(assertOriginConfig({ origin: 'http://localhost:3100', rpID: 'localhost' }), true);
+  assert.equal(assertOriginConfig({ origin: 'http://127.0.0.1:3100', rpID: '127.0.0.1' }), true);
+  assert.equal(assertOriginConfig({ origin: 'https://phone.example', rpID: 'phone.example' }), true);
   for (const config of [
     { origin: 'http://192.168.1.2:3100', rpID: '192.168.1.2' },
-    { origin: 'https://phone.example', rpID: 'phone.example' },
     { origin: 'https://phone.example', rpID: 'localhost' },
     { origin: 'http://127.0.0.1:3100', rpID: 'localhost' },
-  ]) assert.throws(() => assertLocalExperiment(config), /SEPARATE_HTTPS_ENROLLMENT_REQUIRED/);
+    { origin: 'https://phone.example/path', rpID: 'phone.example' },
+    { origin: 'ftp://phone.example', rpID: 'phone.example' },
+  ]) assert.throws(() => assertOriginConfig(config));
 });
