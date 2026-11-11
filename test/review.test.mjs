@@ -48,7 +48,7 @@ test('accessible buyer review in Chrome (speech API stub; no physical audio clai
     await article.getByRole('button', { name: 'Decline / Reject this request' }).focus();
     await buyer.page.keyboard.press('Enter');
     await buyer.page.locator('#message').filter({ hasText: 'Request rejected' }).waitFor();
-    assert.equal(await buyer.page.locator('#message').evaluate(e => e === document.activeElement), true);
+    assert.equal(await buyer.page.getByRole('article').getByRole('heading', { level: 3 }).evaluate(e => e === document.activeElement), true);
     assert.equal(h.store.request(item.snapshot.request_id).status, 'rejected');
   });
   await t.test('missing speech remains readable and announces unavailability', async () => {
@@ -67,7 +67,9 @@ test('accessible buyer review in Chrome (speech API stub; no physical audio clai
     await buyer.page.evaluate(expires => { Date.now = () => expires + 1; }, fresh.snapshot.expires_at);
     await card.getByText('This review expired.', { exact: false }).waitFor();
     assert.equal(await card.getByRole('checkbox').isChecked(), false);
-    assert.equal(await card.getByRole('button', { name: 'Approve this synthetic request with my passkey' }).isDisabled(), true);
+    assert.match(await card.locator('.request-status').innerText(), /Status: expired/);
+    assert.equal(await card.getByRole('button', { name: 'Decline / Reject this request' }).isDisabled(), true);
+    assert.equal(await card.getByRole('button', { name: 'Approve using my passkey — synthetic request' }).isDisabled(), true);
     const s = { ...fresh.snapshot, expires_at: Date.now() - 1 };
     const { digest } = await import('../src/core.mjs');
     h.store.run('UPDATE requests SET snapshot=?,digest=? WHERE id=?', JSON.stringify(s), digest(s), s.request_id);

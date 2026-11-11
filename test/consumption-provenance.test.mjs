@@ -54,8 +54,19 @@ test('browser retains mock review and never announces success for promoted recei
   t.after(() => h.close()); const helperActor = await h.actor('helper', false), buyerActor = await h.actor('buyer-a', false);
   const imported = await helperActor.call('/api/paypal/requests', { order_id: orderId, buyer_id: 'buyer-a' });
   const id = imported.data.snapshot.request_id;
+  // A response label cannot promote the separately validated mock review.
+  const promotedImport = structuredClone(imported.data);
+  promotedImport.snapshot.evidence_provenance = 'authenticated-sandbox-api';
+  await helperActor.page.route('**/api/paypal/requests', route => route.fulfill({ json: promotedImport }));
+  await helperActor.page.getByText('Advanced: operator-enabled sandbox order review', { exact: true }).click();
+  await helperActor.page.getByLabel('PayPal sandbox order ID', { exact: true }).fill(orderId);
+  await helperActor.page.getByRole('button', { name: 'Read and prepare PayPal order review' }).click();
+  await helperActor.page.locator('#message').filter({ hasText: 'Order review prepared.' }).waitFor();
+  assert.doesNotMatch(await helperActor.page.locator('#message').innerText(), /authenticated|verified/i);
+  assert.match(await helperActor.page.locator('#requests').innerText(), /MOCK PayPal fixture/);
   h.store.run("UPDATE requests SET status='approved',consent_digest=digest WHERE id=?", id);
   await buyerActor.page.reload();
+  await buyerActor.page.getByText('Advanced: technical details and operator testing', { exact: true }).click();
   const consume = buyerActor.page.getByRole('button', { name: 'Consume consent once (local test only)', exact: true });
   await consume.waitFor();
   await buyerActor.page.route('**/api/requests/*/consume', async route => {
@@ -88,8 +99,13 @@ test('authenticated fixture labels require canonical binding; failed refresh ret
   await buyerActor.page.getByText('PayPal order verified.', { exact: false }).first().waitFor();
   await buyerActor.page.route('**/api/requests/*/consume', route => route.fulfill({ json: item }));
   await buyerActor.page.route('**/api/requests', route => route.fulfill({ status: 500, json: { error: 'FIXTURE' } }));
+  await buyerActor.page.getByText('Advanced: technical details and operator testing', { exact: true }).click();
   await buyerActor.page.getByRole('button', { name: 'Consume consent once (local test only)', exact: true }).click();
   await buyerActor.page.locator('#message').filter({ hasText: 'committed receipt was confirmed' }).waitFor();
   assert.match(await buyerActor.page.locator('#requests').innerText(), /PayPal order verified\./);
+  // UI-only clock: a recorded observation must stop claiming current verification.
+  await buyerActor.page.evaluate(observed => { Date.now = () => observed + 61000; }, item.paypal_evidence.observed_at);
+  await buyerActor.page.getByText('Order verification: historical or stale', { exact: false }).waitFor();
+  assert.equal(await buyerActor.page.getByText('PayPal order verified.', { exact: false }).count(), 0);
   assert.equal(await buyerActor.page.getByRole('button', { name: 'Consume consent once (local test only)', exact: true }).count(), 0);
 });

@@ -44,10 +44,10 @@ test('PayPal-backed consent in Chrome: MOCK provider transport, real WebAuthn ve
     await buyer.page.reload();
     const card = buyer.page.getByRole('article');
     await card.getByRole('checkbox').check();
-    await card.getByRole('button', { name: 'Approve local consent for this PayPal order with my passkey', exact: true }).click();
+    await card.getByRole('button', { name: 'Approve using my passkey — local consent for this PayPal order', exact: true }).click();
     await buyer.page.locator('#message').filter({ hasText: 'Consent approved for these exact details.' }).waitFor();
     assert.equal(h.store.request(item.snapshot.request_id).status, 'approved');
-    assert.equal(await buyer.page.locator('#message').evaluate(e => e === document.activeElement), true);
+    assert.equal(await buyer.page.getByRole('article').getByRole('heading', { level: 3 }).evaluate(e => e === document.activeElement), true);
     await refresh();
   });
   await t.test('current evidence checked again after signature: changed amount/currency/payee/status and API failure cannot approve', async () => {
@@ -100,7 +100,7 @@ test('PayPal-backed consent in Chrome: MOCK provider transport, real WebAuthn ve
     await buyer.page.reload(); const card = buyer.page.getByRole('article');
     await card.getByText('MOCK PayPal fixture — no real API verification.', { exact: true }).waitFor();
     await card.getByText('Payment authorization and completion: not established.', { exact: false }).waitFor();
-    assert.equal(await card.getByRole('button', { name: 'Approve local consent', exact: false }).count(), 0);
+    assert.equal(await card.getByRole('button', { name: 'Approve using my passkey', exact: false }).count(), 0);
     await buyer.page.setViewportSize({ width: 320, height: 900 });
     assert.equal(await buyer.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     assert.deepEqual((await new AxeBuilder({ page: buyer.page }).analyze()).violations.map(v => v.id), []);

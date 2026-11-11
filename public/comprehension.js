@@ -1,3 +1,4 @@
+import { reviewedEvidence } from './evidence-provenance.js';
 import { exactAmount } from './presentation.js';
 export const topics = Object.freeze({
   amount: 'What is the amount?', merchant: 'Is this merchant verified?',
@@ -6,7 +7,7 @@ export const topics = Object.freeze({
 });
 // Both ordinary help and model-selected topics use these same deterministic answers.
 export function answer(topic, item, now = Date.now()) {
-  if (item.snapshot.kind === 'paypal') return 'This is a PayPal sandbox order review. Check the recorded API evidence, payee reference and purchase-unit totals. Shop identity is unverified. Local consent does not authorize or complete a payment. Stale or unavailable evidence requires a new review.';
+  if (item.snapshot.kind === 'paypal') return `${reviewedEvidence(item, now).provenance === 'mock-paypal-fixture' ? 'MOCK PayPal fixture. No real API verification.' : reviewedEvidence(item, now).provenance === 'authenticated-sandbox-api' ? 'Recorded authenticated sandbox observation.' : 'PayPal evidence provenance unavailable.'} ${reviewedEvidence(item, now).current ? 'This review is recent; the server must revalidate.' : 'This evidence is historical or stale. Do not approve.'} This is a PayPal sandbox order review. Check the recorded API evidence, payee reference and purchase-unit totals. Shop identity is unverified. Local consent does not authorize or complete a payment. Stale or unavailable evidence requires a new review.`;
   if (item.synthetic !== true) return 'Current payment evidence is unavailable. Do not approve.';
   const s = item.snapshot;
   const live = item.status === 'pending' && s.expires_at > now;

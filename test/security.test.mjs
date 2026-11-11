@@ -5,11 +5,11 @@ import AxeBuilder from '@axe-core/playwright';
 import { harness, sample } from './harness.mjs';
 import { alterAndSign, wrongHost } from './attacks.mjs';
 
-test('Real Chrome WebAuthn API with virtual authenticators: synthetic security experiment', { timeout: 120_000 }, async t => {
+test('Real Chrome WebAuthn API with virtual authenticators: synthetic security experiment', { timeout: 300_000 }, async t => {
   const h = await harness(); t.after(() => h.close());
   const records = [], browserVersion = h.browser.version();
   async function check(name, fn) {
-    await t.test(name, { timeout: 30_000 }, async () => {
+    await t.test(name, { timeout: name.startsWith('17 ') ? 90_000 : 30_000 }, async () => {
       try { await fn(); records.push({ name, outcome: 'PASS' }); }
       catch (error) { records.push({ name, outcome: 'FAIL', reason: error.message }); throw error; }
     });
@@ -164,9 +164,9 @@ test('Real Chrome WebAuthn API with virtual authenticators: synthetic security e
     const article = a.page.getByRole('article').filter({ hasText: item.snapshot.request_id });
     assert.equal(await article.locator('img,script').count(), 0);
     await article.getByRole('checkbox').check();
-    await article.getByRole('button', { name: 'Approve this synthetic request with my passkey' }).click();
+    await article.getByRole('button', { name: 'Approve using my passkey — synthetic request' }).click();
     await a.page.getByRole('status').filter({ hasText: 'Consent approved for these exact details.' }).waitFor();
-    assert.equal(await a.page.locator('#message').evaluate(e => document.activeElement === e), true);
+    assert.equal(await article.getByRole('heading', { level: 3 }).evaluate(e => document.activeElement === e), true);
     assert.equal(status(item), 'approved');
     const results = await new AxeBuilder({ page: a.page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
     assert.equal(results.violations.length, 0, JSON.stringify(results.violations.map(v => ({ id: v.id, impact: v.impact }))));

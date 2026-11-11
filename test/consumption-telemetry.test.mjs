@@ -12,6 +12,7 @@ async function fixture(t) {
   assert.equal(imported.status, 201); const item = imported.data, id = item.snapshot.request_id;
   h.store.run("UPDATE requests SET status='approved',consent_digest=digest WHERE id=?", id);
   await buyer.page.reload();
+  await buyer.page.getByText('Advanced: technical details and operator testing', { exact: true }).click();
   const button = buyer.page.getByRole('button', { name: 'Consume consent once (local test only)', exact: true }); await button.waitFor();
   h.store.db.exec(`CREATE TRIGGER deny_trace BEFORE INSERT ON consumption_diagnostics BEGIN SELECT RAISE(ABORT,'PRIVATE_TRACE_FAILURE'); END;
     CREATE TRIGGER deny_counter BEFORE INSERT ON consumption_rejections BEGIN SELECT RAISE(ABORT,'PRIVATE_COUNTER_FAILURE'); END;`);

@@ -1,10 +1,9 @@
-import { addAudio, exactAmount, stopAudio } from './presentation.js';
+import { addSpeech, exactAmount, stopAudio } from './presentation.js';
 import { questionAnswer } from './buyer-help.js';
 const $ = id => document.getElementById(id);
 let mode = 'synthetic', status = 'pending', revision = 1, quantity = '2';
-let answerAudio;
-function stop() { stopAudio(); window.speechSynthesis?.cancel(); answerAudio = null; }
-function notify(text) { $('message').textContent = text; $('message').focus(); }
+function stop() { stopAudio(); }
+function notify(text) { $('message').textContent = text; }
 function item() {
   return { synthetic: true, status, snapshot: { request_id: 'FIXTURE-ONLY', merchant_name: mode === 'synthetic' ? 'Example Store' : 'MOCK payee MOCKPAYEE123',
     merchant_id: mode === 'synthetic' ? 'SYNTH-SHOP-1' : 'MOCKPAYEE123', amount_minor: (BigInt(quantity) * 100n).toString(), currency: 'USD',
@@ -14,7 +13,7 @@ function report() {
   return { case_id: 'demo-only', items: [{ id: 'notebook', name: 'A5 ruled journal', quantity, unit_minor: '100' }],
     total_minor: item().snapshot.amount_minor, expected_total_minor: '100', currency: 'USD',
     issues: quantity === '2' ? [{ id: 'quantity-notebook', text: 'Expected quantity 1; recorded quantity 2 for notebook.' }] : [],
-    merchant: { name: 'Example Store', name_source: 'helper-provided fixture', payee_id: 'MOCKPAYEE123', expected_payee_id: 'MOCKPAYEE123' },
+    merchant: { name: item().snapshot.merchant_name, name_source: 'helper-provided fixture', payee_id: item().snapshot.merchant_id, expected_payee_id: item().snapshot.merchant_id },
     boundary: status === 'rejected' ? 'Simulated buyer refusal. Do not proceed.' : 'DEMO FIXTURE ONLY. Not evidence of a payable order.' };
 }
 function paint() {
@@ -25,14 +24,21 @@ function paint() {
   p('Item: A5 ruled journal. Expected quantity: 1. Recorded quantity: ' + quantity + '. Unit amount: 1.00 USD.');
   p(`Revision: ${revision}. Simulated local consent: ${status}.`);
   p('Genuine PayPal order verification: not established. PayPal buyer approval: not established. Payment authorization/completion: not established.');
-  addAudio(host, item(), notify);
+  $('payment-audio').replaceChildren();
+  addSpeech($('payment-audio'), () => `${mode === 'mock' ? 'MOCK PayPal fixture. No authenticated API response.' : 'Synthetic request.'} Amount: ${exactAmount(s)}. Merchant unverified: ${s.merchant_name}. Reference: ${s.merchant_id}. ${s.description} Expected quantity 1; recorded quantity ${quantity}. Unit amount 1.00 USD. Simulated consent: ${status}. No payment was made.`, 'payment details', notify);
+  for (const selected of ['synthetic', 'mock']) $(selected).setAttribute('aria-pressed', String(mode === selected));
   $('approve').disabled = status !== 'pending'; $('consume').disabled = status !== 'approved';
   $('decline').disabled = status !== 'pending'; $('revise').disabled = !['pending', 'approved'].includes(status);
   $('explanation').textContent = '';
+  if (document.activeElement?.disabled) $('review-heading').focus();
 }
+function reset() { status = 'pending'; revision = 1; quantity = '2'; paint(); notify('Simulation restarted. No real state or payment was changed.'); }
 for (const selected of ['synthetic', 'mock']) $(selected).addEventListener('click', () => {
-  mode = selected; status = 'pending'; revision = 1; quantity = '2'; paint(); notify('Fixture reset. No real state or payment was changed.');
+  if (mode === selected) { notify('This evidence type is already selected. Use Start again to restart.'); return; }
+  mode = selected; reset();
 });
+$('reset').addEventListener('click', reset);
+$('start').addEventListener('click', () => $('review-heading').focus());
 $('approve').addEventListener('click', () => { if (status !== 'pending') return; status = 'approved'; paint(); notify('SIMULATED consent approval only. No passkey or payment operation occurred.'); });
 $('consume').addEventListener('click', () => { if (status !== 'approved') return; status = 'consumed'; paint(); notify('SIMULATED consent consumed once. No payment occurred.'); });
 $('decline').addEventListener('click', () => { if (status !== 'pending') return; status = 'rejected'; paint(); notify('SIMULATED refusal recorded. Nothing was approved or paid.'); });
@@ -41,12 +47,8 @@ $('revise').addEventListener('click', () => {
   revision++; quantity = quantity === '2' ? '1' : '2'; status = 'pending'; paint(); notify('Fixture revised. Simulated prior consent invalidated; review again.');
 });
 $('answer').addEventListener('click', () => { stop(); $('explanation').textContent = questionAnswer($('question').value, report()); });
-$('read-answer').addEventListener('click', () => {
-  stop();
-  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) { notify('Speech unavailable. Read the visible explanation.'); return; }
+addSpeech($('answer-audio'), () => {
   if (!$('explanation').textContent) $('explanation').textContent = questionAnswer($('question').value, report());
-  answerAudio = new SpeechSynthesisUtterance($('explanation').textContent); answerAudio.lang = 'en';
-  answerAudio.onerror = () => notify('Audio unavailable. Read the visible explanation.'); window.speechSynthesis.speak(answerAudio);
-});
-$('stop-answer').addEventListener('click', () => { stop(); notify('Explanation audio stopped.'); });
+  return $('explanation').textContent;
+}, 'explanation', notify, { read: 'read-answer', pause: 'pause-answer', stop: 'stop-answer' });
 window.addEventListener('pagehide', stop); paint();

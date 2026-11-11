@@ -14,10 +14,11 @@ test('judge fixture demo: no credentials, API calls or WebAuthn; labelled simula
   await context.route('**/*', route => { const req = route.request(); traffic.push({ url: req.url(), method: req.method() });
     return new URL(req.url()).origin === origin ? route.continue() : route.abort(); });
   page.on('pageerror', error => errors.push(error.message)); await page.goto(origin);
-  await page.getByText('DEMO ONLY — deterministic fixtures.', { exact: false }).waitFor();
+  await page.getByText('DEMO ONLY — interactive simulation.', { exact: false }).waitFor();
   const approval = page.getByRole('button', { name: 'Simulate local consent approval', exact: true });
   await approval.focus(); await page.keyboard.press('Enter');
   await page.locator('#message').filter({ hasText: 'SIMULATED consent approval only' }).waitFor();
+  await page.getByText('Advanced: simulation scenarios and operator testing', { exact: true }).click();
   await page.getByRole('button', { name: 'Change fixture quantity', exact: false }).click();
   await page.getByText('Revision: 2. Simulated local consent: pending.', { exact: true }).waitFor();
   await page.getByRole('button', { name: 'MOCK PayPal order', exact: true }).click();

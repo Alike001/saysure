@@ -31,18 +31,37 @@ export function consumptionService(store, requests, paypal, { timeoutMs = 20000 
     ensure(acquired, 'CONSUMPTION_IN_PROGRESS');
     const controller = new AbortController();
     let timer;
+    let retainClaim = false;
     const work = (async () => {
-      const deadline = new Promise((_, reject) => { timer = setTimeout(() => {
-        controller.abort();
-        try { paypal.invalidate(row); } catch { /* fail closed if storage is unavailable */ } // Fail closed; a late provider response cannot commit or enable retry.
-        trace('timed_out', 'CONSUMPTION_TIMED_OUT');
-        reject(new Failure('CONSUMPTION_TIMED_OUT', 504));
-      }, timeoutMs); });
+      const deadline = new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          controller.abort();
+          try {
+            paypal.invalidate(row);
+          } catch {
+            retainClaim = true;
+            // Keep the SQLite claim if invalidation cannot be confirmed.
+          }
+          trace('timed_out', 'CONSUMPTION_TIMED_OUT');
+          reject(new Failure('CONSUMPTION_TIMED_OUT', 504));
+        }, timeoutMs);
+      });
+
       try {
-        const proof = await Promise.race([paypal.revalidate(session, id, {
-          status: 'approved', digest: expectedDigest, consumption: true, signal: controller.signal, trace }), deadline]);
+        const proof = await Promise.race([
+          paypal.revalidate(session, id, {
+            status: 'approved',
+            digest: expectedDigest,
+            consumption: true,
+            signal: controller.signal,
+            trace
+          }),
+          deadline
+        ]);
+
         ensure(!controller.signal.aborted, 'CONSUMPTION_TIMED_OUT', 504);
-        validate(session, id, expectedDigest); // Recheck session/ownership/expiry after network I/O.
+        validate(session, id, expectedDigest);
+
         trace('database_started');
         const result = requests.action(session, id, 'consume', expectedDigest, proof);
         trace('database_committed', 'OK', result.consumption_receipt.event.id);
@@ -50,10 +69,21 @@ export function consumptionService(store, requests, paypal, { timeoutMs = 20000 
       } finally {
         clearTimeout(timer);
         controller.abort();
-        try { store.run('DELETE FROM consumption_claims WHERE request_id=? AND owner=?', id, owner); }
-        catch { trace('failed', 'INTERNAL_ERROR'); } // A retained claim blocks later attempts safely.
+
+        if (!retainClaim) {
+          try {
+            store.run(
+              'DELETE FROM consumption_claims WHERE request_id=? AND owner=?',
+              id,
+              owner
+            );
+          } catch {
+            trace('failed', 'INTERNAL_ERROR');
+          }
+        }
       }
     })();
+
     pending.set(key, work);
     try { return await work; }
     finally { if (pending.get(key) === work) pending.delete(key); }

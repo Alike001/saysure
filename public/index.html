@@ -3,24 +3,21 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SaySure — Your money. Your final say.</title><link rel="stylesheet" href="/style.css">
 <script src="/webauthn.js" defer></script><script type="module" src="/app.js"></script></head>
-<body><a href="#main" class="skip">Skip to main content</a>
+<body class="application"><a href="#main" class="skip">Skip to main content</a>
 <header><h1>SaySure</h1>
-<p>Your money. Your final say.</p>
 <p><strong>No real money. No PayPal checkout.</strong> Approval records local consent only.</p></header>
 <main id="main">
 <p id="message" role="status" aria-live="polite" tabindex="-1"></p>
 <section id="login-panel" aria-labelledby="login-heading">
 <h2 id="login-heading">Sign in to your provisioned account</h2>
+<p>A Helper initiates a request. The Buyer independently reviews and approves or declines it.</p>
 <p>Use your own account secret. Roles are assigned by the server. Do not share buyer secrets with the helper.</p>
-<form id="login"><label for="username">Username</label><input id="username" name="username" autocomplete="username" required>
-<label for="password">Account secret</label><input id="password" name="password" type="password" autocomplete="current-password" required>
+<p id="login-error" class="field-error" role="alert"></p><form id="login"><label for="username">Username</label><input id="username" aria-describedby="login-error" name="username" autocomplete="username" required>
+<label for="password">Account secret</label><input id="password" aria-describedby="login-error" name="password" type="password" autocomplete="current-password" required>
 <button>Sign in</button></form></section>
-<section id="account" hidden aria-labelledby="account-heading"><h2 id="account-heading" tabindex="-1">Your account</h2>
+<section id="account" hidden aria-labelledby="account-heading"><h2 id="account-heading" tabindex="-1">Your workspace</h2>
 <p id="identity"></p><button id="logout" type="button">Sign out</button>
-<div id="enrollment" hidden><h3>Enroll your buyer passkey</h3>
-<p>Register only in your own account and authenticator. Your device handles its unlock locally. A passkey does not prove you understand a purchase.</p>
-<button id="register" type="button">Register my passkey</button></div>
-<p id="enrolled" hidden>Buyer passkey enrolled. Replacement enrollment is disabled in this experiment.</p></section>
+</section>
 <section id="helper" hidden aria-labelledby="helper-heading"><h2 id="helper-heading">Prepare a synthetic request</h2>
 <p>Merchant details are entered by the helper and are <strong>not independently verified</strong>.</p>
 <form id="request-form"><input name="request_id" type="hidden"><input name="revision" type="hidden">
@@ -28,16 +25,20 @@
 <label for="merchant-id">Synthetic merchant ID</label><input id="merchant-id" name="merchant_id" maxlength="80" required>
 <label for="merchant-name">Merchant displayed name (unverified)</label><input id="merchant-name" name="merchant_name" maxlength="120" required>
 <label for="currency">Currency</label><select id="currency" name="currency"><option>USD</option><option>EUR</option><option>NGN</option><option>JPY</option></select>
-<label for="amount">Exact amount in major units, for example 1.00 USD or 100 JPY</label><input id="amount" name="amount" inputmode="decimal" required>
+<label for="amount">Exact amount in major units, for example 1.00 USD or 100 JPY</label><input id="amount" name="amount" aria-describedby="amount-error" inputmode="decimal" required>
+<p id="amount-error" class="field-error" role="alert"></p>
 <label for="description">Description</label><textarea id="description" name="description" maxlength="500" required></textarea>
 <label for="lifetime">Request lifetime in minutes (1–30)</label><input id="lifetime" name="lifetime_minutes" type="number" min="1" max="30" value="10" required>
 <button id="save-request">Create synthetic request</button><button id="cancel-edit" type="button" hidden>Cancel revision</button></form></section>
-<section id="paypal-helper" hidden aria-labelledby="paypal-heading"><h2 id="paypal-heading">Review a PayPal sandbox order</h2>
+<details class="provider-tools" hidden><summary>Advanced: operator-enabled sandbox order review</summary><section id="paypal-helper" hidden aria-labelledby="paypal-heading"><h2 id="paypal-heading">Review a PayPal sandbox order</h2>
 <p>Enter only an operator-allowlisted current order ID. The server reads the amount and payee from PayPal. This does not create an order or make a payment. Reading must be enabled in private configuration.</p>
 <form id="paypal-import"><label for="paypal-buyer">App buyer account (not proof of PayPal payer identity)</label><select id="paypal-buyer" name="buyer_id" required></select>
 <label for="paypal-order">PayPal sandbox order ID</label><input id="paypal-order" name="order_id" pattern="[A-Z0-9]{5,32}" maxlength="32" required>
-<button>Read and prepare PayPal order review</button></form></section>
-<section id="inbox" hidden aria-labelledby="inbox-heading"><h2 id="inbox-heading">Requests</h2>
-<p>Refresh to check for new requests or changes. Revisions invalidate prior approval.</p>
-<button id="refresh" type="button">Refresh requests</button><div id="requests"></div></section>
-</main><footer><p>Local security experiment. No AI, card collection or payment operations.</p></footer></body></html>
+<button>Read and prepare PayPal order review</button></form></section></details>
+<section id="inbox" hidden aria-labelledby="inbox-heading"><div class="inbox-toolbar"><h2 id="inbox-heading">Requests</h2>
+<button id="refresh" type="button">Refresh requests</button></div><div id="requests"></div>
+<p>Changed details require a new review. Refresh to check for updates.</p></section>
+<section id="buyer-settings" hidden aria-label="Buyer passkey setup"><div id="enrollment" hidden><h3>Enroll your buyer passkey</h3>
+<p>Register only in your own account and authenticator. Your device handles its unlock locally. A passkey does not prove you understand a purchase.</p>
+<button id="register" type="button">Register my passkey</button></div>
+<p id="enrolled" hidden>Buyer passkey enrolled. Replacement enrollment is disabled in this experiment.</p></section></main><footer><p>Local security experiment. No AI, card collection or payment operations.</p></footer></body></html>

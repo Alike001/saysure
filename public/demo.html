@@ -1,20 +1,32 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SaySure — deterministic judge demo</title><link rel="stylesheet" href="/style.css"><script type="module" src="/demo.js"></script></head>
-<body><a class="skip" href="#main">Skip to main content</a><header><h1>SaySure</h1><p>Your money. Your final say.</p>
-<p><strong>DEMO ONLY — deterministic fixtures. No real PayPal response, passkey ceremony, AI call or payment.</strong></p></header>
+<title>SaySure — Your money. Your final say.</title><link rel="stylesheet" href="/style.css"><script type="module" src="/demo.js"></script></head>
+<body class="demo"><a class="skip" href="#main">Skip to main content</a>
+<header><p class="wordmark">SaySure <span>Your money. Your final say.</span></p>
+<h1>Getting help with a payment should never mean giving up control of your money.</h1>
+<p><strong>Helper:</strong> initiates a payment request.<br><strong>Buyer:</strong> independently reviews and approves or declines it.</p>
+<p class="boundary"><strong>DEMO ONLY — interactive simulation.</strong> No real PayPal response, passkey ceremony, AI call or payment. No account or credentials needed.</p>
+<a class="button primary" id="start" href="#review-heading">Start the guided demo</a></header>
 <main id="main"><p id="message" role="status" aria-live="polite" tabindex="-1"></p>
-<section aria-labelledby="mode-heading"><h2 id="mode-heading">Choose fixture evidence</h2>
-<button id="synthetic">Synthetic request</button><button id="mock">MOCK PayPal order</button>
-<p>Your real localhost passkeys, accounts and consent evidence are not accessed by this demo.</p></section>
-<section aria-labelledby="review-heading"><h2 id="review-heading">Payment review</h2><div id="review"></div>
-<div role="group" aria-label="Simulated choices"><button id="approve">Simulate local consent approval</button><button id="consume">Simulate consuming consent once</button>
-<button id="decline">Simulate decline</button><button id="revise">Change fixture quantity (invalidates simulated consent)</button></div></section>
-<section aria-labelledby="help-heading"><h2 id="help-heading">Grounded buyer questions</h2>
-<p>Deterministic answers and ordinary speech. The separate Groq experiment routes questions to the same grounded answer types; this demo does not call a model.</p>
+<section aria-labelledby="review-heading"><h2 id="review-heading" tabindex="-1">Review, then decide</h2><div id="review"></div>
+<a class="explanation-link" href="#help-heading">Listen / explain the quantity difference</a>
+<p>Check the recipient, amount, currency and items. In the application, the Buyer records consent with their own passkey. Here, choices are simulated.</p>
+<div role="group" aria-label="Simulated choices"><button class="primary" id="approve">Simulate local consent approval</button><button id="decline">Simulate decline</button></div>
+<div id="payment-audio"></div>
+</section>
+<section aria-labelledby="help-heading"><h2 id="help-heading" tabindex="-1">Understand this request</h2>
+<p>Answers use only the recorded demo details. Listening never approves anything. Your browser or OS supplies the voice; audio may be heard by others.</p>
 <label for="question">Choose a buyer question</label><select id="question">
 <option value="difference">Why does my total differ from what I expected?</option><option value="items">What items am I being charged for?</option>
 <option value="merchant">Is this the same merchant I expected?</option><option value="payment">Has payment already happened?</option>
 <option value="decline">What happens if I decline?</option><option value="simple">Can you explain this in simpler language?</option></select>
 <button id="answer">Explain selected question</button><p id="explanation" role="status" aria-live="polite"></p>
-<button id="read-answer">Read explanation aloud</button><button id="stop-answer">Stop explanation audio</button></section>
-</main><footer><p>Real consent and provider failure checks are available in the automated Chrome suite. Fixture transitions are simulations only.</p></footer></body></html>
+<div id="answer-audio"></div></section>
+<details class="advanced"><summary>Advanced: simulation scenarios and operator testing</summary>
+<p>These controls change only this browser simulation. Switching evidence type starts a new scenario and clears the decision and revision. Use Start again to repeat the selected scenario.</p>
+<div role="group" aria-label="Simulation evidence type"><button id="synthetic" aria-pressed="true">Synthetic request</button><button id="mock" aria-pressed="false">MOCK PayPal order</button></div>
+<button id="reset">Start again</button>
+<button id="revise">Change fixture quantity (invalidates simulated consent)</button>
+<p>Operator / developer illustration: single-use local consent is separate from making a payment.</p>
+<button id="consume">Simulate consuming consent once</button>
+<p>Your real localhost passkeys, accounts and consent evidence are not accessed by this demo.</p></details>
+</main><footer><p>Automated protocol tests use virtual authenticators and synthetic data. This simulation does not establish comprehension benefit or production readiness.</p></footer></body></html>

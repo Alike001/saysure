@@ -17,48 +17,63 @@ export function renderRequests(items, session, tools) {
   clearInterval(expiryTimer);
   const expiryChecks = [];
   stopAudio();
-  const host = document.getElementById('requests'); host.replaceChildren();
-  if (!items.length) { host.append(element('p', 'No requests for this account.')); return; }
+  const host = document.getElementById('requests');
+  const focused = document.activeElement;
+  const previous = focused?.closest('article')?.getAttribute('aria-labelledby');
+  const control = focused?.textContent;
+  host.replaceChildren();
+  if (!items.length) { host.append(element('p', session.user.role === 'buyer' ? 'No requests yet. Ask your Helper to prepare a request, then refresh. You keep the final decision.' : 'No requests yet. Prepare a synthetic request for a Buyer above.')); return; }
   for (const item of items) {
     const s = item.snapshot, id = s.request_id, base = `/api/requests/${id}`;
     const article = element('article');
     const heading = element('h3', `${exactAmount(s)} — ${s.merchant_name}`);
     heading.id = `heading-${id}`; article.setAttribute('aria-labelledby', heading.id);
-    article.append(heading);
+    heading.tabIndex = -1; article.append(heading);
+    const status = element('p', `Status: ${item.status}`); status.className = 'request-status';
+    status.setAttribute('role', 'status'); article.append(status);
+    const facts = element('dl'); facts.className = 'transaction-facts';
+    for (const [label, value] of [
+      ['Description', s.description], ['Expires', new Date(s.expires_at).toLocaleString()],
+    ]) facts.append(element('dt', label), element('dd', value));
+    article.append(facts);
+    const advanced = element('details'); advanced.className = 'advanced';
+    advanced.append(element('summary', 'Advanced: technical details and operator testing'));
+    const explain = element('div'); explain.id = `explain-${id}`; explain.tabIndex = -1;
     if (s.kind === 'paypal') {
       const e = reviewedEvidence(item);
-      article.append(element('p', e.provenance === 'mock-paypal-fixture' ? 'MOCK PayPal fixture — no real API verification.' : e.provenance === 'authenticated-sandbox-api' ? 'PayPal sandbox API evidence — shop identity is not independently verified.' : 'PayPal evidence provenance unavailable; verification blocked.'));
+      article.append(element('p', e.provenance === 'mock-paypal-fixture' ? 'MOCK PayPal fixture — no real API verification.' : e.provenance === 'authenticated-sandbox-api' ? 'Recorded authenticated PayPal sandbox observation — shop identity is not independently verified.' : 'PayPal evidence provenance unavailable; verification blocked.'));
       const verification = element('p'), approval = element('p'); article.append(verification, approval);
       const paintEvidence = () => {
         const current = reviewedEvidence(item).current;
         const genuine = e.provenance === 'authenticated-sandbox-api';
-        verification.textContent = `${genuine && current ? 'PayPal order verified. ' : ''}Order verification: ${e.provenance === 'mock-paypal-fixture' ? 'MOCK fixture only' : genuine && current ? 'recent authenticated server read' : 'unavailable or stale; re-review required'}. Local buyer consent: ${item.status}.`;
+        verification.textContent = `${genuine && current ? 'PayPal order verified. ' : ''}Order verification: ${!current ? 'historical or stale; re-review required' : e.provenance === 'mock-paypal-fixture' ? 'MOCK fixture only' : genuine ? 'recent authenticated server read' : 'unavailable; re-review required'}.`;
         approval.textContent = `Recorded provider status: ${s.provider.status}. PayPal buyer approval: ${genuine && current && s.provider.status === 'APPROVED' ? 'reported APPROVED by the recorded API evidence' : 'not established by current evidence'}. Payment authorization and completion: not established. This app never captures. ${genuine && current && s.provider.status === 'CREATED' ? 'PayPal buyer approval not established. Payment not captured in this CREATED order observation.' : ''}`;
       };
       paintEvidence(); expiryChecks.push(paintEvidence);
       article.append(element('p', `PayPal order ID: ${s.provider.order_id}.`));
       article.append(element('p', `Evidence read: ${e.observed_at ? new Date(e.observed_at).toLocaleString() : 'unavailable'}. App buyer identity is not proof of PayPal payer identity.`));
       for (const unit of s.provider.units) article.append(element('p', `Purchase unit ${unit.index}: ${exactAmount(unit)}`));
-    } else article.append(element('p', 'SYNTHETIC DATA — merchant details are helper-supplied and unverified.'));
+    } else article.append(element('p', 'SYNTHETIC DATA — helper-supplied recipient, unverified.'));
     if (session.user.role === 'buyer') {
-      addAudio(article, item, tools.notify);
+      const link = element('a', 'Listen to details / get explanations'); link.href = `#explain-${id}`;
+      link.className = 'explanation-link'; article.append(link);
+      explain.append(element('h4', 'Understand this request'));
+      addAudio(explain, item, tools.notify);
       const help = element('details'), title = element('summary', 'Questions about these details');
       help.append(title);
       for (const [topic, question] of Object.entries(topics)) {
         const detail = element('details');
         detail.append(element('summary', question), element('p', answer(topic, item))); help.append(detail);
       }
-      article.append(help);
-      article.append(element('p', 'Audio may be heard by others. Your browser or OS supplies the voice.'));
+      explain.append(help);
+      explain.append(element('p', 'Audio may be heard by others. Your browser or OS supplies the voice.'));
     }
     const list = element('dl');
     for (const [label, value] of [
-      ['Request', id], ['Merchant ID', s.merchant_id], ['Merchant displayed name (unverified)', s.merchant_name],
-      ['Exact amount and currency', exactAmount(s)], ['Minor units', s.amount_minor],
-      ['Description', s.description], ['Buyer account', s.buyer_id], ['Revision', String(s.revision)],
-      ['Expires', new Date(s.expires_at).toLocaleString()], ['Status', item.status],
+      ['Request', id], ['Merchant ID', s.merchant_id], ['Minor units', s.amount_minor],
+      ['Buyer account', s.buyer_id], ['Revision', String(s.revision)],
     ]) list.append(element('dt', label), element('dd', value));
-    article.append(list);
+    advanced.append(list);
     if (session.user.role === 'helper' && s.kind === 'paypal' && ['pending', 'approved', 'invalidated'].includes(item.status)) {
       addButton(article, 'Re-read PayPal order (invalidates consent)', async () => {
         await tools.api(`${base}/refresh-provider`, { digest: item.digest });
@@ -73,10 +88,17 @@ export function renderRequests(items, session, tools) {
         const label = element('label'), check = element('input'); check.type = 'checkbox';
         check.id = `review-${id}`; check.style.width = 'auto';
         label.htmlFor = check.id;
-        label.append(check, document.createTextNode(' I reviewed this exact amount, currency, merchant and description. Approval records app consent only; it does not make a payment.'));
+        label.append(check, document.createTextNode(' I reviewed the amount, currency, recipient and description. I consent to these exact details. No payment is made.'));
         article.append(label);
+        const prerequisite = element('p', session.enrolled ? 'Confirm your review to approve. Decline needs no passkey.' : 'Set up your own Buyer passkey below to approve. Decline needs no passkey.');
+        prerequisite.className = 'prerequisite';
+        if (!session.enrolled) {
+          const setup = element('a', 'Set up my Buyer passkey'); setup.href = '#register';
+          prerequisite.replaceChildren(setup, document.createTextNode(' to approve. Decline needs no passkey.'));
+        }
+        article.append(prerequisite);
         if (item.synthetic !== true && s.kind !== 'paypal') { article.append(element('p', 'Payment evidence unavailable. Approval blocked.')); host.append(article); continue; }
-        const approve = addButton(article, s.kind === 'paypal' ? 'Approve local consent for this PayPal order with my passkey' : 'Approve this synthetic request with my passkey', async () => {
+        const approve = addButton(article, s.kind === 'paypal' ? 'Approve using my passkey — local consent for this PayPal order' : 'Approve using my passkey — synthetic request', async () => {
           if (!check.checked) { check.focus(); throw new Error('Review the details and check the confirmation before using your passkey.'); }
           stopAudio();
           const options = await tools.api(`${base}/options`, { digest: item.digest });
@@ -84,7 +106,12 @@ export function renderRequests(items, session, tools) {
           await tools.api(`${base}/approve`, { challengeId: options.challengeId, response });
           await tools.refresh(); tools.notify('Consent approved for these exact details. No payment was authorized or made.');
         }, tools.perform);
-        if (s.kind === 'paypal' && (!reviewedEvidence(item).current || item.status === 'invalidated')) approve.disabled = true;
+        approve.className = 'primary';
+        approve.setAttribute('aria-label', approve.textContent); approve.textContent = 'Approve using my passkey';
+        const unavailable = s.kind === 'paypal' && item.status === 'invalidated';
+        const updateApproval = () => { approve.disabled = approve.dataset.locked === 'true' || approve.dataset.busy === 'true' || !check.checked || !session.enrolled || unavailable || s.expires_at <= Date.now(); };
+        approve.addEventListener('action-finished', updateApproval);
+        check.addEventListener('change', updateApproval); updateApproval();
         addButton(article, 'Decline / Reject this request', async () => {
           await tools.api(`${base}/reject`, { digest: item.digest });
           await tools.refresh(); tools.notify('Request rejected. No approval or payment was made.');
@@ -92,7 +119,8 @@ export function renderRequests(items, session, tools) {
       }
       if (item.status === 'approved') {
         article.append(element('p', 'Buyer consent approved. Consent recorded. No payment has been authorized or made.'));
-        const consume = addButton(article, 'Consume consent once (local test only)', async () => {
+        advanced.append(element('p', 'Operator / developer test: validate single-use local consent. This is not an ordinary Buyer payment action and makes no payment.'));
+        const consume = addButton(advanced, 'Consume consent once (local test only)', async () => {
           consume.dataset.locked = 'true';
           const consumed = await validateConsumptionReceipt(await tools.api(`${base}/consume`, { digest: item.digest }), item);
           // Render the validated receipt immediately; a later list error must not revive this button.
@@ -112,36 +140,41 @@ export function renderRequests(items, session, tools) {
       if (item.status === 'expired') article.append(element('p', 'This request expired. It cannot be approved or consumed.'));
       if (item.status === 'consumed') article.append(element('p', 'Consent consumed. Local consent already consumed. It cannot be reused. No payment was made.'));
     }
+    if (session.user.role === 'buyer') article.append(explain);
+    article.append(advanced); host.append(article);
     if (s.kind === 'paypal') {
-      let stale = false;
+      let staleNotice = false;
       expiryChecks.push(() => {
-        if (stale || Date.now() - item.paypal_evidence.observed_at < 60000) return;
-        stale = true; stopAudio();
-        for (const b of article.querySelectorAll(':scope > button')) {
-          if (/Approve|Consume/.test(b.textContent)) b.disabled = true;
-        }
-        const notice = element('p', 'PayPal evidence is stale. Ask the helper to re-read the order, then refresh and review.');
-        notice.setAttribute('role', 'status'); article.append(notice);
+        if (staleNotice || Date.now() - (item.paypal_evidence?.observed_at ?? 0) < 60000) return;
+        staleNotice = true;
+        const notice = element('p', 'PayPal evidence is older than 60 seconds. The server will re-read the order before approval or consumption. If the order has changed or cannot be verified, the action will be blocked.');
+        notice.setAttribute('role', 'status');
+        article.append(notice);
       });
     }
-    if (['pending', 'approved'].includes(item.status)) {
+    if (['pending', 'approved', 'invalidated'].includes(item.status)) {
       let expired = false;
       const expire = () => {
         if (expired || s.expires_at > Date.now()) return;
-        expired = true; stopAudio();
+        expired = true; stopAudio(); status.textContent = 'Status: expired — refresh requests';
         // Keep audio available for historical review; disable consent mutations only.
-        for (const button of article.querySelectorAll(':scope > button')) button.disabled = true;
+        for (const button of article.querySelectorAll('button')) {
+          if (/Approve|Consume|Decline|Withdraw|Revise|Re-read/.test(button.textContent)) { button.disabled = true; button.dataset.locked = 'true'; }
+        }
         for (const check of article.querySelectorAll('input[type=checkbox]')) { check.checked = false; check.disabled = true; }
         const notice = element('p', 'This review expired. Refresh requests. It cannot be approved or consumed.');
         notice.setAttribute('role', 'status'); article.append(notice);
-        const help = article.querySelector('details');
+        const help = explain.querySelector('details');
         if (help) for (const [i, p] of [...help.querySelectorAll('details p')].entries()) {
           p.textContent = answer(Object.keys(topics)[i], item);
         }
       };
       expire(); expiryChecks.push(expire);
     }
-    host.append(article);
+    if (previous === heading.id) {
+      const next = [...article.querySelectorAll('button')].find(b => b.textContent === control && !b.disabled);
+      (next ?? heading).focus();
+    }
   }
   expiryTimer = setInterval(() => expiryChecks.forEach(check => check()), 1000);
 }

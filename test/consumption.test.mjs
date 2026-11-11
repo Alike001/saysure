@@ -31,7 +31,7 @@ async function fixture(t, extra = {}) {
   const initial = reads;
   return { h, helper, buyer, item, id, path, data, reads: () => reads - initial,
     delay(promise) { waiting = promise; },
-    async button() { await buyer.page.reload(); const b = buyer.page.getByRole('button', { name: 'Consume consent once (local test only)', exact: true }); await b.waitFor(); return b; } };
+    async button() { await buyer.page.reload(); await buyer.page.getByText('Advanced: technical details and operator testing', { exact: true }).click(); const b = buyer.page.getByRole('button', { name: 'Consume consent once (local test only)', exact: true }); await b.waitFor(); return b; } };
 }
 test('HTTP 200 approved response is never accepted as a consumption acknowledgement', async t => {
   const f = await fixture(t), button = await f.button();
@@ -52,7 +52,7 @@ test('valid committed receipt drives accessible UI; sequential duplicate rejects
   const event = f.h.store.get('SELECT * FROM events WHERE seq=?', data.consumption_receipt.event.id);
   assert.equal(event.request_id, f.id); assert.equal(event.at, data.consumption_receipt.event.at);
   await f.buyer.page.locator('#message').filter({ hasText: 'Consent consumed once' }).waitFor();
-  assert.equal(await f.buyer.page.locator('#message').evaluate(e => e === document.activeElement), true);
+  assert.equal(await f.buyer.page.getByRole('article').getByRole('heading', { level: 3 }).evaluate(e => e === document.activeElement), true);
   assert.equal(await f.buyer.page.getByRole('button', { name: 'Consume consent once (local test only)', exact: true }).count(), 0);
   for (const mutate of [d => d.consumption_receipt.request_id = 'WRONG', d => d.consumption_receipt.consent_digest = 'wrong',
     d => d.consumption_receipt.event.type = 'approved', d => d.consumption_receipt.event.id = null,
@@ -117,6 +117,52 @@ test('timeout releases claim and a late provider response cannot commit', async 
   assert.equal(f.h.store.get('SELECT COUNT(*) AS n FROM consumption_claims').n, 0);
   release(); await new Promise(resolve => setTimeout(resolve, 30));
   assert.equal(f.h.store.request(f.id).consumed_at, null); assert.equal(f.h.store.all("SELECT * FROM events WHERE event='consume'").length, 0);
+});
+
+test('timeout retains claim and blocks retry when evidence invalidation fails', async t => {
+  const f = await fixture(t, { consumption: { timeoutMs: 50 } });
+
+  let release;
+  f.delay(new Promise(resolve => { release = resolve; }));
+
+  f.h.store.db.exec(`
+    CREATE TRIGGER fail_invalidation
+    BEFORE UPDATE OF status ON requests
+    WHEN NEW.status = 'invalidated'
+    BEGIN
+      SELECT RAISE(ABORT, 'PRIVATE_SQL_MESSAGE');
+    END;
+  `);
+
+  const result = await f.buyer.call(f.path, {
+    digest: f.item.digest
+  });
+
+  assert.equal(result.status, 504);
+  assert.equal(f.h.store.request(f.id).status, 'approved');
+  assert.equal(
+    f.h.store.get('SELECT COUNT(*) AS n FROM consumption_claims').n,
+    1
+  );
+
+  const retry = await f.buyer.call(f.path, {
+    digest: f.item.digest
+  });
+
+  assert.equal(retry.status, 409);
+
+  release();
+  await new Promise(resolve => setTimeout(resolve, 50));
+
+  assert.equal(f.h.store.request(f.id).consumed_at, null);
+  assert.equal(
+    f.h.store.all("SELECT * FROM events WHERE event='consume'").length,
+    0
+  );
+  assert.equal(
+    f.h.store.get('SELECT COUNT(*) AS n FROM consumption_claims').n,
+    1
+  );
 });
 test('one remaining GET: overlapping duplicates share work; another app instance cannot reserve a read', async t => {
   const directory = mkdtempSync(join(tmpdir(), 'saysure-consumption-budget-')); t.after(() => rmSync(directory, { recursive: true, force: true }));
