@@ -4,7 +4,7 @@ import { createBuyerQuestionRouter, redactBuyerQuestion } from '../src/buyer-que
 
 test('redacts common private and transaction identifiers before model routing', () => {
   const safe = redactBuyerQuestion('Is Example Store charging $12.50 USD? Order MOCKPAYEE123, email ali@example.com');
-  assert.doesNotMatch(safe, /12\\.50|MOCKPAYEE123|ali@example\\.com|Example Store/);
+  assert.doesNotMatch(safe, /12\.50|MOCKPAYEE123|ali@example\.com|Example Store/);
   assert.match(safe, /redacted/);
 });
 
@@ -28,7 +28,7 @@ test('sends only the redacted question and accepts one allowlisted topic', async
   assert.equal(request.options.headers.Authorization, 'Bearer gsk_test_key_for_unit_test_only_1234567890');
   const body = JSON.parse(request.options.body);
   assert.equal(body.messages.length, 2);
-  assert.doesNotMatch(JSON.stringify(body), /12\\.50|MOCKPAYEE123|ali@example\\.com|Example Store/);
+  assert.doesNotMatch(JSON.stringify(body), /12\.50|MOCKPAYEE123|ali@example\.com|Example Store/);
   assert.doesNotMatch(JSON.stringify(body), /amount_minor|order_id|merchant_id|buyer_id|passkey|consent_digest/);
 });
 
