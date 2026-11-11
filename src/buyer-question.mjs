@@ -64,23 +64,26 @@ export function createBuyerQuestionRouter({ apiKey, fetchImpl = fetch, now = Dat
 
     try {
       const response = await fetchImpl(ENDPOINT, {
-        method: 'POST',
+        method: 'POST', redirect: 'error',
         headers: { Authorization: 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: MODEL,
           temperature: 0,
-          max_tokens: 60,
+          reasoning_effort: 'low',
+          max_completion_tokens: 120,
           response_format: { type: 'json_object' },
           messages: [
             { role: 'system', content: SYSTEM },
             { role: 'user', content: JSON.stringify({ question: safeQuestion }) }
           ]
         }),
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(12000)
       });
       if (!response.ok) return fallback();
       const payload = await response.json();
-      const content = payload?.choices?.[0]?.message?.content;
+      const choice = payload?.choices?.[0];
+      if (choice?.finish_reason !== 'stop') return fallback();
+      const content = choice?.message?.content;
       if (typeof content !== 'string') return fallback();
       const selected = JSON.parse(content);
       if (!selected || Object.keys(selected).join() !== 'topic' || !TOPICS.has(selected.topic)) return fallback();
