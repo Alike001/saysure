@@ -26,7 +26,12 @@ async function readQuestion(req) {
   }
   return input.question;
 }
-export function demoServer({ ai } = {}) {
+export function demoServer({ ai, publicUrl } = {}) {
+  const publicOrigin = publicUrl ? new URL(publicUrl) : null;
+  if (publicOrigin && (publicOrigin.protocol !== 'https:' ||
+    publicOrigin.pathname !== '/' || publicOrigin.search || publicOrigin.hash)) {
+    throw new Error('INVALID_PUBLIC_DEMO_ORIGIN');
+  }
   const routeQuestion = createBuyerQuestionRouter(ai);
   const server = createServer(async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
@@ -34,11 +39,17 @@ export function demoServer({ ai } = {}) {
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Content-Security-Policy', "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'none'; base-uri 'none'");
-    if (req.headers.host !== 'localhost:' + server.address().port) {
+    if (req.method === 'GET' && req.url === '/healthz') {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end('{"ok":true,"mode":"synthetic-demo"}');
+      return;
+    }
+    const expectedHost = publicOrigin?.host ?? 'localhost:' + server.address().port;
+    if (req.headers.host !== expectedHost) {
       res.writeHead(403); res.end('Invalid host'); return;
     }
     if (req.method === 'POST' && req.url === '/api/demo-question') {
-      const origin = 'http://localhost:' + server.address().port;
+      const origin = publicOrigin?.origin ?? 'http://localhost:' + server.address().port;
       if (req.headers.origin !== origin) { res.writeHead(403); res.end(JSON.stringify({ error: 'INVALID_ORIGIN' })); return; }
       try {
         const question = await readQuestion(req);
