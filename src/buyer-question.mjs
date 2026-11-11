@@ -27,6 +27,7 @@ export function redactBuyerQuestion(value) {
     .replace(/[$€£₦]\s*\d[\d,]*(?:\.\d+)?/g, '[redacted amount]')
     .replace(/\b\d[\d,]*(?:\.\d+)?\s*(?:USD|EUR|NGN|GBP|JPY|CAD|AUD)\b/gi, '[redacted amount]')
     .replace(/\b\+?\d[\d ().-]{7,}\d\b/g, '[redacted number]')
+    .replace(/\b\d{6,}\b/g, '[redacted number]')
     .replace(/\b(?:0x)?[a-f0-9]{16,}\b/gi, '[redacted reference]')
     .replace(/\b[A-Z0-9_-]{10,}\b/g, '[redacted reference]')
     .replace(/\b[A-Z][a-z]{2,}(?:\s+[A-Z][a-z]{2,})+\b/g, '[redacted name]')
