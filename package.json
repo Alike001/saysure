@@ -17,7 +17,8 @@
     "demo": "node scripts/demo.mjs",
     "audit:release": "node scripts/release-audit.mjs",
     "test:release": "node --import ./scripts/offline-test-guard.mjs --test test/release-audit.test.mjs",
-    "configure:ai": "node scripts/configure-ai.mjs"
+    "configure:ai": "node scripts/configure-ai.mjs",
+    "start:public-demo": "node scripts/hosted-demo.mjs"
   },
   "dependencies": {
     "@simplewebauthn/browser": "14.0.0",
