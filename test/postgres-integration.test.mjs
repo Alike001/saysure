@@ -38,7 +38,10 @@ test('PostgreSQL runtime supports login, request creation and single-use consump
 
     const health = await fetch(`${config.origin}/healthz`);
     assert.equal(health.status, 200);
-    assert.deepEqual(await health.json(), { status: 'ok', database: 'postgres' });
+    assert.deepEqual(await health.json(), { status: 'ok', storage: 'postgres' });
+    const ready = await fetch(`${config.origin}/readyz`);
+    assert.equal(ready.status, 200);
+    assert.deepEqual(await ready.json(), { status: 'ready', database: 'postgres' });
 
     async function login(username, password) {
       const response = await fetch(`${config.origin}/api/login`, {
