@@ -34,7 +34,7 @@ test('valid PayPal receipt retains original reviewed snapshot and verifies its c
   data.snapshot.buyer_id = 'CHANGED_AFTER_VALIDATION'; assert.equal(result.snapshot.buyer_id, 'buyer-a');
 });
 test('all returned transaction details must exactly match the reviewed snapshot', async t => {
-  const { item, data } = fixture(t);
+  const { item, data } = await fixture(t);
   const changes = {
     buyer: d => d.snapshot.buyer_id = 'buyer-b', amount: d => d.snapshot.amount_minor = '999',
     currency: d => d.snapshot.currency = 'EUR', merchant: d => d.snapshot.merchant_id = 'WRONG123',
@@ -80,7 +80,7 @@ test('provenance is part of the v2 canonical digest and legacy bytes remain v1',
   delete changed.evidence_provenance; assert.match(canonical(changed), /^\["paypal-consent-v1"/);
 });
 test('receipt rejects missing, unknown and bidirectionally changed provenance', async t => {
-  const { item, data } = fixture(t);
+  const { item, data } = await fixture(t);
   for (const source of ['mock-paypal-fixture', 'authenticated-sandbox-api']) {
     const original = structuredClone(item), receipt = structuredClone(data);
     original.snapshot.evidence_provenance = source; original.paypal_evidence.provenance = source;
@@ -101,7 +101,7 @@ test('receipt rejects missing, unknown and bidirectionally changed provenance', 
   }
 });
 test('fresh evidence timestamps and identity assertions must be verifiable', async t => {
-  const { item, data } = fixture(t);
+  const { item, data } = await fixture(t);
   for (const mutate of [d => d.paypal_evidence.observed_at = Date.now() + 600000,
     d => d.paypal_evidence.observed_at = item.paypal_evidence.observed_at - 1,
     d => d.paypal_evidence.observed_at = null, d => d.paypal_evidence.current = 'true',
