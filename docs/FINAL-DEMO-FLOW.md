@@ -4,7 +4,7 @@ Originally prepared 10 November 2026 for approved release `b2ddd815`; product ob
 
 ## Updated working-tree demonstration
 
-The local implementation now follows this journey. The original release runbook below is preserved as historical context; its missing-control/first-frame warnings describe `b2ddd815` and are superseded for the revised UI by this section. The AI-routing implementation is committed on the public feature branch feat/buyer-ai-question-routing; it is not merged to master or deployed. The demo also offers optional server-side Groq question classification when the local key is configured; without it, deterministic local matching remains available. The model receives only a best-effort redacted question, never the fixture transaction record.
+The local implementation now follows this journey. The original release runbook below is preserved as historical context; its missing-control/first-frame warnings describe `b2ddd815` and are superseded for the revised UI by this section. The AI-routing implementation was merged into public `master` in PR #1. The current repository is not confirmed deployed, and the project has not yet been submitted. The demo also offers optional server-side Groq question classification when the local key is configured; without it, deterministic local matching remains available. The model receives only a best-effort redacted question, never the fixture transaction record.
 
 Start with `npm run demo` and open **http://localhost:3200**. The simulation requires no account, PayPal credentials or passkey. Keep its **DEMO ONLY — interactive simulation** notice visible.
 
