@@ -23,11 +23,12 @@ test('PostgreSQL runtime supports login, request creation and single-use consump
     };
     const provisioned = await provisionStaging(store, env);
     assert.equal(provisioned.created, true);
-    await assert.rejects(() => provisionStaging(store, {
+    const unchanged = await provisionStaging(store, {
       STAGING_HELPER_PASSWORD: 'replacement-password-2026',
       STAGING_BUYER_A_PASSWORD: 'replacement-password-2026',
       STAGING_BUYER_B_PASSWORD: 'replacement-password-2026'
-    }), /ALREADY_PROVISIONED|STAGING_ACCOUNT_STATE_UNEXPECTED/);
+    });
+    assert.deepEqual(unchanged, { created: false, users: 3 });
 
     const config = { origin: 'http://127.0.0.1:0', rpID: '127.0.0.1' };
     app = makeApp(store, config);
@@ -79,7 +80,7 @@ test('PostgreSQL runtime supports login, request creation and single-use consump
     const results = await Promise.all([consume(), consume()]);
     const statuses = results.map(response => response.status).sort();
     assert.deepEqual(statuses, [200, 409]);
-    const success = results[statuses.indexOf(200)];
+    const success = results.find(response => response.status === 200);
     const receipt = await success.json();
     assert.equal(receipt.status, 'consumed');
     assert.equal(receipt.consumption_receipt.committed, true);
