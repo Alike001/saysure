@@ -4,7 +4,7 @@ import { once } from 'node:events';
 import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import { demoServer } from '../src/demo-server.mjs';
-test('judge fixture demo: no credentials, API calls or WebAuthn; labelled simulated choices and accessible help', { timeout: 60000 }, async t => {
+test('judge fixture demo: optional server-side question routing, no credentials or WebAuthn; labelled simulated choices and accessible help', { timeout: 60000 }, async t => {
   const server = demoServer(); server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   t.after(async () => { await browser.close(); await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }); });
@@ -26,6 +26,10 @@ test('judge fixture demo: no credentials, API calls or WebAuthn; labelled simula
   await page.getByLabel('Choose a buyer question').selectOption('merchant');
   await page.getByRole('button', { name: 'Explain selected question', exact: true }).click();
   await page.locator('#explanation').filter({ hasText: 'helper-provided fixture' }).waitFor();
+  await page.locator('#buyer-question').fill('Does my passkey make a payment?');
+  await page.getByRole('button', { name: 'Ask SaySure (AI-assisted)', exact: true }).click();
+  await page.locator('#ai-explanation').filter({ hasText: 'Local matching was used' }).waitFor();
+  await page.locator('#ai-explanation').filter({ hasText: 'does not approve a PayPal checkout or make a payment' }).waitFor();
   await page.getByRole('button', { name: 'Simulate decline', exact: true }).click();
   assert.equal(await approval.isDisabled(), true);
   await page.getByRole('button', { name: 'Synthetic request', exact: true }).click(); await approval.click();
@@ -35,7 +39,11 @@ test('judge fixture demo: no credentials, API calls or WebAuthn; labelled simula
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   assert.deepEqual((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()).violations.map(v => v.id), []);
   assert.deepEqual(errors, []); assert.deepEqual(await context.cookies(), []);
-  assert.ok(traffic.every(r => r.method === 'GET' && new URL(r.url).origin === origin && !new URL(r.url).pathname.startsWith('/api')));
+  assert.ok(traffic.every(r => {
+    const url = new URL(r.url);
+    return url.origin === origin && (r.method === 'GET' ||
+      (r.method === 'POST' && url.pathname === '/api/demo-question'));
+  }));
   assert.equal((await fetch(`${origin}/api/requests`)).status, 404);
   assert.equal((await fetch(`${origin}/`, { method: 'POST' })).status, 404);
   assert.equal((await fetch(`${origin}/.env`)).status, 404);

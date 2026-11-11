@@ -4,7 +4,7 @@
 <header><p class="wordmark">SaySure <span>Your money. Your final say.</span></p>
 <h1>Getting help with a payment should never mean giving up control of your money.</h1>
 <p><strong>Helper:</strong> initiates a payment request.<br><strong>Buyer:</strong> independently reviews and approves or declines it.</p>
-<p class="boundary"><strong>DEMO ONLY — interactive simulation.</strong> No real PayPal response, passkey ceremony, AI call or payment. No account or credentials needed.</p>
+<p class="boundary"><strong>DEMO ONLY — interactive simulation.</strong> No real PayPal response, passkey ceremony or payment. Optional AI question routing runs server-side when GROQ_API_KEY is configured; otherwise local matching is used. No account or credentials needed.</p>
 <a class="button primary" id="start" href="#review-heading">Start the guided demo</a></header>
 <main id="main"><p id="message" role="status" aria-live="polite" tabindex="-1"></p>
 <section aria-labelledby="review-heading"><h2 id="review-heading" tabindex="-1">Review, then decide</h2><div id="review"></div>
@@ -20,7 +20,13 @@
 <option value="merchant">Is this the same merchant I expected?</option><option value="payment">Has payment already happened?</option>
 <option value="decline">What happens if I decline?</option><option value="simple">Can you explain this in simpler language?</option></select>
 <button id="answer">Explain selected question</button><p id="explanation" role="status" aria-live="polite"></p>
-<div id="answer-audio"></div></section>
+<div id="answer-audio"></div>
+<label for="buyer-question">Ask a question in your own words</label>
+<input id="buyer-question" type="text" maxlength="300" autocomplete="off" aria-describedby="buyer-question-note" placeholder="e.g. Does my passkey make a payment?">
+<p id="buyer-question-note">Only a best-effort redacted question is sent for topic selection when Groq is configured. No transaction record is attached. Redaction is not a guarantee; avoid personal, merchant or payment details.</p>
+<button id="ask-question" type="button">Ask SaySure (AI-assisted)</button>
+<p id="ai-explanation" role="status" aria-live="polite"></p>
+</section>
 <details class="advanced"><summary>Advanced: simulation scenarios and operator testing</summary>
 <p>These controls change only this browser simulation. Switching evidence type starts a new scenario and clears the decision and revision. Use Start again to repeat the selected scenario.</p>
 <div role="group" aria-label="Simulation evidence type"><button id="synthetic" aria-pressed="true">Synthetic request</button><button id="mock" aria-pressed="false">MOCK PayPal order</button></div>

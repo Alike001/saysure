@@ -57,6 +57,25 @@ test('exact speech and ordinary help retain synthetic provenance and stale-state
     assert.ok(paymentSummary({ ...item, snapshot: { ...item.snapshot, currency, amount_minor: minor } }, now).includes(exact));
   }
 });
+test('AI-selected PayPal topics produce grounded local answers, never model-written facts', () => {
+  const paypalItem = {
+    synthetic: false, status: 'pending',
+    snapshot: { kind: 'paypal', amount_minor: '100', currency: 'USD',
+      merchant_id: 'MOCKPAYEE123', merchant_name: 'PayPal payee MOCKPAYEE123 (shop identity unverified)',
+      evidence_provenance: 'authenticated-sandbox-api', expires_at: now + 600000,
+      provider: { status: 'PAYER_ACTION_REQUIRED', order_id: 'MOCKORDER123', units: [] } },
+    paypal_evidence: { provenance: 'authenticated-sandbox-api', observed_at: now,
+      current: true, merchant_identity_verified: false }
+  };
+  assert.match(answer('amount', paypalItem, now), /Recorded order amount: 1\.00 USD/);
+  assert.match(answer('merchant', paypalItem, now), /MOCKPAYEE123.*not independently verified/);
+  assert.match(answer('consent', paypalItem, now), /does not approve a PayPal checkout or capture a payment/);
+  assert.match(answer('availability', paypalItem, now), /PAYER_ACTION_REQUIRED.*re-read the order/);
+  assert.match(answer('fees', paypalItem, now), /does not independently establish taxes/);
+  const stale = { ...paypalItem, paypal_evidence: { ...paypalItem.paypal_evidence, current: false } };
+  assert.match(answer('availability', stale, now), /historical or stale/);
+});
+
 test('AI prose, altered financial values, completion claims and unsupported advice are rejected', () => {
   for (const output of [{ topics: ['amount'], amount: '0.01' }, { topics: ['payment completed'] },
     { topics: ['approve'] }, { topics: ['trusted merchant'] }, { topics: ['refund guaranteed'] },
