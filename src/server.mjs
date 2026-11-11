@@ -33,7 +33,7 @@ export async function startLocalServer(preparedIntegration) {
       console.log('Persistence: local SQLite experiment.');
     }
   } catch (error) {
-    await store?.close?.().catch?.(() => {});
+    if (store) await Promise.resolve(store.close()).catch(() => {});
     console.error('SaySure persistence startup refused. Check database connectivity and staging bootstrap settings.');
     throw error;
   }
