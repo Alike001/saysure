@@ -1,5 +1,6 @@
 import { addSpeech, exactAmount, stopAudio } from './presentation.js';
 import { questionAnswer } from './buyer-help.js';
+import { answer as localAnswer, topics as buyerTopics } from './comprehension.js';
 const $ = id => document.getElementById(id);
 let mode = 'synthetic', status = 'pending', revision = 1, quantity = '2';
 function stop() { stopAudio(); }
@@ -47,6 +48,26 @@ $('revise').addEventListener('click', () => {
   revision++; quantity = quantity === '2' ? '1' : '2'; status = 'pending'; paint(); notify('Fixture revised. Simulated prior consent invalidated; review again.');
 });
 $('answer').addEventListener('click', () => { stop(); $('explanation').textContent = questionAnswer($('question').value, report()); });
+$('ask-question').addEventListener('click', async () => {
+  const button = $('ask-question');
+  const question = $('buyer-question').value.trim();
+  if (question.length < 3) { $('ai-explanation').textContent = 'Enter a question of at least three characters.'; $('buyer-question').focus(); return; }
+  button.disabled = true;
+  $('ai-explanation').textContent = 'Understanding your question…';
+  try {
+    const response = await fetch('/api/demo-question', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'QUESTION_UNAVAILABLE');
+    const source = result.source === 'ai' ? 'AI matched your question' : 'Local matching was used';
+    $('ai-explanation').textContent = source + ': ' + (buyerTopics[result.topic] || buyerTopics.unknown) +
+      ' ' + localAnswer(result.topic, item());
+  } catch {
+    $('ai-explanation').textContent = 'Question help is temporarily unavailable. You can still use the fixed questions above.';
+  } finally { button.disabled = false; }
+});
 addSpeech($('answer-audio'), () => {
   if (!$('explanation').textContent) $('explanation').textContent = questionAnswer($('question').value, report());
   return $('explanation').textContent;
