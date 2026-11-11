@@ -93,8 +93,11 @@ export function makeApp(store, config) {
       route = classifyRoute(req.url, req.method);
       const url = route;
       if (req.method === 'GET' && url.pathname === '/healthz') {
+        send(200, { status: 'ok', storage: store.dialect }); return;
+      }
+      if (req.method === 'GET' && url.pathname === '/readyz') {
         await store.ping();
-        send(200, { status: 'ok', database: store.dialect }); return;
+        send(200, { status: 'ready', database: store.dialect }); return;
       }
       if (req.method === 'GET' && assets.has(url.pathname)) {
         const [file, type] = assets.get(url.pathname);
