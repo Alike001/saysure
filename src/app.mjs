@@ -125,7 +125,8 @@ export function makeApp(store, config) {
         attempts.set(address, limit);
         ensure(++limit.count <= 12, 'TOO_MANY_LOGIN_ATTEMPTS', 429);
         const user = await authenticate(store, input.username, input.password);
-        const issued = await issueSession(store, user.id, session?.id);
+        const issued = await issueSession(store, user.id);
+        if (session) await store.run('DELETE FROM sessions WHERE id=?', session.id);
         res.setHeader('Set-Cookie', cookie(issued.token)); send(200, { logged_in: true }); return;
       }
       ensure(session, 'LOGIN_REQUIRED', 401);
@@ -189,5 +190,5 @@ export function makeApp(store, config) {
   });
   server.once('close', () => { void diagnostics.close(); });
   server.requestTimeout = 15_000; server.headersTimeout = 10_000;
-  return { server, requests, passkeys };
+  return { server, requests, passkeys, close: () => diagnostics.close() };
 }
