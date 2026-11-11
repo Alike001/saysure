@@ -27,9 +27,9 @@ export function redactBuyerQuestion(value) {
     .replace(/[$€£₦]\s*\d[\d,]*(?:\.\d+)?/g, '[redacted amount]')
     .replace(/\b\d[\d,]*(?:\.\d+)?\s*(?:USD|EUR|NGN|GBP|JPY|CAD|AUD)\b/gi, '[redacted amount]')
     .replace(/\b\+?\d[\d ().-]{7,}\d\b/g, '[redacted number]')
-    .replace(/\b\d{6,}\b/g, '[redacted number]')
+    .replace(/\b\d+(?:[.,]\d+)?\b/g, '[redacted number]')
     .replace(/\b(?:0x)?[a-f0-9]{16,}\b/gi, '[redacted reference]')
-    .replace(/\b[A-Z0-9_-]{10,}\b/g, '[redacted reference]')
+    .replace(/\b[A-Z0-9_-]{10,}\b/gi, '[redacted reference]')
     .replace(/\b[A-Z][a-z]{2,}(?:\s+[A-Z][a-z]{2,})+\b/g, '[redacted name]')
     .replace(/\b(?!What\b|Why\b|How\b|Can\b|Does\b|Is\b|Are\b|Where\b|When\b|Who\b|Which\b|Please\b|Tell\b|Explain\b|I\b|My\b|The\b|A\b|An\b|Do\b|Could\b|Would\b|Should\b|Will\b|Has\b|Have\b|Did\b|If\b|This\b|That\b)[A-Z][a-z]{2,}\b/g, '[redacted name]')
     .replace(/\s+/g, ' ').trim();
@@ -38,7 +38,7 @@ export function redactBuyerQuestion(value) {
 
 export function localBuyerQuestionTopic(value) {
   const q = String(value ?? '').toLowerCase();
-  if (/\b(ignore|override|bypass|pretend|claim|guarantee|change|edit|approve for me|make payment|execute|transfer money)\b/.test(q)) return 'unknown';
+  if (/\b(ignore|override|bypass|pretend|claim|guarantee|change|edit|approve (?:this|it|for me)|pay now|make payment|execute|transfer money)\b/.test(q)) return 'unknown';
   if (/\b(fee|fees|tax|taxes|delivery|shipping|surcharge|exchange|refund)\b/.test(q)) return 'fees';
   if (/\b(merchant|seller|shop|store|payee|recipient|business|who am i paying)\b/.test(q)) return 'merchant';
   if (/\b(expire|expired|available|availability|still reviewable|still valid|current|stale)\b/.test(q)) return 'availability';
