@@ -70,7 +70,7 @@ export function renderRequests(items, session, tools) {
       const questionInput = element('input'); questionInput.id = `buyer-question-${id}`;
       questionInput.type = 'text'; questionInput.maxLength = 300; questionInput.autocomplete = 'off'; questionInput.placeholder = 'e.g. Does my passkey make a payment?';
       questionLabel.htmlFor = questionInput.id;
-      const questionNote = element('p', 'A redacted version of your question may be sent to Groq for topic selection. No request record is attached. Avoid personal, merchant or payment details.');
+      const questionNote = element('p', 'A best-effort redacted version of your question may be sent to Groq for topic selection. No request record is attached. Redaction is not a guarantee; avoid personal, merchant or payment details.');
       questionNote.id = `buyer-question-note-${id}`; questionInput.setAttribute('aria-describedby', questionNote.id);
       const questionResult = element('p'); questionResult.setAttribute('role', 'status');
       explain.append(questionLabel, questionInput, questionNote);
