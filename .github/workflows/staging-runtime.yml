@@ -1,0 +1,63 @@
+name: SaySure staging runtime CI
+
+on:
+  push:
+    branches: [feat/saysure-postgres-runtime]
+  pull_request:
+    branches: [feat/saysure-postgres-runtime]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: saysure-postgres-runtime-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: saysure
+          POSTGRES_PASSWORD: saysure
+          POSTGRES_DB: saysure
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U saysure -d saysure"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Resolve and lock declared dependencies
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Commit generated lockfile on branch pushes
+        if: github.event_name == 'push'
+        run: |
+          if ! git diff --quiet -- package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "chore: lock PostgreSQL runtime dependency [skip ci]"
+            git push
+          fi
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Syntax and source checks
+        run: npm run check
+      - name: Install Chrome for browser tests
+        run: npx playwright install --with-deps chrome
+      - name: Existing offline and browser security suite
+        run: npm test
+      - name: PostgreSQL 17 integration suite
+        env:
+          SAYSURE_POSTGRES_TEST: "true"
+          DATABASE_URL: postgresql://saysure:saysure@localhost:5432/saysure
+        run: npm run test:postgres
