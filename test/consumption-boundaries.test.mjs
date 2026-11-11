@@ -61,10 +61,10 @@ test('event insertion failure rolls back the timestamp and state together', asyn
   assert.equal(f.store.get("SELECT COUNT(*) AS n FROM events WHERE event='consume'").n, 0);
 });
 test('receipt timestamp semantics match the authoritative acceptance timestamp, not later wall time', async t => {
-  const f = fixture(t), original = Date.now; let calls = 0;
+  const f = await fixture(t), original = Date.now; let calls = 0;
   try {
     Date.now = () => ++calls === 1 ? f.expiry - 1 : f.expiry + 1;
-    const result = f.requests.action(f.session, f.item.snapshot.request_id, 'consume', f.item.digest);
+    const result = await f.requests.action(f.session, f.item.snapshot.request_id, 'consume', f.item.digest);
     result.consumption_receipt.correlation_id = randomUUID();
     assert.equal(result.consumed_at, f.expiry - 1); assert.equal(result.consumption_receipt.event.at, f.expiry - 1);
     await validateConsumptionReceipt(result, f.item, f.expiry + 1);
