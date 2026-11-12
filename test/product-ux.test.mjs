@@ -114,7 +114,8 @@ test('demo: guided entry, mode/reset semantics, coherent source speech and expla
     await page.setViewportSize({ width, height: 900 }); await scan(page);
     await page.screenshot({ path: `${evidence}/demo-${width}.png`, fullPage: true });
   }
-  await page.getByRole('link', { name: 'Start the guided demo' }).click();
+  await page.getByRole('heading', { name: 'Review a payment request.' }).waitFor();
+  await page.locator('#review-heading').focus();
   assert.equal(await page.locator('#review-heading').evaluate(e => e === document.activeElement), true);
   await page.getByRole('button', { name: 'Read explanation aloud' }).click();
   await page.getByRole('button', { name: 'Pause explanation audio' }).click();
@@ -126,15 +127,15 @@ test('demo: guided entry, mode/reset semantics, coherent source speech and expla
   await page.getByRole('button', { name: 'Read explanation aloud' }).click();
   await page.evaluate(() => window.utterance.onend());
   await page.getByText('Finished reading. Nothing was approved.', { exact: true }).waitFor();
-  await page.getByText('Advanced: simulation scenarios and operator testing', { exact: true }).click();
+  await page.getByText('Advanced demo controls', { exact: true }).click();
   await page.getByRole('button', { name: 'MOCK PayPal order', exact: true }).click();
   assert.equal(await page.locator('#mock').getAttribute('aria-pressed'), 'true');
   await page.getByRole('button', { name: 'Read payment details aloud' }).click();
   const spoken = await page.evaluate(() => window.utterance.text);
   assert.match(spoken, /MOCK PayPal fixture.*No authenticated API response/);
   assert.match(spoken, /Expected quantity 1; recorded quantity 2/);
-  await page.getByLabel('Choose a buyer question').selectOption('merchant');
-  await page.getByRole('button', { name: 'Explain selected question', exact: true }).click();
+  await page.getByLabel('Choose a question').selectOption('merchant');
+  await page.getByRole('button', { name: 'Explain this question', exact: true }).click();
   assert.match(await page.locator('#explanation').innerText(), /MOCK payee MOCKPAYEE123/);
   await page.locator('#decline').click(); await page.locator('#mock').click();
   assert.equal(await page.locator('#approve').isDisabled(), true); // reselect does not erase refusal
