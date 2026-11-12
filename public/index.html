@@ -45,15 +45,18 @@
   </div>
   <div class="workspace-entry-bottom">
     <a class="workspace-demo-link" href="/demo">Just looking? Explore the sample demo — no login.</a>
-    <div class="workspace-login-returning">
-      <div><h3>Already have test details?</h3><p>Use the username and password you saved earlier.</p></div>
-      <p id="login-error" class="field-error" role="alert"></p>
-      <form id="login" class="workspace-login-form">
-        <div><label for="username">Username</label><input id="username" aria-describedby="login-error" name="username" autocomplete="username" required></div>
-        <div><label for="password">Password</label><input id="password" aria-describedby="login-error" name="password" type="password" autocomplete="current-password" required></div>
-        <button type="submit">Sign in</button>
-      </form>
-    </div>
+    <details class="workspace-login-returning" id="returning-login">
+      <summary>Already have a test login? <span>Sign in</span></summary>
+      <div class="returning-login-body">
+        <p>Use the username and password you saved when you started your test.</p>
+        <p id="login-error" class="field-error" role="alert"></p>
+        <form id="login" class="workspace-login-form">
+          <div><label for="username">Username</label><input id="username" aria-describedby="login-error" name="username" autocomplete="username" required></div>
+          <div><label for="password">Password</label><input id="password" aria-describedby="login-error" name="password" type="password" autocomplete="current-password" required></div>
+          <button type="submit">Sign in</button>
+        </form>
+      </div>
+    </details>
   </div>
   <p class="trial-help-notice">All requests here are examples. No money is moved. Each Buyer uses their own login and device to approve.</p>
 </section>
@@ -77,16 +80,44 @@
 </section>
 <section id="helper" hidden aria-labelledby="helper-heading">
   <div class="workspace-section-head"><div><p class="app-kicker">HELPER WORKSPACE</p><h2 id="helper-heading">Prepare a request</h2><p>Fill in the details for your Buyer to review. This test won't send money.</p></div><span class="test-tag">TEST MODE</span></div>
-<form id="request-form" class="request-form-grid"><input name="request_id" type="hidden"><input name="revision" type="hidden">
-<label for="buyer">Send to Buyer</label><select id="buyer" name="buyer_id" required></select>
-<label for="merchant-id">Store reference</label><input id="merchant-id" name="merchant_id" maxlength="80" required>
-<label for="merchant-name">Store or recipient name</label><input id="merchant-name" name="merchant_name" maxlength="120" required>
-<label for="currency">Currency</label><select id="currency" name="currency"><option>USD</option><option>EUR</option><option>NGN</option><option>JPY</option></select>
-<label for="amount">Amount (e.g. 12.00)</label><input id="amount" name="amount" aria-describedby="amount-error" inputmode="decimal" required>
-<p id="amount-error" class="field-error" role="alert"></p>
-<label for="description">What's this for?</label><textarea id="description" name="description" maxlength="500" required></textarea>
-<label for="lifetime">Review time (minutes)</label><input id="lifetime" name="lifetime_minutes" type="number" min="1" max="30" value="30" required>
-<button id="save-request" class="primary">Send test request</button><button id="cancel-edit" type="button" hidden>Cancel revision</button></form></section>
+<form id="request-form" class="request-form-grid">
+  <input name="request_id" type="hidden"><input name="revision" type="hidden">
+  <div class="request-field">
+    <label for="buyer">Send to Buyer</label>
+    <select id="buyer" name="buyer_id" required></select>
+    <p class="field-help">Only your invited Buyer can review this request.</p>
+  </div>
+  <div class="request-field">
+    <label for="merchant-name">Store or recipient name</label>
+    <input id="merchant-name" name="merchant_name" maxlength="120" required placeholder="e.g. Campus Supplies" autocomplete="off">
+  </div>
+  <div class="request-field">
+    <label for="merchant-id">Store reference</label>
+    <input id="merchant-id" name="merchant_id" maxlength="80" required placeholder="e.g. CAMPUS-001" autocomplete="off">
+    <p class="field-help">A short reference you choose for the test.</p>
+  </div>
+  <div class="request-field">
+    <label for="amount">Amount (e.g. 12.00)</label>
+    <input id="amount" name="amount" aria-describedby="amount-error" inputmode="decimal" required placeholder="12.00" autocomplete="off">
+    <p id="amount-error" class="field-error" role="alert"></p>
+  </div>
+  <div class="request-field">
+    <label for="currency">Currency</label>
+    <select id="currency" name="currency"><option>USD</option><option>EUR</option><option>NGN</option><option>JPY</option></select>
+  </div>
+  <div class="request-field">
+    <label for="lifetime">Review time (minutes)</label>
+    <input id="lifetime" name="lifetime_minutes" type="number" min="1" max="30" value="30" required>
+  </div>
+  <div class="request-field request-field-wide">
+    <label for="description">What's this for?</label>
+    <textarea id="description" name="description" maxlength="500" required placeholder="e.g. Stationery kit for the new term"></textarea>
+  </div>
+  <div class="request-form-actions request-field-wide">
+    <button id="save-request" class="primary" type="submit">Send test request</button>
+    <button id="cancel-edit" type="button" hidden>Cancel revision</button>
+  </div>
+</form></section>
 <details class="provider-tools" hidden><summary>Advanced: operator-enabled sandbox order review</summary><section id="paypal-helper" hidden aria-labelledby="paypal-heading"><h2 id="paypal-heading">Review a PayPal sandbox order</h2>
 <p>Enter only an operator-allowlisted current order ID. The server reads the amount and payee from PayPal. This does not create an order or make a payment. Reading must be enabled in private configuration.</p>
 <form id="paypal-import"><label for="paypal-buyer">App buyer account (not proof of PayPal payer identity)</label><select id="paypal-buyer" name="buyer_id" required></select>

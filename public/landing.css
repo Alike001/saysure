@@ -250,3 +250,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .boundaries-inner > div:last-child p { font-size:.9rem; line-height:1.65; }
 .closing-cta { padding-block:2rem; }
 .footer-inner p { max-width:390px; }
+
+/* Footer follows the final explanation directly; no repeated call-to-action panel. */
+.boundaries-section { padding-block:clamp(1.9rem,3.4vw,3rem); }
+.boundaries-inner { align-items:center; }
+.site-footer { border-top:1px solid #d9e3f2; }

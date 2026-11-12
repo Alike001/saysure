@@ -597,3 +597,58 @@ body.demo { background:linear-gradient(180deg,#f4f8ff,#f7f9fd 520px); }
   .application #requests article .passkey-inline { margin:.3rem 0; }
   .application #requests article .sample-request-note { font-size:.76rem; line-height:1.4; margin:.35rem 0; }
 }
+
+/* Focused entry: trial onboarding first, optional returning-account login second. */
+.application #login-panel { max-width:100%; }
+.application .workspace-entry-bottom { padding-top:1rem; }
+.application .workspace-login-returning {
+  margin-top:.95rem; background:#fff; border:1px solid #e0e9f5;
+  border-radius:.72rem; padding:0; overflow:hidden;
+}
+.application .workspace-login-returning > summary {
+  display:flex; align-items:center; flex-wrap:wrap; gap:.5rem;
+  min-height:51px; padding:.75rem 1rem; margin:0; color:#244a77;
+  font-size:.85rem; font-weight:750; cursor:pointer; list-style:none;
+}
+.application .workspace-login-returning > summary::-webkit-details-marker { display:none; }
+.application .workspace-login-returning > summary::before {
+  content:"▸"; color:#1d5bbd; font-size:.9rem; margin-right:.25rem;
+}
+.application .workspace-login-returning[open] > summary::before { content:"▾"; }
+.application .workspace-login-returning > summary span { color:#175cc4; }
+.application .returning-login-body { padding:0 1rem 1rem; }
+.application .returning-login-body > p:first-child { color:#546e8a; font-size:.8rem; margin:.1rem 0 .6rem; }
+/* Group each label with its input: no more unrelated left/right columns. */
+.application #helper #request-form {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.85rem 1.1rem;
+  padding-top:1rem; align-items:start;
+}
+.application #helper #request-form .request-field { min-width:0; display:flex; flex-direction:column; gap:.33rem; }
+.application #helper #request-form .request-field-wide { grid-column:1 / -1; }
+.application #helper #request-form .request-field label { margin:0; font-size:.79rem; font-weight:700; color:#2c4b70; }
+.application #helper #request-form .request-field input,
+.application #helper #request-form .request-field select,
+.application #helper #request-form .request-field textarea {
+  width:100%; margin:0; border:1px solid #9cb1cf; border-radius:.56rem;
+  min-height:48px; font-size:.9rem; background:#fff; padding:.6rem .8rem;
+}
+.application #helper #request-form .request-field input:focus,
+.application #helper #request-form .request-field select:focus,
+.application #helper #request-form .request-field textarea:focus { border-color:#155eef; }
+.application #helper #request-form .field-help { margin:0; color:#57718e; font-size:.72rem; line-height:1.4; }
+.application #helper #request-form #amount-error:not(:empty) { margin:.15rem 0; }
+.application #helper #request-form .request-form-actions { display:flex; align-items:center; gap:.6rem; padding-top:.2rem; }
+.application #helper #request-form .request-form-actions button { margin:0; flex:1; }
+.application #helper #request-form .request-form-actions #cancel-edit { flex:0 0 auto; }
+/* Keep request workspace airy while reducing competing notices. */
+.application #inbox { background:#fff; }
+.application #requests article { padding:clamp(1rem,2vw,1.4rem); }
+.application #requests article .sample-request-note { color:#52708e; }
+.application #requests article .request-status { margin:.35rem 0; }
+.application #requests article .advanced { margin-top:.8rem; }
+@media(max-width:670px) {
+  .application #helper #request-form { grid-template-columns:minmax(0,1fr); gap:.85rem; }
+  .application #helper #request-form .request-field-wide { grid-column:1; }
+  .application #helper #request-form .request-form-actions { flex-wrap:wrap; }
+  .application .workspace-login-returning > summary { font-size:.8rem; }
+}
