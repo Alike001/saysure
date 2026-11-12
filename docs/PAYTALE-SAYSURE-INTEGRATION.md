@@ -1,7 +1,14 @@
 # SaySure + PayTale product integration
 
-**Status:** Product direction agreed; feature integration incomplete.  
+**Status:** Evidence-layer direction agreed; full payment-lifecycle integration intentionally deferred.  
 **Current staging branch:** `feat/saysure-postgres-runtime`.
+
+## Current release decision — November 12, 2026
+
+Keep the working SaySure consent workflow and the optional operator-allowlisted PayPal sandbox **read-only** inspection. Do not add unfinished checkout, capture, refund, webhook or automatic recovery operations to this release. Those features are not necessary to demonstrate SaySure's core value and would introduce payment-lifecycle risk before a complete sandbox lifecycle can be independently verified.
+
+The single public experience is now served from one Render service: landing page `/`, credential-free synthetic walkthrough `/demo`, and protected Helper/Buyer workspace `/app`. Visitors do not need a PayPal account to use the demo or sign in to SaySure. Workspace accounts are currently provisioned by the project owner.
+
 
 SaySure is the single user-facing product. PayTale's strongest investigation and reconciliation ideas belong in its payment-evidence layer. This does not mean the historical PayTale workspace, credentials, database or records are to be copied, migrated or modified.
 
