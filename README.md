@@ -1,5 +1,16 @@
 # SaySure
 
+## Hackathon review (November 12, 2026)
+
+The official PayPal AI Hackathon rules require **meaningful integration of both PayPal Developer Platform and an AI tool**. The public SaySure demo at `/demo` is a clearly marked, browser-only simulation. The `/app` route is a functioning, database-backed, two-role consent workflow with independent Buyer passkey approval and a one-use Buyer invitation; it is **not** a PayPal checkout.
+
+**Current staging limitations:** The public judge trial explicitly blocks PayPal sandbox order imports; existing PayPal sandbox code reads allowlisted orders only when configured by the operator, and does not capture or send funds. Groq model-based question classification uses a private `GROQ_API_KEY`; without it, the public deployment uses deterministic local question matching (not live AI). **Do not state that the current hosted judge trial proves a PayPal+AI end-to-end integration.** Confirm operator-approved PayPal evidence and live AI classification separately before describing either as verified. Never run a new sandbox write or expose credentials just to meet a deadline.
+
+**Submit with:** (1) URL `https://saysure-staging-cnhm.onrender.com/` with `/demo` and `/app`, (2) public GitHub repository and MIT license, (3) working judge instructions using the one-click private test workspace, (4) YouTube video under three minutes with a real recorded Helper→Buyer outcome, (5) precise descriptions of verified vs. simulated capabilities and which AI tool was configured, (6) a specific explanation of what was built during the hackathon. The user-facing pages must never claim PayPal capture, refund, or checkout completion.
+
+**Official deadline:** November 12, 2026, 12:00 PM Pacific Standard Time = 9:00 PM West Africa Time. Verify remaining time on Devpost before submitting.
+
+
 **Your money. Your final say.**
 
 Getting help with a digital payment should not mean giving someone else the final say. People who need assistance completing payments, including people who cannot comfortably operate conventional payment interfaces, still need a way to review the details and decide for themselves.

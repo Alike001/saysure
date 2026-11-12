@@ -67,3 +67,12 @@ The earlier 17/17 versus 13/17 result covers question-topic routing on fixed, no
 5. Complete intended-user speech/screen-reader checks and confirm deadline/eligibility/required entry fields with the operator. Review and test the public feature branch before merging; deployment/hosting and final submission remain separate gates.
 
 Avoid expanding the product, changing payment operations, tuning AI, redesigning enrollment or weakening security to meet the deadline. No public publication action is included here.
+
+
+## November 12, 2026 hosted judge update
+
+Hosted entry: https://saysure-staging-cnhm.onrender.com/. The guest demo is clearly synthetic, while the actual workspace supports a persisted Helper→Buyer request flow with passkey-verified local consent. Testers choose **Start testing** or **Join as Buyer**; returning account sign-in is available but secondary. The trial identities cannot read PayPal orders or submit payment operations. AI matching on the current Render staging uses a deterministic fallback unless a private Groq key is configured. This does not satisfy a live AI proof by itself.
+
+According to https://paypalaihackathon.devpost.com/rules, PayPal developer technology and AI are both required, and the project must be demonstrably functional. Submit a public code repository with a visible open-source license, a freely accessible running project or complete setup steps, and a publicly accessible YouTube demonstration below three minutes. Do not present historical PayPal sandbox testing as a current verified checkout, or local consent as a completed PayPal payment.
+
+Hard blocker for claiming both integrations together publicly: operator-controlled PayPal read configuration and live AI availability are not verified on the current judge-facing trial. Do not make unapproved API writes to remove this blocker.

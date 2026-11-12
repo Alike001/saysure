@@ -33,7 +33,7 @@ const explanations = {
   ENROLL_BUYER_PASSKEY_FIRST: 'Register your own buyer passkey before approving.',
   REQUEST_NOT_PENDING: 'This request is no longer pending. Refresh to see its current status.',
   INVALID_DECIMAL_AMOUNT: 'Enter an exact positive amount using digits and a decimal point. Use whole numbers for JPY; at most two decimal places for USD, EUR or NGN.',
-  LOGIN_FAILED: 'Sign-in failed. Check your own username and account secret.',
+  LOGIN_FAILED: 'Those login details did not match. Check the username and password you saved when you started your test.',
   SESSION_EXPIRED: 'Your session expired. Sign in again.',
   PASSKEY_AUTHENTICATION_FAILED: 'Passkey verification failed. No approval was recorded.',
   PASSKEY_REGISTRATION_FAILED: 'Passkey registration failed. No credential was enrolled.',
@@ -178,7 +178,7 @@ $('login').addEventListener('submit', event => {
   perform(event.submitter, async () => {
     const values = Object.fromEntries(new FormData(event.target));
     await api('/api/login', values); event.target.reset();
-    await load(); $('account-heading').focus(); notify('Signed in to your own account.', false);
+    await load(); $('account-heading').focus(); notify('Welcome back to your workspace.', false);
   });
 });
 $('logout').addEventListener('click', event => perform(event.target, async () => {
@@ -187,7 +187,9 @@ $('logout').addEventListener('click', event => perform(event.target, async () =>
   $('trial-access').hidden = true;
   $('trial-password').textContent = '';
   $('trial-invitation').textContent = '';
-  await load(); $('username').focus(); notify('Signed out.', false);
+  await load();
+  $('returning-login').open = true;
+  $('username').focus(); notify('Signed out. Sign in with your saved test details whenever you're ready.', false);
 }));
 $('trial-start').addEventListener('click', event => perform(event.target, async () => {
   const created = await api('/api/trial/create', {});
@@ -268,3 +270,8 @@ function handleBuyerInviteLink() {
 }
 window.addEventListener('hashchange', handleBuyerInviteLink);
 handleBuyerInviteLink();
+
+if (location.hash === '#signin') {
+  $('returning-login').open = true;
+  history.replaceState(null, '', location.pathname + location.search);
+}

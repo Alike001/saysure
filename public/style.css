@@ -652,3 +652,23 @@ body.demo { background:linear-gradient(180deg,#f4f8ff,#f7f9fd 520px); }
   .application #helper #request-form .request-form-actions { flex-wrap:wrap; }
   .application .workspace-login-returning > summary { font-size:.8rem; }
 }
+
+/* Buyer request details: a calmer help section and clear consent outcome. */
+.application .request-explanations {
+  margin-top:.75rem; padding:1rem 1.1rem; border:1px solid #e1eaf5;
+  background:#fbfdff; border-radius:.85rem;
+}
+.application .request-explanations h4 { color:#193c68; font-size:1.05rem; margin:.15rem 0 .6rem; }
+.application .request-explanations .audio-controls { margin:.4rem 0 .75rem; padding:.4rem 0; }
+.application .request-explanations label { margin-top:.8rem; font-size:.78rem; }
+.application .request-explanations input { min-height:46px; border-color:#9eb2ce; border-radius:.48rem; }
+.application .request-explanations p { font-size:.78rem; line-height:1.55; color:#4b6584; }
+.application .request-approved-note {
+  display:inline-block; max-width:100%; margin:.6rem 0 .35rem;
+  padding:.7rem .9rem; background:#eef8f2; color:#17593b;
+  border-radius:.6rem; font-size:.85rem; font-weight:650;
+}
+.application #requests article .explanation-link { color:#1757a8; font-size:.82rem; font-weight:650; }
+@media(max-width:660px) {
+  .application .request-explanations { padding:.75rem .85rem; }
+}

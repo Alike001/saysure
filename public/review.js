@@ -38,7 +38,7 @@ export function renderRequests(items, session, tools) {
     ]) facts.append(element('dt', label), element('dd', value));
     article.append(facts);
     const advanced = element('details'); advanced.className = 'advanced';
-    advanced.append(element('summary', 'Advanced: technical details and operator testing'));
+    advanced.append(element('summary', 'Technical details (optional)'));
     const explain = element('div'); explain.id = `explain-${id}`; explain.tabIndex = -1;
     if (s.kind === 'paypal') {
       const e = reviewedEvidence(item);
@@ -61,9 +61,10 @@ export function renderRequests(items, session, tools) {
     }
     let explanationLink = null;
     if (session.user.role === 'buyer') {
-      const link = element('a', 'Listen to details / get explanations'); link.href = `#explain-${id}`;
+      const link = element('a', 'Help understanding this request'); link.href = `#explain-${id}`;
       link.className = 'explanation-link'; explanationLink = link;
-      explain.append(element('h4', 'Understand this request'));
+      explain.className = 'request-explanations';
+      explain.append(element('h4', 'Need help understanding this request?'));
       addAudio(explain, item, tools.notify);
       const help = element('details'), title = element('summary', 'Questions about these details');
       help.append(title);
@@ -72,11 +73,11 @@ export function renderRequests(items, session, tools) {
         detail.append(element('summary', question), element('p', answer(topic, item))); help.append(detail);
       }
       explain.append(help);
-      const questionLabel = element('label', 'Ask a question in your own words');
+      const questionLabel = element('label', 'Your question');
       const questionInput = element('input'); questionInput.id = `buyer-question-${id}`;
-      questionInput.type = 'text'; questionInput.maxLength = 300; questionInput.autocomplete = 'off'; questionInput.placeholder = 'e.g. Does my passkey make a payment?';
+      questionInput.type = 'text'; questionInput.maxLength = 300; questionInput.autocomplete = 'off'; questionInput.placeholder = 'e.g. Has any money been sent?';
       questionLabel.htmlFor = questionInput.id;
-      const questionNote = element('p', 'A best-effort redacted version of your question may be sent to Groq for topic selection. No request record is attached. Redaction is not a guarantee; avoid personal, merchant or payment details.');
+      const questionNote = element('p', 'Please avoid names, account numbers and private payment details. When AI is enabled, SaySure sends a redacted question to choose an explanation; otherwise it uses on-device matching.');
       questionNote.id = `buyer-question-note-${id}`; questionInput.setAttribute('aria-describedby', questionNote.id);
       const questionResult = element('p'); questionResult.setAttribute('role', 'status');
       explain.append(questionLabel, questionInput, questionNote);
@@ -89,7 +90,7 @@ export function renderRequests(items, session, tools) {
         questionResult.textContent = source + ': ' + selected + ' ' + answer(match.topic, item);
       }, tools.perform);
       explain.append(questionResult);
-      explain.append(element('p', 'Audio may be heard by others. Your browser or OS supplies the voice.'));
+      explain.append(element('p', 'Audio plays through your device. Use headphones for privacy.'));
     }
     const list = element('dl');
     for (const [label, value] of [
@@ -161,7 +162,9 @@ export function renderRequests(items, session, tools) {
         }, tools.perform);
       }
       if (item.status === 'approved') {
-        article.append(element('p', 'Buyer consent approved. Consent recorded. No payment has been authorized or made.'));
+        const approved = element('p', 'Approved in SaySure. This recorded your decision; it did not send money.');
+        approved.className = 'request-approved-note';
+        article.append(approved);
         advanced.append(element('p', 'Operator / developer test: validate single-use local consent. This is not an ordinary Buyer payment action and makes no payment.'));
         const consume = addButton(advanced, 'Consume consent once (local test only)', async () => {
           consume.dataset.locked = 'true';
