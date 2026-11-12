@@ -249,3 +249,106 @@ body.demo { max-width: none; margin: 0; padding: 0; background: #f5f8ff; color: 
   .application .app-header h1 { font-size: 1.55rem; }
   .application .app-header p { font-size: .78rem; }
 }
+
+
+/* Focused demo: the visitor lands directly in the product, not a second marketing page. */
+body.demo { max-width: none; margin: 0; padding: 0; background: #f3f6fc; color: var(--ink); }
+.demo-header { background: var(--navy); color: #fff; }
+.demo-header-inner { width: min(1240px,calc(100% - 3rem)); min-height: 76px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.demo-brand { display: inline-flex; align-items: center; gap: .7rem; color: #fff; text-decoration: none; font-size: 1.2rem; font-weight: 850; letter-spacing: -.04em; }
+.demo-brand small { display: block; color: #cbd9f1; font-size: .68rem; font-weight: 500; letter-spacing: 0; }
+.demo-brand-mark { display: grid; place-items: center; width: 2.55rem; height: 2.55rem; border-radius: .75rem; color: #fff; background: #1c68ff; font-size: 1.5rem; }
+.demo-header-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem 1.15rem; }
+.demo-mode-badge { color: #d8e6ff; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); border-radius: 2rem; padding: .35rem .65rem; font-size: .65rem; font-weight: 800; letter-spacing: .08em; }
+.demo-exit { color: #dce8ff; font-size: .85rem; font-weight: 650; text-decoration: none; }
+.demo-workspace-link { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: .45rem .85rem; border: 1px solid #80aaff; border-radius: .6rem; color: #fff; font-size: .84rem; font-weight: 750; text-decoration: none; }
+.demo-workspace-link:hover { background: rgba(255,255,255,.1); }
+.demo-main { width: min(1240px,calc(100% - 3rem)); margin: auto; padding: clamp(1.35rem,3vw,2.4rem) 0 2.5rem; }
+.demo-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+.demo-intro .eyebrow { margin: 0 0 .45rem; color: #155eef; font-size: .7rem; font-weight: 850; letter-spacing: .12em; }
+.demo-intro h1 { margin: 0; color: var(--navy); font-size: clamp(1.8rem,3.8vw,2.65rem); line-height: 1.12; letter-spacing: -.055em; }
+.demo-intro > div > p:last-child { margin: .45rem 0 0; color: #566b86; font-size: .95rem; }
+.demo-no-account { flex: 0 0 auto; padding: .4rem .7rem; border: 1px solid #c7d7f1; border-radius: 2rem; background: #fff; color: #24518d; font-size: .67rem; font-weight: 800; letter-spacing: .06em; }
+.demo-steps { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); overflow: hidden; border: 1px solid #d4deec; border-radius: .8rem; background: #fff; }
+.demo-step { display: flex; align-items: center; gap: .55rem; min-width: 0; padding: .75rem 1rem; color: #65758b; font-size: .82rem; font-weight: 700; border-right: 1px solid #e2e8f1; }
+.demo-step:last-child { border-right: 0; }
+.demo-step span { display: grid; place-items: center; flex: 0 0 1.6rem; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: #edf1f7; color: #536782; font-size: .68rem; }
+.demo-step.active { background: #edf4ff; color: #123c7b; }
+.demo-step.active span { background: #155eef; color: #fff; }
+.demo-simulation-banner { display: flex; align-items: flex-start; gap: .7rem; margin: 1rem 0 1.15rem; padding: .75rem .9rem; border: 1px solid #c5d8fb; border-radius: .7rem; background: #eaf2ff; color: #24466f; font-size: .8rem; }
+.demo-simulation-banner strong { flex: 0 0 auto; color: #1647b8; font-size: .68rem; letter-spacing: .07em; }
+.demo #message:not(:empty) { margin: 0 0 1rem; border-left: 4px solid #155eef; border-radius: 0 .5rem .5rem 0; background: #fff; padding: .7rem .9rem; color: #163c76; font-size: .88rem; }
+.demo-layout { display: grid; grid-template-columns: minmax(0,1.12fr) minmax(320px,.88fr); align-items: start; gap: 1.15rem; }
+.demo-layout > section { min-width: 0; margin: 0; padding: clamp(1.05rem,2.2vw,1.6rem); border: 1px solid #d6dfec; border-radius: 1rem; background: #fff; box-shadow: 0 10px 28px rgba(12,38,79,.055); }
+.demo-card-header { display: flex; align-items: center; justify-content: space-between; gap: .8rem; padding-bottom: .9rem; border-bottom: 1px solid #e2e8f1; }
+.demo-card-header .card-kicker { margin: 0 0 .25rem; color: #1754b6; font-size: .68rem; font-weight: 850; letter-spacing: .1em; }
+.demo-card-header h2 { margin: 0; color: var(--navy); font-size: clamp(1.25rem,2vw,1.55rem); letter-spacing: -.04em; }
+.demo .review-status { flex: 0 0 auto; padding: .35rem .6rem; border: 1px solid #edc88b; border-radius: 2rem; background: #fff7e9; color: #80500b; font-size: .63rem; font-weight: 850; letter-spacing: .05em; }
+.demo .review-status[data-state="approved"], .demo .review-status[data-state="consumed"] { border-color: #a7d7bb; background: #eaf8ef; color: #17633b; }
+.demo .review-status[data-state="rejected"] { border-color: #efb6b3; background: #fff0ef; color: #982c25; }
+.demo #review { padding: 1.1rem 0 .25rem; }
+.demo #review .review-amount-label { margin: 0; color: #65758b; font-size: .72rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+.demo #review h3 { margin: .1rem 0 .55rem; color: var(--navy); font-size: clamp(2rem,4vw,2.8rem); line-height: 1.1; letter-spacing: -.06em; font-weight: 850; }
+.demo #review .review-merchant { margin: .2rem 0 0; color: #142f52; font-size: 1.05rem; font-weight: 800; }
+.demo #review .review-source { margin: 0 0 1rem; color: #65758b; font-size: .78rem; }
+.demo #review .review-facts { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: .6rem .8rem; margin: 0; padding: .9rem 0; border-top: 1px solid #e2e8f1; border-bottom: 1px solid #e2e8f1; }
+.demo #review .review-facts dt { color: #65758b; font-size: .8rem; font-weight: 550; }
+.demo #review .review-facts dd { margin: 0; color: #203b5d; font-size: .82rem; font-weight: 750; text-align: right; }
+.demo #review .review-warning, .demo #review .review-clear { margin: .9rem 0; padding: .8rem .9rem; border-radius: .65rem; font-size: .82rem; }
+.demo #review .review-warning { border: 1px solid #efcf9e; background: #fff7e9; color: #75480c; }
+.demo #review .review-clear { border: 1px solid #b6dfc4; background: #eef9f1; color: #215b39; }
+.demo #review .review-state { margin: .7rem 0 0; color: #536782; font-size: .76rem; }
+.demo .decision-panel { margin-top: 1.1rem; padding: 1rem; border: 1px solid #d9e3f1; border-radius: .8rem; background: #f7f9fd; }
+.demo .decision-panel .card-kicker { margin: 0 0 .25rem; color: #1754b6; font-size: .68rem; font-weight: 850; letter-spacing: .1em; }
+.demo .decision-panel h3 { margin: 0 0 .35rem; color: var(--navy); font-size: 1.12rem; }
+.demo .decision-panel > p:not(.card-kicker) { margin: .35rem 0 .65rem; color: #526781; font-size: .82rem; }
+.demo .decision-actions { display: flex; flex-wrap: wrap; gap: .55rem; }
+.demo .decision-actions button { flex: 1 1 170px; margin: .2rem 0; }
+.demo .decision-note { margin: .45rem 0 0 !important; font-size: .72rem !important; }
+.demo .help-intro { color: #586d86; font-size: .87rem; }
+.demo .help-card label { margin-top: .75rem; color: #213b5a; font-size: .84rem; }
+.demo .help-card button { margin-top: .65rem; }
+.demo .helper-mark { display: grid; place-items: center; flex: 0 0 2rem; width: 2rem; height: 2rem; border-radius: .6rem; background: #edf4ff; color: #155eef; font-weight: 850; }
+.demo .ai-question-panel { margin-top: 1.15rem; padding-top: 1rem; border-top: 1px solid #e0e7f0; }
+.demo .ai-label { margin: 0; color: #1647b8; font-size: .69rem; font-weight: 850; letter-spacing: .09em; }
+.demo .ai-label span { display: block; color: #66768a; font-size: .75rem; font-weight: 550; letter-spacing: 0; }
+.demo #buyer-question-note { color: #62758d; font-size: .73rem; }
+.demo #explanation:not(:empty), .demo #ai-explanation:not(:empty) { margin-top: .8rem; padding: .75rem .85rem; border-left: 4px solid #155eef; border-radius: 0 .5rem .5rem 0; background: #edf4ff; color: #153b73; font-size: .84rem; }
+.demo .advanced { margin: 1rem 0 0; padding: .55rem 1rem; border: 1px solid #d5deeb; border-radius: .8rem; background: #fff; }
+.demo .advanced p { font-size: .82rem; color: #566b85; }
+.demo .demo-bottom-nav { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .7rem 1rem; margin-top: 1.35rem; font-size: .83rem; font-weight: 700; }
+.demo .demo-bottom-nav a { color: #174ea6; }
+.demo .demo-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem 1rem; padding: 1rem max(1.5rem,calc((100vw - 1240px)/2)); border-top: 1px solid #dce4ef; background: #fff; color: #62758d; font-size: .74rem; }
+.demo .demo-footer strong { color: var(--navy); font-size: .95rem; }
+.demo button, .demo .button { border-radius: .6rem; }
+.demo .primary { background: #155eef; border-color: #155eef; color: #fff; }
+.demo .primary:hover:enabled { background: #1049bf; border-color: #1049bf; color: #fff; }
+@media (max-width: 900px) {
+  .demo-layout { grid-template-columns: minmax(0,1fr); }
+}
+@media (max-width: 640px) {
+  .demo-header-inner { width: min(100% - 1.5rem,1240px); min-height: 68px; }
+  .demo-header-actions { gap: .45rem .7rem; }
+  .demo-mode-badge { display: none; }
+  .demo-main { width: min(100% - 1.5rem,1240px); padding-top: 1.25rem; }
+  .demo-intro { align-items: flex-start; flex-direction: column; }
+  .demo-step { justify-content: center; padding: .65rem .35rem; font-size: .7rem; gap: .35rem; }
+  .demo-step span { flex-basis: 1.35rem; width: 1.35rem; height: 1.35rem; font-size: .62rem; }
+  .demo-simulation-banner { flex-direction: column; gap: .2rem; }
+  .demo .demo-footer { padding-inline: .75rem; }
+}
+@media (max-width: 480px) {
+  .demo-brand { font-size: 1rem; }
+  .demo-brand-mark { width: 2.2rem; height: 2.2rem; }
+  .demo-header-inner { gap: .4rem; }
+  .demo-header-actions { gap: .35rem; }
+  .demo-exit { font-size: .74rem; }
+  .demo-workspace-link { min-height: 36px; padding: .35rem .55rem; font-size: .74rem; }
+  .demo-main { width: min(100% - 1.1rem,1240px); }
+  .demo-layout > section { padding: 1rem; }
+  .demo #review .review-facts { grid-template-columns: minmax(0,1fr); gap: .25rem; }
+  .demo #review .review-facts dd { text-align: left; margin-bottom: .45rem; }
+  .demo .decision-actions { flex-direction: column; }
+  .demo .decision-actions button { width: 100%; }
+  .demo .demo-bottom-nav { flex-direction: column; }
+}
