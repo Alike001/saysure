@@ -24,8 +24,8 @@ test('judge fixture demo: optional server-side question routing, no credentials 
   await page.getByText('Revision: 2. Simulated local consent: pending.', { exact: true }).waitFor();
   await page.getByRole('button', { name: 'MOCK PayPal order', exact: true }).click();
   await page.getByText('MOCK PayPal fixture', { exact: false }).waitFor();
-  await page.getByLabel('Choose a buyer question').selectOption('merchant');
-  await page.getByRole('button', { name: 'Explain selected question', exact: true }).click();
+  await page.getByLabel('Choose a question').selectOption('merchant');
+  await page.getByRole('button', { name: 'Explain this question', exact: true }).click();
   await page.locator('#explanation').filter({ hasText: 'helper-provided fixture' }).waitFor();
   await page.locator('#buyer-question').fill('Does my passkey make a payment?');
   await page.getByRole('button', { name: 'Ask SaySure', exact: true }).click();
