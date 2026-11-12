@@ -236,3 +236,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .brand-mark { width:34px; height:34px; }
 }
 @media(prefers-reduced-motion: reduce) { .hero-visual-shell .review-preview { transform:none; } }
+
+/* AA-contrast refinements for light navigation, hero captions and dark footer. */
+.site-header .brand-name small { color:#466383; }
+.hero-note { color:#466383; }
+.hero-note span { color:#1555b0; }
+.site-footer .brand, .site-footer .brand-name { color:#fff; }
+.site-footer .brand-name small { color:#d2e0f5; }
