@@ -16,7 +16,7 @@ test('hosted entry keeps landing, no-login demo and protected workspace on one o
   await page.getByRole('link', { name: /Try the guided demo/ }).first().waitFor();
   await page.getByRole('link', { name: 'Open live workspace' }).waitFor();
   assert.match(await page.locator('body').innerText(), /The Helper prepares\.\s*The Buyer decides\./);
-  assert.match(await page.locator('body').innerText(), /in development and are not live in this staging release/);
+  assert.match(await page.locator('body').innerText(), /Payment history and recovery tools are on our roadmap/);
   assert.equal(await page.locator('img, video, iframe').count(), 0);
 
   const demoLink = page.getByRole('link', { name: /Try the guided demo/ }).first();
@@ -61,11 +61,11 @@ test('hosted entry keeps landing, no-login demo and protected workspace on one o
   assert.deepEqual(demoA11y.violations.map(v => v.id), []);
 
   await page.goto(h.origin + '/app');
-  await page.getByRole('heading', { name: 'Sign in to your workspace' }).waitFor();
+  await page.getByRole('heading', { name: 'Try the real workspace' }).waitFor();
   await page.getByText('a PayPal account is not required', { exact: false }).waitFor();
-  await page.getByText('The Helper signs in with the Helper account', { exact: false }).waitFor();
+  await page.getByText('Start as Helper', { exact: false }).waitFor();
   await page.getByLabel('Username', { exact: true }).waitFor();
-  await page.getByLabel('Account secret').waitFor();
+  await page.getByLabel('Password').waitFor();
   await page.getByRole('link', { name: /interactive demo/ }).first().waitFor();
   assert.deepEqual(errors, []);
   await context.close();

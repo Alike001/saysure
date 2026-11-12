@@ -9,11 +9,15 @@ test('judge trial: real isolated Helper and Buyer accounts, seeded synthetic req
   const otherCtx = await h.browser.newContext(), other = await otherCtx.newPage();
   for (const page of [helper, buyer, other]) await page.goto(h.origin + '/app');
 
-  await helper.getByRole('button', { name: 'Create private test workspace' }).click();
-  await helper.getByText('Save your test workspace access').waitFor();
+  await helper.getByRole('button', { name: /Start testing/ }).click();
+  await helper.getByText("You're in. Save your details.").waitFor();
   const helperId = await helper.locator('#trial-username').innerText();
+  assert.equal(await helper.locator('#trial-password').innerText(), '••••••••');
+  assert.equal(await helper.locator('#trial-invitation').innerText(), '••••••••');
+  await helper.getByRole('button', { name: 'Show access details' }).click();
   const helperPassword = await helper.locator('#trial-password').innerText();
   const invitation = await helper.locator('#trial-invitation').innerText();
+  await helper.getByRole('button', { name: 'Hide access details' }).click();
   assert.match(helperId, /^trial-[a-f0-9]{12}-h$/);
   assert.ok(helperPassword.length >= 40);
   assert.match(invitation, /^[A-Za-z0-9_-]{43}$/);
@@ -25,12 +29,16 @@ test('judge trial: real isolated Helper and Buyer accounts, seeded synthetic req
   const buyers = await helper.evaluate(async () => (await fetch('/api/buyers')).json());
   assert.deepEqual(buyers, [{ id: counterpart }]);
   await helper.reload();
-  assert.match(await helper.locator('#identity').innerText(), /Role: helper/);
+  assert.match(await helper.locator('#identity').innerText(), /Signed in as Helper/);
 
-  await buyer.locator('#trial-code').fill(invitation);
+  await buyer.goto(h.origin + '/app#invite=' + invitation);
+  assert.equal(await buyer.locator('#trial-code').inputValue(), invitation);
+  assert.equal(new URL(buyer.url()).hash, '');
   await buyer.getByRole('button', { name: 'Join as Buyer' }).click();
-  await buyer.getByText('Save your test workspace access').waitFor();
+  await buyer.getByText("You're in. Save your details.").waitFor();
   assert.equal(await buyer.locator('#trial-username').innerText(), counterpart);
+  assert.equal(await buyer.locator('#trial-password').innerText(), '••••••••');
+  await buyer.getByRole('button', { name: 'Show access details' }).click();
   const buyerPassword = await buyer.locator('#trial-password').innerText();
   assert.ok(buyerPassword.length >= 40);
   assert.notEqual(buyerPassword, helperPassword);
@@ -39,7 +47,7 @@ test('judge trial: real isolated Helper and Buyer accounts, seeded synthetic req
   assert.equal(received[0].snapshot.request_id, seeded[0].snapshot.request_id);
   await other.locator('#trial-code').fill(invitation);
   await other.getByRole('button', { name: 'Join as Buyer' }).click();
-  await other.locator('#message').filter({ hasText: 'INVITATION_INVALID_OR_EXPIRED' }).waitFor();
+  await other.locator('#message').filter({ hasText: 'expired or already been used' }).waitFor();
   const access = await buyer.evaluate(async () => {
     const res = await fetch('/api/buyers'); return res.status;
   });
@@ -67,8 +75,8 @@ test('judge trial enforces Helper buyer scope and prevents forged cross-trial re
   for (let i = 0; i < 2; i++) {
     const ctx = await h.browser.newContext();
     const page = await ctx.newPage(); pages.push(page); await page.goto(h.origin + '/app');
-    await page.getByRole('button', { name: 'Create private test workspace' }).click();
-    await page.getByText('Save your test workspace access').waitFor();
+    await page.getByRole('button', { name: /Start testing/ }).click();
+    await page.getByText("You're in. Save your details.").waitFor();
   }
   const a = await pages[0].locator('#trial-username').innerText();
   const b = await pages[1].locator('#trial-username').innerText();

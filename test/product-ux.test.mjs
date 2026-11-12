@@ -43,9 +43,9 @@ test('product UX: five-width layouts, transaction-first decisions, keyboard, err
   }
   await writeFile(`${evidence}/measurements.json`, JSON.stringify(measurements, null, 2));
   await t.test('refresh keeps focus; decline leads to the same request heading and cannot approve', async () => {
-    const refresh = buyer.page.getByRole('button', { name: 'Refresh requests' });
+    const refresh = buyer.page.getByRole('button', { name: 'Refresh', exact: true });
     await refresh.focus(); await buyer.page.keyboard.press('Enter');
-    await buyer.page.locator('#message').filter({ hasText: 'Requests refreshed' }).waitFor();
+    await buyer.page.locator('#message').filter({ hasText: 'Requests updated' }).waitFor();
     assert.equal(await refresh.evaluate(e => e === document.activeElement), true);
     const decline = buyer.page.getByRole('button', { name: 'Decline / Reject this request' });
     await decline.focus(); await buyer.page.keyboard.press('Enter');
@@ -57,16 +57,16 @@ test('product UX: five-width layouts, transaction-first decisions, keyboard, err
     await scan(buyer.page);
   });
   await t.test('amount and authentication errors have field associations and corrective focus', async () => {
-    await helper.page.getByLabel('Synthetic merchant ID', { exact: true }).fill('SYNTH-TEST');
-    await helper.page.getByLabel('Merchant displayed name (unverified)', { exact: true }).fill('Example Store');
-    await helper.page.getByLabel('Exact amount in major units', { exact: false }).fill('1,00');
-    await helper.page.getByLabel('Description', { exact: true }).fill('Synthetic test');
-    await helper.page.getByRole('button', { name: 'Create synthetic request' }).click();
+    await helper.page.getByLabel('Store reference', { exact: true }).fill('SYNTH-TEST');
+    await helper.page.getByLabel('Store or recipient name', { exact: true }).fill('Example Store');
+    await helper.page.getByLabel('Amount (e.g. 12.00)', { exact: true }).fill('1,00');
+    await helper.page.getByLabel("What's this for?", { exact: true }).fill('Synthetic test');
+    await helper.page.getByRole('button', { name: 'Send test request' }).click();
     await helper.page.locator('#amount-error').filter({ hasText: 'Enter an exact positive amount' }).waitFor();
     assert.equal(await helper.page.locator('#amount').getAttribute('aria-invalid'), 'true');
     assert.equal(await helper.page.locator('#amount').evaluate(e => e === document.activeElement), true);
     await guest.getByLabel('Username', { exact: true }).fill('unknown');
-    await guest.getByLabel('Account secret').fill('incorrect-secret');
+    await guest.getByLabel('Password', { exact: true }).fill('incorrect-secret');
     await guest.getByRole('button', { name: 'Sign in', exact: true }).click();
     await guest.locator('#login-error').filter({ hasText: 'Sign-in failed' }).waitFor();
     assert.equal(await guest.locator('#username').getAttribute('aria-describedby'), 'login-error');
@@ -74,7 +74,7 @@ test('product UX: five-width layouts, transaction-first decisions, keyboard, err
     assert.equal(await guest.locator('#username').evaluate(e => e === document.activeElement), true);
     await helper.page.locator('#amount').fill('1.00');
     await helper.page.locator('#merchant-name').fill('   ');
-    await helper.page.getByRole('button', { name: 'Create synthetic request' }).click();
+    await helper.page.getByRole('button', { name: 'Send test request' }).click();
     await helper.page.locator('#merchant-name-error').filter({ hasText: 'visible characters' }).waitFor();
     assert.equal(await helper.page.locator('#merchant-name').getAttribute('aria-invalid'), 'true');
     assert.equal(await helper.page.locator('#merchant-name').evaluate(e => e === document.activeElement), true);

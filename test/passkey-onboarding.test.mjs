@@ -1,0 +1,50 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { harness, sample } from './harness.mjs';
+
+test('Buyer approval explains disabled prerequisites and works after passkey setup and explicit review', { timeout: 90000 }, async t => {
+  const h = await harness(); t.after(() => h.close());
+  const helper = await h.actor('helper', false);
+  const buyer = await h.actor('buyer-a');
+  const created = await helper.call('/api/requests', sample({ merchant_name: 'Example Store' }));
+  assert.equal(created.status, 201);
+  await buyer.page.reload();
+  const article = buyer.page.getByRole('article');
+  const approve = article.getByRole('button', { name: 'Approve using my passkey — synthetic request' });
+  assert.equal(await approve.isDisabled(), true);
+  await article.getByText('Step 1 of 2: Set up a passkey', { exact:false }).waitFor();
+  await article.getByText('Approval unlocks after you set up your passkey', { exact:false }).waitFor();
+  await article.getByRole('button', { name: 'Set up passkey to approve' }).click();
+  await buyer.page.locator('#message').filter({ hasText: 'Your passkey is ready!' }).waitFor();
+  const currentSession = await buyer.page.evaluate(async () => (await fetch('/api/session')).json());
+  assert.equal(currentSession.enrolled, true);
+  await article.getByText('Step 2 of 2: Tick the confirmation above', { exact:false }).waitFor();
+  const newApprove = article.getByRole('button', { name: 'Approve using my passkey — synthetic request' });
+  assert.equal(await newApprove.isDisabled(), true);
+  await article.getByRole('checkbox').check();
+  await article.getByText('Ready: select Approve using my passkey', { exact:false }).waitFor();
+  assert.equal(await newApprove.isEnabled(), true);
+  await newApprove.click();
+  await buyer.page.locator('#message').filter({ hasText: 'Consent approved' }).waitFor();
+  const rows = await buyer.call('/api/requests', undefined, 'GET');
+  assert.equal(rows.data[0].status, 'approved');
+  assert.equal(rows.data[0].synthetic, true);
+  assert.equal(h.forbidden.length, 0);
+});
+
+test('trial access secrets start masked, visible only by request and cannot be shared in same clipboard action', { timeout: 90000 }, async t => {
+  const h = await harness(); t.after(() => h.close());
+  const context = await h.browser.newContext();
+  const page = await context.newPage(); await page.goto(h.origin + '/app');
+  await page.getByRole('button', { name: /Start testing/ }).click();
+  await page.getByText("You're in. Save your details.").waitFor();
+  assert.equal(await page.locator('#trial-password').innerText(), '••••••••');
+  assert.equal(await page.locator('#trial-invitation').innerText(), '••••••••');
+  await page.getByRole('button', { name: 'Show access details' }).click();
+  assert.match(await page.locator('#trial-password').innerText(), /^[A-Za-z0-9_-]{43}$/);
+  await page.getByRole('button', { name: 'Hide access details' }).click();
+  assert.equal(await page.locator('#trial-password').innerText(), '••••••••');
+  assert.equal(await page.locator('#trial-invitation').innerText(), '••••••••');
+  assert.equal(await page.getByRole('button', { name: 'Copy my login' }).count(), 1);
+  assert.equal(await page.getByRole('button', { name: 'Copy Buyer invite link' }).count(), 1);
+});
