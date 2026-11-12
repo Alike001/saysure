@@ -63,7 +63,7 @@ test('hosted entry keeps landing, no-login demo and protected workspace on one o
   await page.goto(h.origin + '/app');
   await page.getByRole('heading', { name: 'Sign in to your workspace' }).waitFor();
   await page.getByText('a PayPal account is not required', { exact: false }).waitFor();
-  await page.getByText('The Helper signs in separately', { exact: false }).waitFor();
+  await page.getByText('The Helper signs in with the Helper account', { exact: false }).waitFor();
   await page.getByLabel('Username', { exact: true }).waitFor();
   await page.getByLabel('Account secret').waitFor();
   await page.getByRole('link', { name: /Try the guided demo/ }).first().waitFor();
