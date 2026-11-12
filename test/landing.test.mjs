@@ -34,11 +34,15 @@ test('hosted entry keeps landing, no-login demo and protected workspace on one o
   }
 
   await page.goto(h.origin + '/demo');
-  await page.getByText('DEMO ONLY — interactive simulation.', { exact: false }).waitFor();
-  await page.getByRole('link', { name: 'Home', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'Review a payment request.' }).waitFor();
+  await page.getByRole('button', { name: 'Simulate consent approval', exact: true }).waitFor();
+  await page.getByText('SIMULATION ONLY', { exact: false }).waitFor();
+  await page.getByRole('link', { name: 'Back to website', exact: true }).waitFor();
   const demoWorkspaceLink = page.getByRole('link', { name: 'Open workspace', exact: true });
   await demoWorkspaceLink.waitFor();
   assert.equal(await demoWorkspaceLink.getAttribute('href'), '/app');
+  assert.equal(await page.getByRole('heading', { name: 'How SaySure works' }).count(), 0);
+  assert.equal(await page.locator('.demo-hero').count(), 0);
   const demoQuestion = await page.evaluate(async () => {
     const response = await fetch('/api/demo-question', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -58,6 +62,8 @@ test('hosted entry keeps landing, no-login demo and protected workspace on one o
 
   await page.goto(h.origin + '/app');
   await page.getByRole('heading', { name: 'Sign in to your workspace' }).waitFor();
+  await page.getByText('a PayPal account is not required', { exact: false }).waitFor();
+  await page.getByText('The Helper signs in separately', { exact: false }).waitFor();
   await page.getByLabel('Username', { exact: true }).waitFor();
   await page.getByLabel('Account secret').waitFor();
   await page.getByRole('link', { name: /Try the guided demo/ }).first().waitFor();
