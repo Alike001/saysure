@@ -14,8 +14,10 @@ import { createBuyerQuestionRouter } from './buyer-question.mjs';
 
 const root = new URL('../', import.meta.url);
 const assets = new Map([
-  ['/', ['public/landing.html', 'text/html']], ['/app', ['public/index.html', 'text/html']],
+  ['/', ['public/landing.html', 'text/html']], ['/demo', ['public/demo.html', 'text/html']],
+  ['/demo.html', ['public/demo.html', 'text/html']], ['/app', ['public/index.html', 'text/html']],
   ['/landing.css', ['public/landing.css', 'text/css']], ['/app.js', ['public/app.js', 'text/javascript']],
+  ['/demo.js', ['public/demo.js', 'text/javascript']], ['/buyer-help.js', ['public/buyer-help.js', 'text/javascript']],
   ['/comprehension.js', ['public/comprehension.js', 'text/javascript']],
   ['/presentation.js', ['public/presentation.js', 'text/javascript']],
   ['/review.js', ['public/review.js', 'text/javascript']],
@@ -24,11 +26,11 @@ const assets = new Map([
   ['/consent-shape.js', ['public/consent-shape.js', 'text/javascript']], ['/style.css', ['public/style.css', 'text/css']],
   ['/webauthn.js', ['node_modules/@simplewebauthn/browser/dist/bundle/index.umd.min.js', 'text/javascript']],
 ]);
-async function jsonBody(req) {
+async function jsonBody(req, maxBytes = 24_000) {
   ensure(req.headers['content-type'] === 'application/json', 'JSON_REQUIRED', 415);
   let bytes = 0, chunks = [];
   for await (const chunk of req) {
-    bytes += chunk.length; ensure(bytes <= 24_000, 'BODY_TOO_LARGE', 413); chunks.push(chunk);
+    bytes += chunk.length; ensure(bytes <= maxBytes, 'BODY_TOO_LARGE', 413); chunks.push(chunk);
   }
   try {
     const value = JSON.parse(Buffer.concat(chunks).toString('utf8'));
@@ -47,6 +49,7 @@ export function makeApp(store, config) {
   const consumption = consumptionService(store, requests, paypal, config.consumption);
   const passkeys = passkeyService(store, requests, config, paypal);
   const buyerQuestion = createBuyerQuestionRouter(config.ai);
+  const demoQuestion = createBuyerQuestionRouter(config.ai);
   const attempts = new Map();
   const telemetry = new Set();
   const cookie = token => `consent_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800${
@@ -104,6 +107,16 @@ export function makeApp(store, config) {
         const [file, type] = assets.get(url.pathname);
         res.writeHead(200, { 'Content-Type': `${type}; charset=utf-8` });
         res.end(await readFile(new URL(file, root))); return;
+      }
+      // The public walkthrough shares this origin but remains stateless: this route
+      // never reads a workspace session, touches the store, or invokes PayPal.
+      if (req.method === 'POST' && url.pathname === '/api/demo-question') {
+        ensure(req.headers.origin === config.origin, 'INVALID_ORIGIN', 403);
+        const input = await jsonBody(req, 2048);
+        keys(input, ['question']);
+        const result = await demoQuestion({ question: input.question,
+          actor: `demo:${req.socket.remoteAddress || 'unknown'}` });
+        send(200, result); return;
       }
       const session = await sessionFor(store, req.headers.cookie);
       if (req.method === 'GET' && url.pathname === '/api/session') {
