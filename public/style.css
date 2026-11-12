@@ -352,3 +352,9 @@ body.demo { max-width: none; margin: 0; padding: 0; background: #f3f6fc; color: 
   .demo .decision-actions button { width: 100%; }
   .demo .demo-bottom-nav { flex-direction: column; }
 }
+
+.application .login-access-guide { margin-block: 1rem; padding: .85rem 1rem; border: 1px solid var(--line); border-radius: .7rem; background: #fff; color: #314b69; font-size: .84rem; }
+.application .login-access-guide strong { color: var(--navy); }
+.application .login-access-guide ol { margin: .5rem 0; padding-left: 1.25rem; }
+.application .login-access-guide li { margin-block: .3rem; }
+.application .login-access-guide p { margin-bottom: 0; color: var(--muted); font-size: .78rem; }
