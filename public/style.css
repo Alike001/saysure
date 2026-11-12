@@ -584,3 +584,5 @@ body.demo { background:linear-gradient(180deg,#f4f8ff,#f7f9fd 520px); }
   .application .app-navigation a:nth-child(1) { display:none; }
   .application .app-header-brand small { font-size:.6rem; }
 }
+
+.application .app-header-brand h1 { margin:0; color:#0c2544; font-size:1.15rem; line-height:1.2; font-weight:850; letter-spacing:-.035em; }
