@@ -468,3 +468,7 @@ body.demo { background:linear-gradient(180deg,#f4f8ff,#f7f9fd 520px); }
   .application .trial-access-options { grid-template-columns:minmax(0,1fr); }
   .application #trial-access dl { grid-template-columns:minmax(0,1fr); }
 }
+
+.demo-intro-actions { display:flex; align-items:center; gap:.65rem; flex-wrap:wrap; justify-content:flex-end; }
+.demo-no-account-label { font-size:.65rem; font-weight:800; color:#2b68be; letter-spacing:.065em; white-space:nowrap; }
+@media(max-width:700px) { .demo-intro-actions { justify-content:flex-start; } }

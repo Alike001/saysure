@@ -28,7 +28,7 @@ The landing page, demo and authenticated workspace are served by the same Postgr
 
 Keep database URLs, staging bootstrap credentials, PayPal sandbox credentials and any Groq key in Render's private Environment settings. Never put them in source, issues, screenshots, or chat. Remove one-time `STAGING_*_PASSWORD` bootstrap variables after the staging accounts have been provisioned successfully, as the startup log instructs.
 
-Workspace accounts are currently provisioned by the project owner. The current staging database has one Helper test account (`helper`) and two Buyer test accounts (`buyer-a`, `buyer-b`); their high-entropy secrets are shared privately and are never published in this repository or deployment logs. The login is SaySure authentication; it does not require a PayPal account. The public guided demo requires neither a SaySure account nor a PayPal account. Self-service account registration is not enabled. See [STAGING-ACCESS.md](STAGING-ACCESS.md) for the role-by-role test procedure and controlled credential rotation.
+The three original owner-provisioned accounts (`helper`, `buyer-a`, `buyer-b`) remain protected; their secrets are never published. Judges can additionally use `/app` to **Create private test workspace**, which creates a scoped Helper account, a fictional preloaded request and a one-time Buyer invitation. The Buyer claims the invitation in a separate browser and receives an independent password. Trials are synthetic, rate-limited and capacity-limited; they cannot import PayPal orders. The login is SaySure authentication and does not require a PayPal account. The public guided demo requires no account. Production user signup or verified email identity is not enabled. See [STAGING-ACCESS.md](STAGING-ACCESS.md) for the role-by-role test procedure and controlled credential rotation.
 
 ## Public demo boundary
 
@@ -50,7 +50,8 @@ After deployment:
 
 1. Open `/`, choose **Try the guided demo**, and confirm the browser remains on the same `saysure-staging-cnhm.onrender.com` origin at `/demo`.
 2. Complete the synthetic review, explanation, question, simulated approve/decline and revision flows. Confirm all controls say simulated and no money moves.
-3. Use **Open workspace** to reach `/app` on the same origin. Confirm the SaySure login form appears; no PayPal login is requested.
+3. Use **Open workspace** to reach `/app` on the same origin. Confirm the login and private trial onboarding appear; no PayPal login is requested.
+4. Create a trial Helper account, save the credentials, copy the Buyer invitation and claim it in a different browser. Confirm the preloaded synthetic request, independent Buyer passkey enrollment and Helper request-scoping checks.
 4. Confirm the public demo has no session cookie and cannot access protected request data.
 5. Test desktop and mobile widths, keyboard focus, accessible labels and no horizontal overflow.
 6. Confirm `/healthz` is healthy and PostgreSQL is ready.

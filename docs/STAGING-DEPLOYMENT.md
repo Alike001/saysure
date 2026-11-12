@@ -58,3 +58,7 @@ WebAuthn credentials are origin/RP-ID bound. Passkeys enrolled on `localhost` ca
 ## Local development
 
 Without `DATABASE_URL`, `npm start` continues to use the existing local SQLite experiment. Do not run `npm run setup` against an already provisioned local database. For PostgreSQL maintenance, set `DATABASE_URL` in the private environment and use `npm run migrate` or `npm run provision:staging`.
+
+
+## Self-service private trial workspace
+The initial three owner-provisioned accounts remain unchanged. Separate `trial-<id>-h` and `trial-<id>-b` users may be provisioned by judges via `/app` under strict per-process/IP and global account caps. They have their own password hashes, sessions, Buyer passkeys and isolated requests. A high-entropy single-use Buyer invitation expires after 30 minutes. On restart, `provisionStaging` verifies the original three accounts and validates additional trial identity roles; it must not delete or overwrite the trial accounts. The sandbox creation and import routes never authorize PayPal operations. Self-service production signup, verified email identity and unrestricted real-money service remain disabled.
