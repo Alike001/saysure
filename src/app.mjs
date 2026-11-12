@@ -5,6 +5,7 @@ import { consumptionDiagnostics } from './consumption-diagnostics.mjs';
 import { paypalRequests } from './paypal-requests.mjs';
 import { assertOriginConfig } from './origin.mjs';
 import { createServer } from 'node:http';
+import { isIP } from 'node:net';
 import { readFile } from 'node:fs/promises';
 import { Failure, ensure } from './core.mjs';
 import { authenticate, issueSession, sessionFor } from './identity.mjs';
@@ -126,7 +127,14 @@ export function makeApp(store, config) {
         ensure(req.headers.origin === config.origin, 'INVALID_ORIGIN', 403);
         ensure(!session, 'SIGN_OUT_BEFORE_TRIAL', 403);
         const input = await jsonBody(req); keys(input, []);
-        const address = req.socket.remoteAddress || 'unknown';
+        // Render receives browser traffic through Cloudflare/Render proxies.
+        // Use the edge-supplied client IP on this known public Render origin so
+        // judges don't all share a single reverse-proxy rate-limit bucket.
+        // Never trust forwarded headers when running on a local/direct origin.
+        const cloudflareIp = req.headers['cf-connecting-ip'];
+        const rendered = new URL(config.origin).hostname.endsWith('.onrender.com');
+        const address = rendered && typeof cloudflareIp === 'string' && isIP(cloudflareIp)
+          ? cloudflareIp : (req.socket.remoteAddress || 'unknown');
         const now = Date.now(), old = trialAttempts.get(address);
         const limit = !old || old.until <= now ? { count: 0, until: now + 60 * 60_000 } : old;
         trialAttempts.set(address, limit);
