@@ -1,34 +1,59 @@
-# SaySure public interactive demo
+# SaySure unified Render deployment
 
-The public experience is a **stateless, isolated synthetic demo**: the same review, revise, decline, optional speech and bounded buyer-question interface available via `npm run demo`.
+**One public origin, one Render web service, three clear routes.**
 
-It is **not** the authenticated SaySure application. It performs no PayPal API calls, WebAuthn ceremonies, account registration, passkey consent or payment operations. It never opens the private SQLite database or the local `.local` directory. Synthetic PayPal-looking fixtures must remain labelled **MOCK**. Actual historical PayPal sandbox OAuth, order creation and retrieval are documented separately and are not carried out by the public demo.
+Public origin: **https://saysure-staging-cnhm.onrender.com**
 
-## Design
+| Route | Purpose | Access |
+| --- | --- | --- |
+| `/` | SaySure product landing page | Public |
+| `/demo` | Interactive synthetic walkthrough | Public; no account |
+| `/app` | Helper/Buyer workspace | SaySure workspace credentials |
 
-The public UI uses the selected blue-and-white Design 8 direction: deep navy hero, electric-blue actions, white and pale-blue surfaces, clear reading hierarchy and a static illustrated transaction card labelled simulated. No fabricated payment, review rating, customer count or live verification badge is shown. The authenticated local Buyer and Helper screens also share the blue palette, but retain their original IDs, accessible decision order and server-side security.
+The landing page, demo and authenticated workspace are served by the same PostgreSQL-backed Node application. The public walkthrough no longer needs a second Render service or a second public Render URL.
 
-## Deploy to Render Free
+## Render service
 
-Use **Web Service**, not Static Site, because the optional AI topic-router needs a server endpoint.
+- Repository: `https://github.com/Alike001/saysure`
+- Service: `saysure-staging-cnhm`
+- Branch: `feat/saysure-postgres-runtime`
+- Runtime: Node.js 24+
+- Plan: Free
+- Region: Frankfurt
+- Build command: `npm ci --ignore-scripts`
+- Start command: `npm start`
+- Health check: `/healthz`
+- Persistent state: managed PostgreSQL through the private `DATABASE_URL`
+- `PG_POOL_MAX=4`
 
-- Repository: `https://github.com/Alike001/saysure`, branch `master` after the UI changes are reviewed and merged.
-- Runtime: Node; plan: Free; configure `NODE_VERSION=24.14.1`.
-- Build command: `npm ci --ignore-scripts --omit=dev --no-audit --no-fund && npm run check`.
-- Start command: `npm run start:public-demo`.
-- The server binds to `0.0.0.0` and the assigned `PORT`, verifies the exact `RENDER_EXTERNAL_URL` origin and serves only the static viewer, allowlisted assets and `POST /api/demo-question`.
-- `GET /healthz` reports only `{"ok":true,"mode":"synthetic-demo"}`.
-- The initial deployment can run without a key; replies will show **Local matching was used**. To enable live question classification, configure `GROQ_API_KEY` **privately** in the Render service's Environment settings. Never put keys in a repo, screenshots, PRs or chat.
-- No PayPal credentials or real private buyer/bootstrap accounts belong on this public service. Do not add `PAYPAL_READ_ENABLED` or start the authenticated `src/server.mjs` entrypoint publicly.
-- AI classification accepts only a best-effort redacted question, never a transaction snapshot; consumers must avoid entering personal/payment details. Model output is strictly topic classification and answers are deterministic.
-- The Groq rate limit is enforced per service network address; Render proxying can share one address across users. Treat public Groq access as experimental and consider service-side spend caps. Model availability is not guaranteed.
+Keep database URLs, staging bootstrap credentials, PayPal sandbox credentials and any Groq key in Render's private Environment settings. Never put them in source, issues, screenshots, or chat. Remove one-time `STAGING_*_PASSWORD` bootstrap variables after the staging accounts have been provisioned successfully, as the startup log instructs.
 
-Render Free web services may sleep after 15 minutes of inactivity and typically need a cold start to resume. The filesystem is ephemeral. The stateless demo does not require persistent disk.
+Workspace accounts are currently provisioned by the project owner. The login is SaySure authentication; it does not require a PayPal account. The public guided demo requires neither a SaySure account nor a PayPal account. Self-service account registration is not enabled.
 
-## Pre-submission checks
+## Public demo boundary
 
-Verify: public HTTPS page (desktop/phone), no horizontal scrolling, synthetic/PayPal-MOCK labels, the explanation button, AI local fallback and live AI after adding the key, simulated approve/reject/revision/consume, speech fallback, visible focus, no payments, inaccessible `/api/login` and `/.env`.
+The `/demo` page uses fixed synthetic fixtures and visibly labels every decision as simulated. It does not create a session, invoke WebAuthn, read or write workspace records, import PayPal orders, or perform a payment operation.
 
-On your laptop run `npm run check && npm test && npm run audit:release && npm run test:release` before merging UI changes. The historical 206-test report predates this redesign and should not be presented as a new verification run.
+The demo's `POST /api/demo-question` endpoint is hosted on the same origin. It accepts only a small JSON question payload, checks the exact same-origin request, applies the bounded buyer-question classifier and returns a closed topic plus local explanation. It does not attach transaction records. Local deterministic matching works without an AI key; Groq classification is optional and must be configured privately.
 
-The public demo is not a deployed production payment or authenticated consent service. Never claim otherwise.
+The public demo assets are served from an explicit allowlist. The authenticated API remains protected by the existing session, role, CSRF, exact Host/Origin, passkey and request-validation controls. Unauthenticated access to `/api/requests` remains rejected.
+
+## PayPal and PayTale boundary
+
+The authenticated workspace retains its optional, operator-allowlisted PayPal **sandbox read-only order inspection**. The server obtains provider facts and binds them to the reviewed request. This does not establish the app Buyer as the PayPal payer and does not establish merchant trustworthiness or payment completion.
+
+This release does **not** enable PayPal checkout, capture, authorization, refunds, a public webhook receiver, verified webhook history, or automated reconciliation/recovery. SaySure's local passkey consent is not PayPal approval or payment execution. PayTale's investigation ideas may inform a future evidence layer, but no historical PayTale credentials, database or private records are copied or changed.
+
+## Verification checklist
+
+After deployment:
+
+1. Open `/`, choose **Try the guided demo**, and confirm the browser remains on the same `saysure-staging-cnhm.onrender.com` origin at `/demo`.
+2. Complete the synthetic review, explanation, question, simulated approve/decline and revision flows. Confirm all controls say simulated and no money moves.
+3. Use **Open workspace** to reach `/app` on the same origin. Confirm the SaySure login form appears; no PayPal login is requested.
+4. Confirm the public demo has no session cookie and cannot access protected request data.
+5. Test desktop and mobile widths, keyboard focus, accessible labels and no horizontal overflow.
+6. Confirm `/healthz` is healthy and PostgreSQL is ready.
+7. Keep PayPal checkout/capture/refunds/webhooks disabled until a separately reviewed end-to-end sandbox lifecycle and recovery test can be completed.
+
+The older isolated demo server and its unit test may remain as a local test harness. It is not the deployed public entry point. Do not advertise the legacy `saysure-public-demo.onrender.com` URL after the unified route is verified.
