@@ -47,7 +47,7 @@ export async function provisionStaging(store, env) {
   const validatePasswords = () => {
     for (const [id, , password] of accounts) {
       ensure(typeof password === 'string' && password.length >= 16 && password.length <= 200 &&
-        !/[\\r\\n]/.test(password), 'STAGING_BOOTSTRAP_PASSWORDS_REQUIRED', 503);
+        !/[\r\n]/.test(password), 'STAGING_BOOTSTRAP_PASSWORDS_REQUIRED', 503);
     }
   };
 
