@@ -11,6 +11,7 @@ import { authenticate, issueSession, sessionFor } from './identity.mjs';
 import { requestService } from './requests.mjs';
 import { passkeyService } from './passkeys.mjs';
 import { createBuyerQuestionRouter } from './buyer-question.mjs';
+import { trialAccess } from './trial-access.mjs';
 
 const root = new URL('../', import.meta.url);
 const assets = new Map([
@@ -50,6 +51,8 @@ export function makeApp(store, config) {
   const passkeys = passkeyService(store, requests, config, paypal);
   const buyerQuestion = createBuyerQuestionRouter(config.ai);
   const demoQuestion = createBuyerQuestionRouter(config.ai);
+  const trials = trialAccess(store, requests);
+  const trialAttempts = new Map();
   const attempts = new Map();
   const telemetry = new Set();
   const cookie = token => `consent_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=1800${
@@ -119,6 +122,32 @@ export function makeApp(store, config) {
         send(200, result); return;
       }
       const session = await sessionFor(store, req.headers.cookie);
+      if (req.method === 'POST' && url.pathname === '/api/trial/create') {
+        ensure(req.headers.origin === config.origin, 'INVALID_ORIGIN', 403);
+        ensure(!session, 'SIGN_OUT_BEFORE_TRIAL', 403);
+        const input = await jsonBody(req); keys(input, []);
+        const address = req.socket.remoteAddress || 'unknown';
+        const now = Date.now(), old = trialAttempts.get(address);
+        const limit = !old || old.until <= now ? { count: 0, until: now + 60 * 60_000 } : old;
+        trialAttempts.set(address, limit);
+        ensure(++limit.count <= 4, 'TRIAL_RATE_LIMIT', 429);
+        if (trialAttempts.size > 2000) {
+          for (const [ip, entry] of trialAttempts) if (entry.until <= now) trialAttempts.delete(ip);
+        }
+        const created = await trials.create();
+        const issued = await issueSession(store, created.username);
+        res.setHeader('Set-Cookie', cookie(issued.token));
+        send(201, { ...created, test_only: true }); return;
+      }
+      if (req.method === 'POST' && url.pathname === '/api/trial/claim') {
+        ensure(req.headers.origin === config.origin, 'INVALID_ORIGIN', 403);
+        ensure(!session, 'SIGN_OUT_BEFORE_CLAIM', 403);
+        const input = await jsonBody(req); keys(input, ['invitation']);
+        const created = await trials.claim(input.invitation);
+        const issued = await issueSession(store, created.username);
+        res.setHeader('Set-Cookie', cookie(issued.token));
+        send(200, { ...created, test_only: true }); return;
+      }
       if (req.method === 'GET' && url.pathname === '/api/session') {
         send(200, session ? { user: { id: session.user_id, role: session.role }, csrf: session.csrf,
           enrolled: !!await passkeys.credential(session.user_id), origin: config.origin, rpID: config.rpID }
@@ -129,7 +158,13 @@ export function makeApp(store, config) {
       }
       if (req.method === 'GET' && url.pathname === '/api/buyers') {
         ensure(session?.role === 'helper', 'HELPER_SESSION_REQUIRED', 403);
-        send(200, await store.all("SELECT id FROM users WHERE role='buyer' ORDER BY id")); return;
+        if (session.user_id.startsWith('trial-')) {
+          send(200, await store.all("SELECT id FROM users WHERE id=? AND role='buyer'",
+            session.user_id.replace(/-h$/, '-b')));
+        } else {
+          send(200, await store.all("SELECT id FROM users WHERE id IN ('buyer-a','buyer-b') AND role='buyer' ORDER BY id"));
+        }
+        return;
       }
       ensure(['POST', 'PATCH'].includes(req.method), 'ROUTE_NOT_FOUND', 404);
       ensure(req.headers.origin === config.origin, 'INVALID_ORIGIN', 403);
@@ -177,6 +212,7 @@ export function makeApp(store, config) {
         send(201, await requests.create(session, input)); return;
       }
       if (req.method === 'POST' && url.pathname === '/api/paypal/requests') {
+        ensure(!session.user_id.startsWith('trial-'), 'TRIAL_SYNTHETIC_ONLY', 403);
         send(201, await paypal.create(session, input)); return;
       }
       ensure(route.id, 'ROUTE_NOT_FOUND', 404);

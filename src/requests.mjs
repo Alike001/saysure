@@ -45,6 +45,10 @@ export function requestService(store) {
     helper(session);
     const data = fields(input);
     ensure(typeof input.buyer_id === 'string', 'UNKNOWN_BUYER', 400);
+    if (session.user_id.startsWith('trial-')) {
+      ensure(session.user_id.endsWith('-h') && input.buyer_id === session.user_id.replace(/-h$/, '-b'),
+        'TRIAL_BUYER_SCOPE', 403);
+    }
     ensure(await store.get("SELECT id FROM users WHERE id=? AND role='buyer'", input.buyer_id), 'UNKNOWN_BUYER', 400);
     ensure(input.revision === undefined, 'SERVER_ASSIGNS_REVISION', 400);
     const s = { request_id: `SYNTH-${randomUUID()}`, merchant_id: data.merchant_id,

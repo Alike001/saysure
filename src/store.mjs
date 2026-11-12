@@ -13,6 +13,13 @@ CREATE TABLE IF NOT EXISTS users (
   salt TEXT NOT NULL,
   password_hash TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS trial_invites (
+  token_hash TEXT PRIMARY KEY,
+  helper_id TEXT NOT NULL REFERENCES users(id),
+  buyer_id TEXT NOT NULL UNIQUE REFERENCES users(id),
+  expires BIGINT NOT NULL,
+  claimed BIGINT
+);
 CREATE TABLE IF NOT EXISTS credentials (
   id TEXT PRIMARY KEY,
   buyer_id TEXT NOT NULL UNIQUE REFERENCES users(id),
@@ -126,6 +133,9 @@ export function openStore(path) {
     PRAGMA busy_timeout=5000;
     CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY, role TEXT NOT NULL,
       salt TEXT NOT NULL, password_hash TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS trial_invites(token_hash TEXT PRIMARY KEY,
+      helper_id TEXT NOT NULL REFERENCES users(id), buyer_id TEXT NOT NULL UNIQUE REFERENCES users(id),
+      expires INTEGER NOT NULL, claimed INTEGER);
     CREATE TABLE IF NOT EXISTS credentials(id TEXT PRIMARY KEY, buyer_id TEXT NOT NULL UNIQUE
       REFERENCES users(id), public_key BLOB NOT NULL, counter INTEGER NOT NULL,
       transports TEXT NOT NULL, device_type TEXT NOT NULL, backed_up INTEGER NOT NULL);

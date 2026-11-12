@@ -2,7 +2,7 @@ import { scryptSync, timingSafeEqual, randomBytes } from 'node:crypto';
 import { ensure, random, sha } from './core.mjs';
 
 const roles = [['helper', 'helper'], ['buyer-a', 'buyer'], ['buyer-b', 'buyer']];
-function passwordRecord(password) {
+export function passwordRecord(password) {
   const salt = randomBytes(16).toString('hex');
   const hash = scryptSync(password, salt, 32).toString('hex');
   return { salt, hash };
@@ -51,14 +51,16 @@ export async function provisionStaging(store, env) {
     }
   };
 
-  if (Number(current?.n) === 3 && env.STAGING_ROTATE_PASSWORDS === 'true') {
+  // A limited number of isolated public trial identities may coexist with the
+  // original fixed accounts. Their passwords and requests must never be rotated.
+  if (Number(current?.n) >= 3 && env.STAGING_ROTATE_PASSWORDS === 'true') {
     validatePasswords();
     const expected = accounts.map(([id, role]) => ({ id, role }));
-    const existing = await store.all('SELECT id,role FROM users ORDER BY id');
+    const existing = await store.all("SELECT id,role FROM users WHERE id IN ('helper','buyer-a','buyer-b') ORDER BY id");
     ensure(JSON.stringify(existing) === JSON.stringify(expected.slice().sort((a, b) => a.id.localeCompare(b.id))),
       'STAGING_ACCOUNT_STATE_UNEXPECTED', 503);
     await store.transaction(async tx => {
-      const locked = await tx.all('SELECT id,role FROM users ORDER BY id');
+      const locked = await tx.all("SELECT id,role FROM users WHERE id IN ('helper','buyer-a','buyer-b') ORDER BY id");
       ensure(JSON.stringify(locked) === JSON.stringify(expected.slice().sort((a, b) => a.id.localeCompare(b.id))),
         'STAGING_ACCOUNT_STATE_CHANGED', 503);
       for (const [id, role, password] of accounts) {
@@ -71,10 +73,20 @@ export async function provisionStaging(store, env) {
         'helper', 'buyer-a', 'buyer-b');
       await tx.run('DELETE FROM sessions WHERE user_id IN (?,?,?)', 'helper', 'buyer-a', 'buyer-b');
     });
-    return { created: false, rotated: true, users: 3 };
+    return { created: false, rotated: true, users: Number(current.n) };
   }
 
-  if (Number(current?.n) === 3) return { created: false, users: 3 };
+  if (Number(current?.n) >= 3) {
+    const existing = await store.all('SELECT id,role FROM users ORDER BY id');
+    const standard = accounts.map(([id, role]) => ({ id, role })).sort((a, b) => a.id.localeCompare(b.id));
+    const fixed = existing.filter(x => ['helper','buyer-a','buyer-b'].includes(x.id));
+    ensure(JSON.stringify(fixed) === JSON.stringify(standard), 'STAGING_ACCOUNT_STATE_UNEXPECTED', 503);
+    ensure(existing.filter(x => !['helper','buyer-a','buyer-b'].includes(x.id))
+      .every(x => /^trial-[a-f0-9]{12}-[hb]$/.test(x.id) &&
+        x.role === (x.id.endsWith('-h') ? 'helper' : 'buyer')),
+      'STAGING_ACCOUNT_STATE_UNEXPECTED', 503);
+    return { created: false, users: Number(current.n) };
+  }
   ensure(Number(current?.n) === 0, 'STAGING_ACCOUNT_STATE_UNEXPECTED', 503);
   validatePasswords();
   await store.transaction(async tx => {
