@@ -11,7 +11,7 @@ Prepared: November 12, 2026. Deadline: **9:00 PM West Africa Time (12:00 PM PST)
 **Guided sample walkthrough:** https://saysure-staging-cnhm.onrender.com/demo  
 **Code:** https://github.com/Alike001/saysure  
 **License:** MIT  
-**Video:** Add the public YouTube URL after uploading a recording of the real application (required; not available yet).
+**Video:** https://youtu.be/oQke-Hgm_qU — user-provided YouTube upload of the 92-second animated SaySure explainer. Public visibility must be confirmed in YouTube Studio. **Limitation:** The video is a conceptual animated explainer and does not itself display live interaction footage; Devpost's rules call for actual functioning application footage.
 
 ## Devpost short description
 
@@ -88,8 +88,8 @@ SaySure is an accessible starting point for payment assistance with independent 
 - [x] Read-only PayPal sandbox adapter and model-routing implementation, with historical integration evidence
 - [ ] Verify a **fresh** approved PayPal sandbox read on the current deployment before claiming it is live (not possible with historical expired order alone)
 - [x] Install `GROQ_API_KEY` privately on Render and verify a live model response in `/demo` on November 12 (user-observed “AI matched your question”; startup logs confirmed configuration)
-- [ ] Record and upload the real demonstration to public YouTube (under 3 minutes)
-- [ ] Enter all Devpost fields and submit before the official deadline
+- [x] User shared a YouTube upload of the under-3-minute animated explainer: https://youtu.be/oQke-Hgm_qU. [ ] Verify Public visibility and, ideally, add actual live app footage to satisfy Devpost's functional-video rule.
+- [ ] Enter all Devpost fields and submit before the official deadline (9:00 PM WAT, November 12). No submission confirmation has been received.
 
 Official rules: https://paypalaihackathon.devpost.com/rules
 
@@ -98,3 +98,7 @@ Official rules: https://paypalaihackathon.devpost.com/rules
 ## HeyGen explainer preview
 
 On November 12, a narrated screen-based HeyGen Studio preview was started as video ID `95ca3a331dec11399c62fe797910b54a`. It uses genuine SaySure screenshots, the previously approved Wade voice and narration wording, and burned-in captions. This is a **screen-based explainer**, not a continuous recording of actual click-by-click browser interactions; check duration, legibility and fidelity before submission. The user must upload a public YouTube video and paste that URL into Devpost. There is no verified upload or Devpost submission yet.
+
+## Submission link supplied by creator
+
+YouTube demo: https://youtu.be/oQke-Hgm_qU. This URL was supplied directly by the creator on November 12. It has **not** been independently verified as publicly playable by the assistant. The associated SaySure explainer is conceptual motion graphics rather than genuine recorded browser interaction. The fully interactive application is available to judges at https://saysure-staging-cnhm.onrender.com/app; they can start a separate Helper/Buyer test without signup. The Devpost video rules request actual running-app footage, so if a replacement video is feasible before the deadline, include a short real app demonstration. The Devpost form still requires the creator to log in and submit.
