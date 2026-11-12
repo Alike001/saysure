@@ -32,7 +32,7 @@ Workspace accounts are currently provisioned by the project owner. The current s
 
 ## Public demo boundary
 
-The `/demo` page opens directly into a focused synthetic Buyer review, with the payment facts, quantity discrepancy, question controls and simulated decision actions visible without scrolling through a second landing page. It uses fixed synthetic fixtures and visibly labels every decision as simulated. It does not create a session, invoke WebAuthn, read or write workspace records, import PayPal orders, or perform a payment operation.
+The `/demo` page opens directly into a focused synthetic Buyer review, with a populated five-request fictional sample queue and Buyer/Helper role switch. The visitor may inspect seeded requests, ask questions, simulate decisions, revise a request, and prepare an additional fictional request entirely in their browser. The walkthrough does not require credentials and never writes to the real PostgreSQL workspace. The initial case still illustrates a quantity discrepancy and a separate Buyer decision. It uses fixed synthetic fixtures and visibly labels every decision as simulated. It does not create a session, invoke WebAuthn, read or write workspace records, import PayPal orders, or perform a payment operation.
 
 The demo's `POST /api/demo-question` endpoint is hosted on the same origin. It accepts only a small JSON question payload, checks the exact same-origin request, applies the bounded buyer-question classifier and returns a closed topic plus local explanation. It does not attach transaction records. Local deterministic matching works without an AI key; Groq classification is optional and must be configured privately.
 
