@@ -1,5 +1,7 @@
 # SaySure
 
+**Hackathon submission materials:** [Devpost-ready description, judging instructions, video storyboard and final verification gates](docs/HACKATHON-SUBMISSION-2026-11-12.md).
+
 ## Live project — how judges can test it
 
 - **Website:** https://saysure-staging-cnhm.onrender.com/
