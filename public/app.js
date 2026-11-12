@@ -189,7 +189,7 @@ $('logout').addEventListener('click', event => perform(event.target, async () =>
   $('trial-invitation').textContent = '';
   await load();
   $('returning-login').open = true;
-  $('username').focus(); notify('Signed out. Sign in with your saved test details whenever you're ready.', false);
+  $('username').focus(); notify("Signed out. Sign in with your saved test details whenever you are ready.", false);
 }));
 $('trial-start').addEventListener('click', event => perform(event.target, async () => {
   const created = await api('/api/trial/create', {});
