@@ -66,7 +66,7 @@ test('hosted entry keeps landing, no-login demo and protected workspace on one o
   await page.getByText('The Helper signs in with the Helper account', { exact: false }).waitFor();
   await page.getByLabel('Username', { exact: true }).waitFor();
   await page.getByLabel('Account secret').waitFor();
-  await page.getByRole('link', { name: /Try the guided demo/ }).first().waitFor();
+  await page.getByRole('link', { name: /interactive demo/ }).first().waitFor();
   assert.deepEqual(errors, []);
   await context.close();
 });
