@@ -54,10 +54,15 @@ export function renderRequests(items, session, tools) {
       article.append(element('p', `PayPal order ID: ${s.provider.order_id}.`));
       article.append(element('p', `Evidence read: ${e.observed_at ? new Date(e.observed_at).toLocaleString() : 'unavailable'}. App buyer identity is not proof of PayPal payer identity.`));
       for (const unit of s.provider.units) article.append(element('p', `Purchase unit ${unit.index}: ${exactAmount(unit)}`));
-    } else article.append(element('p', 'Sample request · Details are provided by the Helper and have not been independently verified.'));
+    } else {
+      const note = element('p', 'Sample request · The Helper provided these details. They are not independently verified.');
+      note.className = 'sample-request-note';
+      article.append(note);
+    }
+    let explanationLink = null;
     if (session.user.role === 'buyer') {
       const link = element('a', 'Listen to details / get explanations'); link.href = `#explain-${id}`;
-      link.className = 'explanation-link'; article.append(link);
+      link.className = 'explanation-link'; explanationLink = link;
       explain.append(element('h4', 'Understand this request'));
       addAudio(explain, item, tools.notify);
       const help = element('details'), title = element('summary', 'Questions about these details');
@@ -178,7 +183,10 @@ export function renderRequests(items, session, tools) {
       if (item.status === 'expired') article.append(element('p', 'This request expired. It cannot be approved or consumed.'));
       if (item.status === 'consumed') article.append(element('p', 'Consent consumed. Local consent already consumed. It cannot be reused. No payment was made.'));
     }
-    if (session.user.role === 'buyer') article.append(explain);
+    if (session.user.role === 'buyer') {
+      if (explanationLink) article.append(explanationLink);
+      article.append(explain);
+    }
     article.append(advanced); host.append(article);
     if (s.kind === 'paypal') {
       let staleNotice = false;

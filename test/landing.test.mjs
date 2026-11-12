@@ -65,7 +65,7 @@ test('hosted entry keeps landing, no-login demo and protected workspace on one o
   await page.getByText('No signup or PayPal account needed', { exact: false }).waitFor();
   await page.getByText('Start as Helper', { exact: false }).waitFor();
   await page.getByLabel('Username', { exact: true }).waitFor();
-  await page.getByLabel('Password').waitFor();
+  await page.getByLabel('Password', { exact: true }).waitFor();
   await page.getByRole('link', { name: /sample demo/ }).first().waitFor();
   assert.deepEqual(errors, []);
   await context.close();

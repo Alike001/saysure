@@ -586,3 +586,14 @@ body.demo { background:linear-gradient(180deg,#f4f8ff,#f7f9fd 520px); }
 }
 
 .application .app-header-brand h1 { margin:0; color:#0c2544; font-size:1.15rem; line-height:1.2; font-weight:850; letter-spacing:-.035em; }
+
+@media(max-width:660px) {
+  .application #account { padding:.65rem .85rem; margin:.15rem 0 .65rem; }
+  .application #inbox { padding:.9rem; }
+  .application #requests article { padding:.9rem; }
+  .application #requests article h3 { margin:.3rem 0 .4rem; font-size:1.3rem; }
+  .application #requests article .transaction-facts { margin:.45rem 0; }
+  .application #requests article .prerequisite { margin:.35rem 0; }
+  .application #requests article .passkey-inline { margin:.3rem 0; }
+  .application #requests article .sample-request-note { font-size:.76rem; line-height:1.4; margin:.35rem 0; }
+}

@@ -35,7 +35,10 @@ test('product UX: five-width layouts, transaction-first decisions, keyboard, err
     const approvalY = await position(approve), facts = card.locator('.transaction-facts');
     assert.ok(await position(facts) < approvalY);
     assert.ok(await facts.evaluate(e => e.getBoundingClientRect().bottom + scrollY) < approvalY);
-    assert.ok(approvalY < (width === 390 ? 950 : 1200), `Decision too far down at ${width}: ${approvalY}`);
+    const setupButton = card.getByRole('button', { name: 'Set up passkey to approve' });
+    const setupY = await position(setupButton);
+    assert.ok(setupY < 1175, `Passkey setup is too far down at ${width}: ${setupY}`);
+    assert.ok(approvalY < setupY + 240, `Decision must immediately follow its setup step at ${width}: ${approvalY}`);
     assert.ok((await approve.boundingBox()).height >= 48);
     assert.equal(await approve.isDisabled(), true); // no Buyer passkey enrollment
     assert.equal(await card.locator('.advanced').getAttribute('open'), null);
