@@ -39,17 +39,44 @@ async function provisionPostgres(store) {
 // This function never prints or persists the plaintext passwords.
 export async function provisionStaging(store, env) {
   const current = await store.get('SELECT COUNT(*) AS n FROM users');
-  if (Number(current?.n) === 3) return { created: false, users: 3 };
-  ensure(Number(current?.n) === 0, 'STAGING_ACCOUNT_STATE_UNEXPECTED', 503);
   const accounts = [
     ['helper', 'helper', env.STAGING_HELPER_PASSWORD],
     ['buyer-a', 'buyer', env.STAGING_BUYER_A_PASSWORD],
-    ['buyer-b', 'buyer', env.STAGING_BUYER_B_PASSWORD],
+    ['buyer-b', 'buyer', env.STAGING_BUYER_B_PASSWORD]
   ];
-  for (const [id, , password] of accounts) {
-    ensure(typeof password === 'string' && password.length >= 16 && password.length <= 200 &&
-      !/[\r\n]/.test(password), 'STAGING_BOOTSTRAP_PASSWORDS_REQUIRED', 503);
+  const validatePasswords = () => {
+    for (const [id, , password] of accounts) {
+      ensure(typeof password === 'string' && password.length >= 16 && password.length <= 200 &&
+        !/[\\r\\n]/.test(password), 'STAGING_BOOTSTRAP_PASSWORDS_REQUIRED', 503);
+    }
+  };
+
+  if (Number(current?.n) === 3 && env.STAGING_ROTATE_PASSWORDS === 'true') {
+    validatePasswords();
+    const expected = accounts.map(([id, role]) => ({ id, role }));
+    const existing = await store.all('SELECT id,role FROM users ORDER BY id');
+    ensure(JSON.stringify(existing) === JSON.stringify(expected.slice().sort((a, b) => a.id.localeCompare(b.id))),
+      'STAGING_ACCOUNT_STATE_UNEXPECTED', 503);
+    await store.transaction(async tx => {
+      const locked = await tx.all('SELECT id,role FROM users ORDER BY id');
+      ensure(JSON.stringify(locked) === JSON.stringify(expected.slice().sort((a, b) => a.id.localeCompare(b.id))),
+        'STAGING_ACCOUNT_STATE_CHANGED', 503);
+      for (const [id, role, password] of accounts) {
+        const { salt, hash } = passwordRecord(password);
+        const result = await tx.run('UPDATE users SET salt=?,password_hash=? WHERE id=? AND role=?',
+          salt, hash, id, role);
+        ensure(result.changes === 1, 'STAGING_ACCOUNT_STATE_CHANGED', 503);
+      }
+      await tx.run('UPDATE challenges SET used=2 WHERE session_id IN (SELECT id FROM sessions WHERE user_id IN (?,?,?))',
+        'helper', 'buyer-a', 'buyer-b');
+      await tx.run('DELETE FROM sessions WHERE user_id IN (?,?,?)', 'helper', 'buyer-a', 'buyer-b');
+    });
+    return { created: false, rotated: true, users: 3 };
   }
+
+  if (Number(current?.n) === 3) return { created: false, users: 3 };
+  ensure(Number(current?.n) === 0, 'STAGING_ACCOUNT_STATE_UNEXPECTED', 503);
+  validatePasswords();
   await store.transaction(async tx => {
     ensure(Number((await tx.get('SELECT COUNT(*) AS n FROM users')).n) === 0,
       'STAGING_ACCOUNT_STATE_CHANGED', 503);
