@@ -28,7 +28,7 @@ SaySure separates the Helper who prepares a payment request from the Buyer who m
 ### PayPal and AI engineering
 SaySure includes a **read-only PayPal Orders v2 sandbox adapter**: it uses server-side OAuth, checks an operator-allowlisted order's payee, total and status, and binds provider-observed evidence into reviewable requests while limiting stale or changed evidence. During development, genuine sandbox OAuth, order creation and independent order GET returned successful responses for a one-dollar test order; no capture occurred. The public judge workspace **does not import PayPal orders** and never approves, captures, refunds, or transfers money.
 
-SaySure also includes **Groq model-assisted Buyer questions**. The tested model `openai/gpt-oss-120b` classifies a best-effort redacted question into a fixed topic. The model does not generate transaction facts or authorize actions; deterministic code generates the answer from the details already on the screen. Historical development testing returned a successful model response and improved topic classification over the local baseline. When the private key is absent, the hosted app explicitly falls back to local matching; do not claim a live Groq call occurred on staging without verifying it first.
+SaySure also includes **Groq model-assisted Buyer questions**. The tested model `openai/gpt-oss-120b` classifies a best-effort redacted question into a fixed topic. The model does not generate transaction facts or authorize actions; deterministic code generates the answer from the details already on the screen. Historical development testing returned a successful model response and improved topic classification over the local baseline. **Hosted verification on November 12:** Render logs confirmed Groq enabled, and a user-observed live demo answered *“Does my passkey make a payment?”* with *“AI matched your question.”* The app falls back to local matching if the provider becomes unavailable. Do not confuse this with a live PayPal sandbox order read.
 
 ### Who it serves
 People who need assistance with digital payments, including first-time online shoppers and people who benefit from larger, clearer review screens and spoken details. These are design hypotheses, not verified accessibility or comprehension outcomes.
@@ -87,10 +87,14 @@ SaySure is an accessible starting point for payment assistance with independent 
 - [x] Existing CI regression tests and PostgreSQL integration passed on the current release
 - [x] Read-only PayPal sandbox adapter and model-routing implementation, with historical integration evidence
 - [ ] Verify a **fresh** approved PayPal sandbox read on the current deployment before claiming it is live (not possible with historical expired order alone)
-- [ ] Install `GROQ_API_KEY` privately on the SaySure Render service and observe `source:'ai'` in an actual question response before claiming hosted live AI
+- [x] Install `GROQ_API_KEY` privately on Render and verify a live model response in `/demo` on November 12 (user-observed “AI matched your question”; startup logs confirmed configuration)
 - [ ] Record and upload the real demonstration to public YouTube (under 3 minutes)
 - [ ] Enter all Devpost fields and submit before the official deadline
 
 Official rules: https://paypalaihackathon.devpost.com/rules
 
 **Do not expose secrets** in this document, videos, public form, server logs or GitHub.
+
+## HeyGen explainer preview
+
+On November 12, a narrated screen-based HeyGen Studio preview was started as video ID `95ca3a331dec11399c62fe797910b54a`. It uses genuine SaySure screenshots, the previously approved Wade voice and narration wording, and burned-in captions. This is a **screen-based explainer**, not a continuous recording of actual click-by-click browser interactions; check duration, legibility and fidelity before submission. The user must upload a public YouTube video and paste that URL into Devpost. There is no verified upload or Devpost submission yet.
