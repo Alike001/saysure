@@ -4,17 +4,26 @@ import { renderRequests } from './review.js';
 const $ = id => document.getElementById(id);
 let session;
 let trialAccessDetails = null;
+let trialRevealed = false;
+function setTrialVisibility(reveal) {
+  trialRevealed = reveal;
+  $('trial-password').textContent = reveal && trialAccessDetails ? trialAccessDetails.password : '••••••••';
+  $('trial-invitation').textContent = reveal && trialAccessDetails?.invitation ? trialAccessDetails.invitation : '••••••••';
+  $('trial-reveal').textContent = reveal ? 'Hide access details' : 'Show access details';
+  $('trial-reveal').setAttribute('aria-pressed', String(reveal));
+  $('trial-password').setAttribute('aria-label', reveal ? 'Visible password' : 'Password hidden until revealed');
+}
 function showTrialDetails(data, helperRole) {
   trialAccessDetails = data;
   $('trial-access').hidden = false;
   $('trial-username').textContent = data.username;
-  $('trial-password').textContent = data.password;
   $('trial-invite-label').hidden = !helperRole;
   $('trial-invitation').hidden = !helperRole;
-  $('trial-invitation').textContent = helperRole ? data.invitation : '';
+  $('trial-share').hidden = !helperRole;
+  setTrialVisibility(false);
   $('trial-access-instructions').textContent = helperRole
-    ? 'Copy the invitation and send it privately to your Buyer. They must open /app in a separate browser and choose Join as Buyer. Your Helper account cannot approve for them.'
-    : 'You are now signed in as Buyer. Review the pending fictional request below; decline it or enroll your own passkey to record local consent. No payment occurs.';
+    ? 'Share the Buyer invite link with another person or open it in a separate browser. Only the Buyer can approve their own request.'
+    : 'Review the sample request below. You can decline, or set up your own passkey before approving.';
   $('trial-access-heading').focus();
 }
 
@@ -31,7 +40,13 @@ const explanations = {
   PAYPAL_ORDER_NOT_CONFIGURED: 'PayPal reads are disabled or this order is not operator-allowlisted. Ask the operator; no payment was made.',
   ORDER_DETAILS_CHANGED: 'PayPal details changed. Prior consent is invalid. Ask the helper to re-read and review a new revision.',
   ORDER_EVIDENCE_STALE: 'PayPal evidence is stale. Re-read the order and review again.',
-  REVISION_CHANGED: 'The request was revised. Refresh before editing again.',
+  REVISION_CHANGED: 'The request changed. Refresh to see the latest details.',
+  INVITATION_INVALID_OR_EXPIRED: 'This invitation has expired or already been used. Ask the Helper for a new invitation.',
+  INVITATION_ALREADY_CLAIMED: 'This invitation has already been used. Ask the Helper for a new one.',
+  INVITATION_INVALID: 'That invitation is not valid. Check the link and try again.',
+  TRIAL_RATE_LIMIT: 'You have started several tests recently. Sign in to your existing test or try again later.',
+  TRIAL_CAPACITY_REACHED: 'The public test is currently full. You can still use the guided demo.',
+  PASSKEY_AUTHENTICATION_FAILED: 'The device did not verify this approval. Nothing was approved. Try again or decline.',
 };
 export function notify(text, focus = false) {
   $('message').textContent = text;
@@ -122,11 +137,13 @@ async function load() {
   $('enrollment').hidden = user?.role !== 'buyer' || session.enrolled;
   $('enrolled').hidden = user?.role !== 'buyer' || !session.enrolled;
   if (!user) { $('requests').replaceChildren(); return; }
-  $('identity').textContent = `Signed in as ${user.id}. Role: ${user.role}.`;
+  $('identity').textContent = user.id.startsWith('trial-')
+    ? (user.role === 'helper' ? 'Signed in as Helper · Your private test workspace' : 'Signed in as Buyer · Review your sample request')
+    : `Signed in as ${user.id}. Role: ${user.role}.`;
   if (user.role === 'helper') {
     const buyers = await api('/api/buyers', undefined, 'GET');
-    $('buyer').replaceChildren(...buyers.map(b => new Option(b.id, b.id)));
-    $('paypal-buyer').replaceChildren(...buyers.map(b => new Option(b.id, b.id)));
+    $('buyer').replaceChildren(...buyers.map(b => new Option(b.id.startsWith('trial-') ? 'Your invited Buyer' : b.id, b.id)));
+    $('paypal-buyer').replaceChildren(...buyers.map(b => new Option(b.id.startsWith('trial-') ? 'Your invited Buyer' : b.id, b.id)));
   }
   await refresh();
 }
@@ -143,7 +160,7 @@ function resetForm() {
   $('request-form').elements.request_id.value = '';
   $('request-form').elements.revision.value = '';
   $('buyer').disabled = false; $('cancel-edit').hidden = true;
-  $('save-request').textContent = 'Create synthetic request';
+  $('save-request').textContent = 'Send test request';
 }
 function edit(item) {
   const s = item.snapshot, form = $('request-form');
@@ -153,7 +170,7 @@ function edit(item) {
   form.elements.amount.value = item.display_amount.split(' ')[0];
   form.elements.lifetime_minutes.value = 10;
   $('buyer').disabled = true; $('cancel-edit').hidden = false;
-  $('save-request').textContent = 'Save revision and invalidate consent';
+  $('save-request').textContent = 'Save changes and ask Buyer to review again';
   $('merchant-id').focus();
 }
 $('login').addEventListener('submit', event => {
@@ -166,6 +183,7 @@ $('login').addEventListener('submit', event => {
 });
 $('logout').addEventListener('click', event => perform(event.target, async () => {
   await api('/api/logout', {}); resetForm(); trialAccessDetails = null;
+  setTrialVisibility(false);
   $('trial-access').hidden = true;
   $('trial-password').textContent = '';
   $('trial-invitation').textContent = '';
@@ -174,7 +192,7 @@ $('logout').addEventListener('click', event => perform(event.target, async () =>
 $('trial-start').addEventListener('click', event => perform(event.target, async () => {
   const created = await api('/api/trial/create', {});
   await load(); showTrialDetails(created, true);
-  notify('Your private synthetic Helper workspace is ready. Save the access details and share only the Buyer invitation code.');
+  notify('Your workspace is ready! Save your login, then copy the Buyer invitation link.');
 }));
 $('trial-claim-form').addEventListener('submit', event => {
   event.preventDefault();
@@ -183,23 +201,30 @@ $('trial-claim-form').addEventListener('submit', event => {
     const created = await api('/api/trial/claim', { invitation });
     $('trial-code').value = '';
     await load(); showTrialDetails(created, false);
-    notify('Buyer invitation claimed. Your credential is private to this browser; register your own passkey if you choose to consent.');
+    notify('Welcome! Review your sample request. To approve, first set up your passkey. You can also decline.');
   });
 });
 $('trial-copy').addEventListener('click', event => perform(event.target, async () => {
-  if (!trialAccessDetails) throw new Error('Your one-time access details are no longer available.');
-  const value = 'SaySure synthetic test workspace\\nUsername: ' + trialAccessDetails.username +
-    '\\nPassword: ' + trialAccessDetails.password +
-    (trialAccessDetails.invitation ? '\\nBuyer invitation (share code only): ' + trialAccessDetails.invitation : '');
-  await navigator.clipboard.writeText(value.replaceAll('\\n','\n'));
-  notify('Test access details copied. Store them privately, and only share the invitation code with the Buyer.');
+  if (!trialAccessDetails) throw new Error('Your one-time login is no longer available.');
+  await navigator.clipboard.writeText('SaySure test login\nUsername: ' + trialAccessDetails.username +
+    '\nPassword: ' + trialAccessDetails.password);
+  notify('Your login was copied. Save it somewhere private. Never share your password.');
 }));
+$('trial-share').addEventListener('click', event => perform(event.target, async () => {
+  if (!trialAccessDetails?.invitation) throw new Error('No Buyer invitation available.');
+  const link = new URL('/app', location.origin);
+  link.hash = 'invite=' + trialAccessDetails.invitation;
+  await navigator.clipboard.writeText(link.toString());
+  notify('Buyer invite link copied. Share the link only with your Buyer, not your login details.');
+}));
+$('trial-reveal').addEventListener('click', () => setTrialVisibility(!trialRevealed));
 $('register').addEventListener('click', event => perform(event.target, async () => {
-  if (!window.PublicKeyCredential || !window.isSecureContext) throw new Error('A secure context and WebAuthn-capable browser are required.');
+  if (!window.PublicKeyCredential || !window.isSecureContext || !window.SimpleWebAuthnBrowser)
+    throw new Error('Passkeys are unavailable in this browser. Try Chrome on a passkey-enabled device or use a security key. You can still decline.');
   const options = await api('/api/register/options', {});
   const response = await window.SimpleWebAuthnBrowser.startRegistration({ optionsJSON: options.options });
   await api('/api/register/verify', { challengeId: options.challengeId, response });
-  await load(); notify('Your passkey was registered to this buyer account. No payment was approved.');
+  await load(); notify('Your passkey is ready! Review the request, tick the confirmation box and then approve. No money moves.');
 }));
 $('request-form').addEventListener('submit', event => {
   event.preventDefault();
@@ -211,12 +236,14 @@ $('request-form').addEventListener('submit', event => {
     values.lifetime_minutes = Number(values.lifetime_minutes);
     if (id) values.revision = Number(values.revision); else delete values.revision;
     await api(id ? `/api/requests/${id}` : '/api/requests', values, id ? 'PATCH' : 'POST');
-    resetForm(); await refresh(); notify(id ? 'Revision saved. Prior challenges and consent were invalidated.' : 'Synthetic request created. The buyer must review it independently.');
+    resetForm(); await refresh(); notify(id
+      ? 'Changes saved. The Buyer must review these details again.'
+      : 'Request sent to your Buyer. Ask them to open their workspace and refresh.');
   });
 });
 $('cancel-edit').addEventListener('click', () => { resetForm(); $('merchant-id').focus(); });
 $('refresh').addEventListener('click', event => perform(event.target, async () => {
-  await refresh(); notify('Requests refreshed. Review any changed details before approving.');
+  await refresh(); notify('Requests updated. Check the latest details before deciding.');
 }));
 load().catch(error => notify(error.message));
 
@@ -228,3 +255,16 @@ $('paypal-import').addEventListener('submit', event => {
     notify('Order review prepared. Check the source label and recorded details in the request. No payment was made.');
   });
 });
+
+function handleBuyerInviteLink() {
+  const match = /^#invite=([A-Za-z0-9_-]{43})$/.exec(location.hash);
+  if (!match) return;
+  $('trial-code').value = match[1];
+  history.replaceState(null, '', location.pathname + location.search);
+  if (!$('login-panel').hidden) {
+    $('trial-code').focus();
+    notify('Buyer invitation loaded. Select Join as Buyer to open your request.');
+  }
+}
+window.addEventListener('hashchange', handleBuyerInviteLink);
+handleBuyerInviteLink();

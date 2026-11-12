@@ -243,3 +243,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .hero-note span { color:#1555b0; }
 .site-footer .brand, .site-footer .brand-name { color:#fff; }
 .site-footer .brand-name small { color:#d2e0f5; }
+
+/* Readable, restrained end-of-page product explanation */
+.boundaries-section { padding-block:clamp(2.2rem,4vw,3.6rem); }
+.boundaries-inner h2 { font-size:clamp(1.65rem,2.5vw,2.3rem); }
+.boundaries-inner > div:last-child p { font-size:.9rem; line-height:1.65; }
+.closing-cta { padding-block:2rem; }
+.footer-inner p { max-width:390px; }

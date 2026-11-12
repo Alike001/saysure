@@ -22,14 +22,15 @@ export function renderRequests(items, session, tools) {
   const previous = focused?.closest('article')?.getAttribute('aria-labelledby');
   const control = focused?.textContent;
   host.replaceChildren();
-  if (!items.length) { host.append(element('p', session.user.role === 'buyer' ? 'No requests yet. Ask your Helper to prepare a request, then refresh. You keep the final decision.' : 'No requests yet. Prepare a synthetic request for a Buyer above.')); return; }
+  if (!items.length) { host.append(element('p', session.user.role === 'buyer' ? 'Nothing to review yet. Ask your Helper to send a request, then tap Refresh.' : 'No requests yet. Create a sample request using the form above.')); return; }
   for (const item of items) {
     const s = item.snapshot, id = s.request_id, base = `/api/requests/${id}`;
     const article = element('article');
     const heading = element('h3', `${exactAmount(s)} — ${s.merchant_name}`);
     heading.id = `heading-${id}`; article.setAttribute('aria-labelledby', heading.id);
     heading.tabIndex = -1; article.append(heading);
-    const status = element('p', `Status: ${item.status}`); status.className = 'request-status';
+    const friendlyStatus = { pending: 'Waiting for Buyer', approved: 'Approved in SaySure', rejected: 'Declined', withdrawn: 'Withdrawn', expired: 'Expired', consumed: 'Consent used (test)', invalidated: 'Needs another review' };
+    const status = element('p', `Status: ${friendlyStatus[item.status] ?? item.status}`); status.className = 'request-status';
     status.setAttribute('role', 'status'); article.append(status);
     const facts = element('dl'); facts.className = 'transaction-facts';
     for (const [label, value] of [
@@ -53,7 +54,7 @@ export function renderRequests(items, session, tools) {
       article.append(element('p', `PayPal order ID: ${s.provider.order_id}.`));
       article.append(element('p', `Evidence read: ${e.observed_at ? new Date(e.observed_at).toLocaleString() : 'unavailable'}. App buyer identity is not proof of PayPal payer identity.`));
       for (const unit of s.provider.units) article.append(element('p', `Purchase unit ${unit.index}: ${exactAmount(unit)}`));
-    } else article.append(element('p', 'SYNTHETIC DATA — helper-supplied recipient, unverified.'));
+    } else article.append(element('p', 'Sample request · Details are provided by the Helper and have not been independently verified.'));
     if (session.user.role === 'buyer') {
       const link = element('a', 'Listen to details / get explanations'); link.href = `#explain-${id}`;
       link.className = 'explanation-link'; article.append(link);
@@ -107,13 +108,18 @@ export function renderRequests(items, session, tools) {
         label.htmlFor = check.id;
         label.append(check, document.createTextNode(' I reviewed the amount, currency, recipient and description. I consent to these exact details. No payment is made.'));
         article.append(label);
-        const prerequisite = element('p', session.enrolled ? 'Confirm your review to approve. Decline needs no passkey.' : 'Set up your own Buyer passkey below to approve. Decline needs no passkey.');
+        const prerequisite = element('p');
         prerequisite.className = 'prerequisite';
         if (!session.enrolled) {
-          const setup = element('a', 'Set up my Buyer passkey'); setup.href = '#register';
-          prerequisite.replaceChildren(setup, document.createTextNode(' to approve. Decline needs no passkey.'));
+          prerequisite.textContent = 'Step 1 of 2: Set up a passkey on your device to approve this request.';
+          const setupButton = element('button', 'Set up passkey to approve');
+          setupButton.type = 'button'; setupButton.className = 'passkey-inline';
+          setupButton.addEventListener('click', () => document.getElementById('register').click());
+          article.append(prerequisite, setupButton);
+        } else {
+          prerequisite.textContent = 'Step 2 of 2: Tick the confirmation above to enable approval.';
+          article.append(prerequisite);
         }
-        article.append(prerequisite);
         if (item.synthetic !== true && s.kind !== 'paypal') { article.append(element('p', 'Payment evidence unavailable. Approval blocked.')); host.append(article); continue; }
         const approve = addButton(article, s.kind === 'paypal' ? 'Approve using my passkey — local consent for this PayPal order' : 'Approve using my passkey — synthetic request', async () => {
           if (!check.checked) { check.focus(); throw new Error('Review the details and check the confirmation before using your passkey.'); }
@@ -126,7 +132,22 @@ export function renderRequests(items, session, tools) {
         approve.className = 'primary';
         approve.setAttribute('aria-label', approve.textContent); approve.textContent = 'Approve using my passkey';
         const unavailable = s.kind === 'paypal' && item.status === 'invalidated';
-        const updateApproval = () => { approve.disabled = approve.dataset.locked === 'true' || approve.dataset.busy === 'true' || !check.checked || !session.enrolled || unavailable || s.expires_at <= Date.now(); };
+        const approvalHint = element('p');
+        approvalHint.className = 'approval-hint';
+        approvalHint.id = 'approval-help-' + id;
+        approvalHint.setAttribute('role', 'status');
+        approve.setAttribute('aria-describedby', approvalHint.id);
+        const updateApproval = () => {
+          const locked = approve.dataset.locked === 'true' || approve.dataset.busy === 'true';
+          const expired = s.expires_at <= Date.now();
+          approve.disabled = locked || !check.checked || !session.enrolled || unavailable || expired;
+          approvalHint.textContent = expired ? 'This request has expired. Ask the Helper to send a new one.'
+            : unavailable ? 'The details have changed. Please refresh and review again.'
+            : !session.enrolled ? 'Approval unlocks after you set up your passkey. Decline is always available.'
+            : !check.checked ? 'Tick the confirmation box above to enable the approval button.'
+            : 'Ready: select Approve using my passkey and follow your device prompt.';
+        };
+        article.append(approvalHint);
         approve.addEventListener('action-finished', updateApproval);
         check.addEventListener('change', updateApproval); updateApproval();
         addButton(article, 'Decline / Reject this request', async () => {
