@@ -72,7 +72,7 @@ test('product UX: five-width layouts, transaction-first decisions, keyboard, err
     await guest.getByLabel('Username', { exact: true }).fill('unknown');
     await guest.getByLabel('Password', { exact: true }).fill('incorrect-secret');
     await guest.getByRole('button', { name: 'Sign in', exact: true }).click();
-    await guest.locator('#login-error').filter({ hasText: 'Sign-in failed' }).waitFor();
+    await guest.locator('#login-error').filter({ hasText: 'Those login details did not match' }).waitFor();
     assert.equal(await guest.locator('#username').getAttribute('aria-describedby'), 'login-error');
     assert.equal(await guest.locator('#username').getAttribute('aria-invalid'), 'true');
     assert.equal(await guest.locator('#username').evaluate(e => e === document.activeElement), true);

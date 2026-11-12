@@ -98,7 +98,7 @@ test('bounded Chrome journey: MOCK PayPal, virtual authenticator, real verifier;
   const assertion = await buyer.assertion(item); assert.equal(calls.length, 3);
   assert.equal((await buyer.call(`${path}/approve`, assertion)).status, 200); assert.equal(calls.length, 4);
   assert.notEqual((await buyer.call(`${path}/approve`, assertion)).status, 200); assert.equal(calls.length, 4);
-  await buyer.page.reload(); await buyer.page.getByText('Buyer consent approved.', { exact: false }).waitFor();
+  await buyer.page.reload(); await buyer.page.getByText('Approved in SaySure.', { exact: false }).waitFor();
   assert.equal(await buyer.page.getByText('PayPal order verified.', { exact: false }).count(), 0);
   assert.equal((await buyer.call(`${path}/consume`, { digest: item.digest })).status, 200); assert.equal(calls.length, 5);
   assert.notEqual((await buyer.call(`${path}/consume`, { digest: item.digest })).status, 200); assert.equal(calls.length, 5);

@@ -66,7 +66,7 @@ test('browser retains mock review and never announces success for promoted recei
   assert.match(await helperActor.page.locator('#requests').innerText(), /MOCK PayPal fixture/);
   h.store.run("UPDATE requests SET status='approved',consent_digest=digest WHERE id=?", id);
   await buyerActor.page.reload();
-  await buyerActor.page.getByText('Advanced: technical details and operator testing', { exact: true }).click();
+  await buyerActor.page.getByText('Technical details (optional)', { exact: true }).click();
   const consume = buyerActor.page.getByRole('button', { name: 'Consume consent once (local test only)', exact: true });
   await consume.waitFor();
   await buyerActor.page.route('**/api/requests/*/consume', async route => {
@@ -99,7 +99,7 @@ test('authenticated fixture labels require canonical binding; failed refresh ret
   await buyerActor.page.getByText('PayPal order verified.', { exact: false }).first().waitFor();
   await buyerActor.page.route('**/api/requests/*/consume', route => route.fulfill({ json: item }));
   await buyerActor.page.route('**/api/requests', route => route.fulfill({ status: 500, json: { error: 'FIXTURE' } }));
-  await buyerActor.page.getByText('Advanced: technical details and operator testing', { exact: true }).click();
+  await buyerActor.page.getByText('Technical details (optional)', { exact: true }).click();
   await buyerActor.page.getByRole('button', { name: 'Consume consent once (local test only)', exact: true }).click();
   await buyerActor.page.locator('#message').filter({ hasText: 'committed receipt was confirmed' }).waitFor();
   assert.match(await buyerActor.page.locator('#requests').innerText(), /PayPal order verified\./);
