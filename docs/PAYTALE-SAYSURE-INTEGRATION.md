@@ -1,7 +1,7 @@
 # SaySure + PayTale product integration
 
 **Status:** Product direction agreed; feature integration incomplete.  
-**Current staging branch:** \`feat/saysure-postgres-runtime\`.
+**Current staging branch:** `feat/saysure-postgres-runtime`.
 
 SaySure is the single user-facing product. PayTale's strongest investigation and reconciliation ideas belong in its payment-evidence layer. This does not mean the historical PayTale workspace, credentials, database or records are to be copied, migrated or modified.
 

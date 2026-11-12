@@ -26,14 +26,14 @@ test('hosted entry explains SaySure, separates the no-login demo from the protec
 
   for (const width of [320, 375, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
-    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, \`horizontal overflow at \${width}px\`);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'horizontal overflow at ' + width + 'px');
     if ([320, 1440].includes(width)) {
       const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
-      assert.deepEqual(results.violations.map(v => v.id), [], \`accessibility scan failed at \${width}px\`);
+      assert.deepEqual(results.violations.map(v => v.id), [], 'accessibility scan failed at ' + width + 'px');
     }
   }
 
-  await page.goto(\`\${h.origin}/app\`);
+  await page.goto(h.origin + '/app');
   await page.getByRole('heading', { name: 'Sign in to your workspace' }).waitFor();
   await page.getByLabel('Username', { exact: true }).waitFor();
   await page.getByLabel('Account secret').waitFor();
