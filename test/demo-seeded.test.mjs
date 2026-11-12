@@ -24,7 +24,7 @@ test('seeded public demo: fictional queue, role switch, isolated helper creation
     assert.ok((await page.locator('#demo-cases').innerText()).includes(name));
   }
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-  await page.getByRole('button', { name: /Inspect Campus Supplies/ }).click();
+  await page.getByRole('button', { name: /Campus Supplies/ }).click();
   assert.match(await page.locator('#review').innerText(), /12.00 USD/);
   assert.equal(await page.locator('#demo-status').innerText(), 'CONSENT SIMULATED');
   await page.getByRole('button', { name: 'Helper view' }).click();

@@ -406,3 +406,9 @@ body.demo { max-width: none; margin: 0; padding: 0; background: #f3f6fc; color: 
 @media(max-width:1050px) { .demo-cases { grid-template-columns: repeat(3,minmax(0,1fr)); } .demo-create-form { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media(max-width:650px) { .demo-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); } .demo-cases { grid-template-columns: repeat(2,minmax(0,1fr)); } .demo-create-form { grid-template-columns: minmax(0,1fr); } .demo .demo-role-controls { display: flex; width: 100%; } .demo .demo-role-controls button { flex: 1; min-width: 0; } }
 @media(max-width:360px) { .demo-cases { grid-template-columns: minmax(0,1fr); } }
+
+/* Keep transaction review visible near the top on smaller devices. */
+@media (max-width: 650px) {
+  .demo .demo-cases { display: flex; width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; gap: .6rem; padding: .15rem .15rem .65rem; scroll-snap-type: x proximity; }
+  .demo .demo-case { flex: 0 0 min(76vw,225px); scroll-snap-align: start; }
+}

@@ -33,7 +33,6 @@ function renderOverview() {
   demoCases.forEach((record, index) => {
     const button = document.createElement('button'); button.type = 'button';
     button.className = 'demo-case'; button.setAttribute('aria-pressed', String(activeCase === index));
-    button.setAttribute('aria-label', 'Inspect ' + record.merchant + ': ' + statusNames[record.status]);
     const name = document.createElement('strong'); name.textContent = record.merchant;
     const detail = document.createElement('small'); detail.textContent = record.itemName + ' · ' + record.buyer + ' · ' + formatMoney(BigInt(record.quantity) * BigInt(record.unitMinor), record.currency);
     const state = document.createElement('span'); state.className = 'demo-case-state'; state.dataset.state = record.status; state.textContent = statusNames[record.status];
@@ -171,7 +170,7 @@ $('demo-create').addEventListener('submit', event => {
   const amount = $('demo-amount').value.trim();
   const description = $('demo-description').value.trim();
   const feedback = $('demo-create-result');
-  if (!/^[a-zA-Z0-9 .'’-]{3,60}$/.test(merchant) || !/^[0-9]{1,4}\\.[0-9]{2}$/.test(amount) || description.length < 3 || description.length > 80) {
+  if (!/^[a-zA-Z0-9 .'’-]{3,60}$/.test(merchant) || !/^[0-9]{1,4}\.[0-9]{2}$/.test(amount) || description.length < 3 || description.length > 80) {
     feedback.textContent = 'Enter a merchant (3–60 characters), a positive dollar amount such as 18.50, and an item (3–80 characters).';
     return;
   }
