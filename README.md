@@ -21,17 +21,21 @@ Open **http://localhost:3200**. This is an **isolated synthetic demonstration**.
 
 The demo also includes an **AI-assisted question** control. To enable live Groq classification, supply your own `GROQ_API_KEY` privately in the environment or an ignored `.env`, or run `npm run configure:ai` if a key is already available in the existing local configuration. Never include a key in a video, issue or commit. Without a key, the control uses local deterministic matching. The model receives only a best-effort redacted question string, not the transaction snapshot or order data, and returns a fixed topic; SaySure generates the explanation locally. Do not include personal, merchant or payment details in questions. Redaction is best-effort, not a guarantee. See [AI question-routing boundary](docs/AI-QUESTION-ROUTING.md).
 
-## Hosted staging entry point
+## Hosted SaySure — one domain, one Render service
 
-The PostgreSQL-backed staging service opens the SaySure product landing page at **https://saysure-staging-cnhm.onrender.com/**. Visitors can choose the no-login synthetic walkthrough or open the protected workspace at **https://saysure-staging-cnhm.onrender.com/app**. Workspace accounts remain provisioned by the project owner; do not publish account secrets. The separate public walkthrough at https://saysure-public-demo.onrender.com is simulation-only and does not exercise the authenticated backend.
+The PostgreSQL-backed SaySure staging application serves the complete experience from one Render web service and one public origin:
 
-## Public interactive demo — Design 8 deployment
+- **Product landing page:** https://saysure-staging-cnhm.onrender.com/
+- **No-login guided demo:** https://saysure-staging-cnhm.onrender.com/demo
+- **Protected Helper/Buyer workspace:** https://saysure-staging-cnhm.onrender.com/app
 
-A new **navy, electric-blue and white** judge experience is prepared on branch `feat/design8-hosted-demo`. It includes an interactive transaction preview, grounded explanation flow, simulated decisions and the optional Groq-assisted free-text question feature. The authenticated Buyer/Helper app shares the updated palette, while retaining its separate protected localhost-only WebAuthn workflows.
+The landing page, synthetic walkthrough and authenticated workspace are routes on the same application. The demo does not send visitors to a second Render URL. Visitors can explore the demo without an account or PayPal account. Workspace access currently uses SaySure credentials provisioned by the project owner; public self-registration is not enabled.
 
-The public service has a deliberately isolated start command: `npm run start:public-demo`. It does **not** expose the protected application, open local SQLite data, execute PayPal APIs or perform actual passkey ceremonies. **Live public walkthrough:** https://saysure-public-demo.onrender.com (Render Free, Frankfurt). The hosted build passed its source checks and 2/2 dedicated isolation/origin smoke tests. The public deployment currently uses deterministic local question matching; live Groq classification is not configured on Render yet. See [Render deployment and safety boundary](docs/PUBLIC-DEMO-DEPLOYMENT.md).
+The guided demo is stateless at the route level: it uses fixed synthetic fixtures, has no login or passkey ceremony, and does not read or write workspace records or call PayPal. Its bounded buyer-question endpoint uses local deterministic matching unless `GROQ_API_KEY` is privately configured.
 
-**Release verification still required:** the previous 206/206 passing tests predate the visual redesign. Run `npm run check && npm test && npm run audit:release && npm run test:release` after checking out this branch and before merging. Once the public service is live, separately verify the AI result indicates `AI matched your question` with a privately configured Groq key.
+The authenticated workspace uses PostgreSQL persistence and the existing Helper/Buyer role separation and passkey-backed local consent. Its optional PayPal sandbox order inspection remains read-only and operator-allowlisted. SaySure consent is not PayPal payer approval, authorization, capture or payment completion. Checkout, capture, refunds, verified webhooks and payment reconciliation are not live.
+
+See [unified Render deployment and safety boundary](docs/PUBLIC-DEMO-DEPLOYMENT.md) and [PayTale integration status](docs/PAYTALE-SAYSURE-INTEGRATION.md).
 
 ## Automated verification
 
