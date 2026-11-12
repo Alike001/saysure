@@ -4,14 +4,18 @@
 <title>SaySure — Your money. Your final say.</title><link rel="stylesheet" href="/style.css">
 <script src="/webauthn.js" defer></script><script type="module" src="/app.js"></script></head>
 <body class="application"><a href="#main" class="skip">Skip to main content</a>
-<header><h1>SaySure</h1>
-<p><strong>No real money. No PayPal checkout.</strong> Approval records local consent only.</p></header>
+<header class="app-header">
+<div class="app-header-brand"><a class="app-home-link" href="/" aria-label="Back to SaySure home">← Home</a>
+<div><h1>SaySure</h1><p><strong>Buyer-controlled consent.</strong> No payment is made by approval.</p></div></div>
+<a class="app-demo-link" href="https://saysure-public-demo.onrender.com">Try the guided demo</a>
+</header>
 <main id="main">
 <p id="message" role="status" aria-live="polite" tabindex="-1"></p>
 <section id="login-panel" aria-labelledby="login-heading">
-<h2 id="login-heading">Sign in to your provisioned account</h2>
-<p>A Helper initiates a request. The Buyer independently reviews and approves or declines it.</p>
-<p>Use your own account secret. Roles are assigned by the server. Do not share buyer secrets with the helper.</p>
+<h2 id="login-heading">Sign in to your workspace</h2>
+<p>A Helper prepares the request. The Buyer independently reviews the recipient, amount and details, then decides whether to approve or decline.</p>
+<p>Workspace access is provisioned by the project owner. Use your own account secret; roles are assigned by the server. Never share Buyer secrets with a Helper.</p>
+<p class="login-demo-note">New to SaySure? <a href="https://saysure-public-demo.onrender.com">Try the guided demo — no account required.</a></p>
 <p id="login-error" class="field-error" role="alert"></p><form id="login"><label for="username">Username</label><input id="username" aria-describedby="login-error" name="username" autocomplete="username" required>
 <label for="password">Account secret</label><input id="password" aria-describedby="login-error" name="password" type="password" autocomplete="current-password" required>
 <button>Sign in</button></form></section>

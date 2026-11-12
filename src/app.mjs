@@ -14,7 +14,8 @@ import { createBuyerQuestionRouter } from './buyer-question.mjs';
 
 const root = new URL('../', import.meta.url);
 const assets = new Map([
-  ['/', ['public/index.html', 'text/html']], ['/app.js', ['public/app.js', 'text/javascript']],
+  ['/', ['public/landing.html', 'text/html']], ['/app', ['public/index.html', 'text/html']],
+  ['/landing.css', ['public/landing.css', 'text/css']], ['/app.js', ['public/app.js', 'text/javascript']],
   ['/comprehension.js', ['public/comprehension.js', 'text/javascript']],
   ['/presentation.js', ['public/presentation.js', 'text/javascript']],
   ['/review.js', ['public/review.js', 'text/javascript']],

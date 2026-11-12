@@ -21,6 +21,10 @@ Open **http://localhost:3200**. This is an **isolated synthetic demonstration**.
 
 The demo also includes an **AI-assisted question** control. To enable live Groq classification, supply your own `GROQ_API_KEY` privately in the environment or an ignored `.env`, or run `npm run configure:ai` if a key is already available in the existing local configuration. Never include a key in a video, issue or commit. Without a key, the control uses local deterministic matching. The model receives only a best-effort redacted question string, not the transaction snapshot or order data, and returns a fixed topic; SaySure generates the explanation locally. Do not include personal, merchant or payment details in questions. Redaction is best-effort, not a guarantee. See [AI question-routing boundary](docs/AI-QUESTION-ROUTING.md).
 
+## Hosted staging entry point
+
+The PostgreSQL-backed staging service opens the SaySure product landing page at **https://saysure-staging-cnhm.onrender.com/**. Visitors can choose the no-login synthetic walkthrough or open the protected workspace at **https://saysure-staging-cnhm.onrender.com/app**. Workspace accounts remain provisioned by the project owner; do not publish account secrets. The separate public walkthrough at https://saysure-public-demo.onrender.com is simulation-only and does not exercise the authenticated backend.
+
 ## Public interactive demo — Design 8 deployment
 
 A new **navy, electric-blue and white** judge experience is prepared on branch `feat/design8-hosted-demo`. It includes an interactive transaction preview, grounded explanation flow, simulated decisions and the optional Groq-assisted free-text question feature. The authenticated Buyer/Helper app shares the updated palette, while retaining its separate protected localhost-only WebAuthn workflows.
