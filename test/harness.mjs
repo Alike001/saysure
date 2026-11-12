@@ -43,7 +43,7 @@ export async function harness(extraConfig = {}) {
         isUserVerified: true, automaticPresenceSimulation: true,
       } }));
     }
-    await page.goto(origin);
+    await page.goto(`${origin}/app`);
     const account = accounts.find(a => a.username === name);
     await page.getByLabel('Username', { exact: true }).fill(name);
     await page.getByLabel('Account secret').fill(account.password);

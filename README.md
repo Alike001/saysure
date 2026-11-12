@@ -21,6 +21,10 @@ Open **http://localhost:3200**. This is an **isolated synthetic demonstration**.
 
 The demo also includes an **AI-assisted question** control. To enable live Groq classification, supply your own `GROQ_API_KEY` privately in the environment or an ignored `.env`, or run `npm run configure:ai` if a key is already available in the existing local configuration. Never include a key in a video, issue or commit. Without a key, the control uses local deterministic matching. The model receives only a best-effort redacted question string, not the transaction snapshot or order data, and returns a fixed topic; SaySure generates the explanation locally. Do not include personal, merchant or payment details in questions. Redaction is best-effort, not a guarantee. See [AI question-routing boundary](docs/AI-QUESTION-ROUTING.md).
 
+## Hosted staging entry point
+
+The PostgreSQL-backed staging service opens the SaySure product landing page at **https://saysure-staging-cnhm.onrender.com/**. Visitors can choose the no-login synthetic walkthrough or open the protected workspace at **https://saysure-staging-cnhm.onrender.com/app**. Workspace accounts remain provisioned by the project owner; do not publish account secrets. The separate public walkthrough at https://saysure-public-demo.onrender.com is simulation-only and does not exercise the authenticated backend.
+
 ## Public interactive demo — Design 8 deployment
 
 A new **navy, electric-blue and white** judge experience is prepared on branch `feat/design8-hosted-demo`. It includes an interactive transaction preview, grounded explanation flow, simulated decisions and the optional Groq-assisted free-text question feature. The authenticated Buyer/Helper app shares the updated palette, while retaining its separate protected localhost-only WebAuthn workflows.
@@ -57,7 +61,7 @@ npm run setup
 npm start
 ```
 
-Open **http://localhost:3100** exactly. The listener is loopback-only; expected origin is `http://localhost:3100` and RP ID is `localhost`. Do not substitute a LAN address, `127.0.0.1` in the browser, or a different port. If the port is occupied, identify and stop the conflicting process before using this checkout.
+Open **http://localhost:3100/app** exactly for the authenticated workspace. The product landing page is at `http://localhost:3100/`; the no-login synthetic walkthrough is at `http://localhost:3200`. The listener is loopback-only; expected origin remains `http://localhost:3100` and RP ID is `localhost`. Do not substitute a LAN address, `127.0.0.1` in the browser, or a different port. If the port is occupied, identify and stop the conflicting process before using this checkout.
 
 Setup creates separate Helper, buyer-a and buyer-b accounts in ignored private storage. Retrieve each account's secret in a private interactive terminal with `npm run account -- helper` or `npm run account -- buyer-a`. Use separate browser profiles: the Helper creates a synthetic request; the Buyer refreshes their inbox, reviews exact details, and chooses decline or explicit passkey consent. Optional local consumption is single-use and does not move money. A manual passkey test requires the Buyer's own supported authenticator; the detailed procedure follows below.
 
@@ -87,7 +91,7 @@ SaySure is a working name without trademark/domain clearance. This is not a prod
 
 1. Use **two separate browser profiles or different browsers**, one for the helper and one for the buyer. Two tabs share a cookie and are not two identities. Optional buyer-b testing requires a third profile/browser or signing out and signing into that separate account. Never use an automated virtual authenticator for this manual test.
 2. In your private terminal, run `npm run account -- buyer-a`. It displays only buyer-a's local username and secret and refuses noninteractive output. Keep the secret out of chat/logs/screenshots. The local machine administrator can read all bootstrap secrets; that is an explicit trust assumption.
-3. In the buyer profile, sign into `http://localhost:3100` as **buyer-a** using that secret. Confirm the page says `Signed in as buyer-a. Server-assigned role: buyer.`
+3. In the buyer profile, sign into `http://localhost:3100/app` as **buyer-a** using that secret. Confirm the page says `Signed in as buyer-a. Server-assigned role: buyer.`
 4. Select **Register my passkey**. For a real phone-backed test, choose your browser/OS option to use a phone or another device, if offered; follow its native QR/pairing instructions on the buyer’s own phone and unlock there. Provider wording varies; this is not an app button. Keep the desktop buyer profile at the exact localhost URL. If no phone option is offered or pairing fails, record that blocker and stop this phone-backed test; a desktop credential is not a phone-backed result. The authenticator may show the preserved RP display name **Synthetic consent experiment**. Complete your browser/OS authenticator prompt yourself. A biometric, device unlock or security-key PIN may be handled by your authenticator; **never enter a card PIN into this app**. Choose your own authenticator, not the helper's. User verification is required. Canceling or lacking a suitable authenticator must leave the account unenrolled.
 5. Expect **Your passkey was registered to this buyer account. No payment was approved.** Replacement enrollment is disabled. Do not register buyer-a on the helper's device. Do not use a shared OS passkey store if testing independent ownership.
 6. In a private terminal run `npm run account -- helper`. In the helper profile sign in as **helper** with only that account's secret. Confirm server-assigned helper role. The helper must see no passkey-registration or buyer-approval controls.
