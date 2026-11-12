@@ -282,8 +282,6 @@ function handleBuyerInviteLink() {
 window.addEventListener('hashchange', handleBuyerInviteLink);
 handleBuyerInviteLink();
 
-// Keep the public workspace entry completely free of a login form.
- // Existing private test accounts can resume at /app/login without needing signup.
 if (location.pathname === '/app/login') {
   $('returning-login').hidden = false;
   $('returning-login').open = true;
