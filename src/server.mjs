@@ -8,7 +8,19 @@ import { ensure } from './core.mjs';
 
 export async function startLocalServer(preparedIntegration) {
   process.umask(0o077);
+  // Render must see a listening port after boot. Fail with a useful stage
+  // rather than silently consuming its 15-minute port-scan deadline.
+  const hostedBoot = !!(process.env.RENDER_EXTERNAL_URL || process.env.RENDER === 'true');
+  let stage = 'configuration';
+  const watchdog = hostedBoot ? setTimeout(() => {
+    console.error('SaySure startup timed out during ' + stage + '; HTTP port was never opened.');
+    process.exit(1);
+  }, 60_000) : null;
+  watchdog?.unref();
+  console.log('SaySure startup: loading configuration (values withheld).');
   const env = await localConfig();
+  console.log('SaySure startup: configuration loaded; AI key ' +
+    (env.GROQ_API_KEY ? 'present' : 'absent') + '.');
   const publicRuntime = !!(env.RENDER_EXTERNAL_URL || env.RENDER === 'true');
   ensure(!publicRuntime || !!env.DATABASE_URL, 'DATABASE_URL_REQUIRED', 503);
   const origin = env.PUBLIC_ORIGIN || env.RENDER_EXTERNAL_URL || 'http://localhost:3100';
@@ -16,8 +28,12 @@ export async function startLocalServer(preparedIntegration) {
   const config = { origin, rpID };
   let store;
   try {
+    stage = 'persistence';
     if (env.DATABASE_URL) {
+      console.log('SaySure startup: opening PostgreSQL (no credentials logged).');
       store = await openPostgresStore(env.DATABASE_URL);
+      stage = 'account verification';
+      console.log('SaySure startup: PostgreSQL schema ready; validating existing accounts.');
       const result = await provisionStaging(store, env);
       if (result.created) {
         console.log('Staging accounts provisioned. Remove STAGING_*_PASSWORD values from deployment settings after first successful start.');
@@ -39,6 +55,7 @@ export async function startLocalServer(preparedIntegration) {
     console.error('SaySure persistence startup refused. Check database connectivity and staging bootstrap settings.');
     throw error;
   }
+  stage = 'PayPal read-only configuration';
   let integration;
   try { integration = preparedIntegration ?? paypalIntegration(env); }
   catch {
@@ -46,6 +63,7 @@ export async function startLocalServer(preparedIntegration) {
     console.error('PayPal sandbox configuration refused. Check private configuration.');
     process.exit(1);
   }
+  stage = 'HTTP server creation';
   const app = makeApp(store, { ...config, paypal: integration, ai: { apiKey: env.GROQ_API_KEY } });
   const port = Number(env.PORT ?? 3100);
   ensure(Number.isInteger(port) && port > 0 && port <= 65535, 'INVALID_PORT', 503);
@@ -56,7 +74,11 @@ export async function startLocalServer(preparedIntegration) {
     await store.close();
     process.exitCode = 1;
   });
-  app.server.listen(port, host, () => console.log(`SaySure consent review: ${origin}`));
+  stage = 'HTTP port bind';
+  app.server.listen(port, host, () => {
+    if (watchdog) clearTimeout(watchdog);
+    console.log(`SaySure consent review: ${origin}`);
+  });
   console.log('Buyer question routing: ' + (env.GROQ_API_KEY ? 'Groq enabled (redacted question only)' : 'local fallback (no Groq key configured)'));
   for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
     app.server.close(async () => {
