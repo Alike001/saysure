@@ -20,6 +20,12 @@ test('staging account rotation changes only the three expected accounts and inva
   assert.equal(authenticate(store, 'helper', initial.STAGING_HELPER_PASSWORD).role, 'helper');
   assert.equal(authenticate(store, 'buyer-a', initial.STAGING_BUYER_A_PASSWORD).role, 'buyer');
 
+  await store.run('INSERT INTO credentials VALUES(?,?,?,?,?,?,?)',
+    'buyer-a-passkey', 'buyer-a', Buffer.from([1, 2, 3]), 0, '[]', 'singleDevice', 0);
+  await store.run('INSERT INTO requests VALUES(?,?,?,?,?,?,?,?)',
+    'staging-request', 'helper', 'buyer-a', JSON.stringify({ expires_at: Date.now() + 60_000 }),
+    'review-digest', 'pending', null, null);
+
   const session = issueSession(store, 'helper');
   const cookie = 'consent_session=' + session.token;
   assert.ok(sessionFor(store, cookie));
@@ -47,6 +53,8 @@ test('staging account rotation changes only the three expected accounts and inva
   assert.equal(authenticate(store, 'buyer-b', replacement.STAGING_BUYER_B_PASSWORD).role, 'buyer');
   assert.equal(sessionFor(store, cookie), null);
   assert.equal((await store.get('SELECT COUNT(*) AS n FROM users')).n, 3);
+  assert.equal((await store.get('SELECT COUNT(*) AS n FROM credentials')).n, 1);
+  assert.equal((await store.get('SELECT COUNT(*) AS n FROM requests')).n, 1);
   assert.deepEqual(await provisionStaging(store, {
     STAGING_HELPER_PASSWORD: 'ignored-secret-2026',
     STAGING_BUYER_A_PASSWORD: 'ignored-secret-2026',
