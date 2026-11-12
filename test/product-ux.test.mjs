@@ -24,7 +24,7 @@ test('product UX: five-width layouts, transaction-first decisions, keyboard, err
   await helper.call('/api/requests', sample({ merchant_name: 'Example Store' }));
   await buyer.page.reload();
   const guestContext = await h.browser.newContext();
-  const guest = await guestContext.newPage(); await guest.goto(h.origin);
+  const guest = await guestContext.newPage(); await guest.goto(h.origin + '/app');
   const measurements = [];
   for (const width of widths) {
     for (const [name, page] of [['buyer', buyer.page], ['helper', helper.page], ['signin', guest]]) {

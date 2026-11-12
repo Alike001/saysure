@@ -13,9 +13,9 @@ test('hosted entry explains SaySure, separates the no-login demo from the protec
 
   await page.goto(h.origin);
   await page.getByRole('heading', { name: 'Get help with a payment. Keep the final say.' }).waitFor();
-  await page.getByRole('link', { name: /Try the guided demo/ }).waitFor();
+  await page.getByRole('link', { name: /Try the guided demo/ }).first().waitFor();
   await page.getByRole('link', { name: 'Open live workspace' }).waitFor();
-  assert.match(await page.locator('body').innerText(), /The Helper prepares\. The Buyer decides\./);
+  assert.match(await page.locator('body').innerText(), /The Helper prepares\.\s*The Buyer decides\./);
   assert.match(await page.locator('body').innerText(), /in development and are not live in this staging release/);
   assert.equal(await page.locator('img, video, iframe').count(), 0);
 
@@ -37,7 +37,7 @@ test('hosted entry explains SaySure, separates the no-login demo from the protec
   await page.getByRole('heading', { name: 'Sign in to your workspace' }).waitFor();
   await page.getByLabel('Username', { exact: true }).waitFor();
   await page.getByLabel('Account secret').waitFor();
-  await page.getByRole('link', { name: /Try the guided demo/ }).waitFor();
+  await page.getByRole('link', { name: /Try the guided demo/ }).first().waitFor();
   assert.deepEqual(errors, []);
   await context.close();
 });
