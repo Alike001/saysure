@@ -92,6 +92,11 @@
 <form id="paypal-import"><label for="paypal-buyer">App buyer account (not proof of PayPal payer identity)</label><select id="paypal-buyer" name="buyer_id" required></select>
 <label for="paypal-order">PayPal sandbox order ID</label><input id="paypal-order" name="order_id" pattern="[A-Z0-9]{5,32}" maxlength="32" required>
 <button>Read and prepare PayPal order review</button></form></section></details>
+<section id="inbox" hidden aria-labelledby="inbox-heading">
+  <div class="inbox-toolbar"><div><p class="app-kicker">YOUR REQUESTS</p><h2 id="inbox-heading">Requests to review</h2></div>
+  <button id="refresh" type="button">Refresh</button></div><div id="requests"></div>
+  <p class="request-footer-note">If the Helper changes the details, refresh and review the updated request before deciding.</p>
+</section>
 <section id="buyer-settings" hidden aria-label="Buyer passkey setup">
   <div class="workspace-section-head"><div><p class="app-kicker">BUYER WORKSPACE</p><h2>Your decision stays yours</h2><p>You can decline a request at any time. To approve, first set up a passkey on your own device.</p></div><span class="test-tag">TEST MODE</span></div>
   <div id="enrollment" hidden class="passkey-onboarding">
@@ -101,8 +106,4 @@
   </div>
   <p id="enrolled" hidden class="passkey-ready">✓ Passkey ready. Now review a request and tick the confirmation to enable approval.</p>
 </section>
-<section id="inbox" hidden aria-labelledby="inbox-heading">
-  <div class="inbox-toolbar"><div><p class="app-kicker">YOUR REQUESTS</p><h2 id="inbox-heading">Requests to review</h2></div>
-  <button id="refresh" type="button">Refresh</button></div><div id="requests"></div>
-  <p class="request-footer-note">If the Helper changes the details, refresh and review the updated request before deciding.</p>
-</section></main><footer><p>SaySure test workspace · Local decisions only · No payments are sent.</p></footer></body></html>
+</main><footer><p>SaySure test workspace · Local decisions only · No payments are sent.</p></footer></body></html>
