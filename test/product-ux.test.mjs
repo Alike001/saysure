@@ -56,7 +56,7 @@ test('product UX: five-width layouts, transaction-first decisions, keyboard, err
     assert.equal(await buyer.page.getByRole('article').getByRole('heading', { level: 3 }).evaluate(e => e === document.activeElement), true);
     assert.equal(await buyer.page.getByRole('button', { name: 'Approve using my passkey — synthetic request' }).count(), 0);
     await buyer.page.keyboard.press('Tab');
-    assert.equal(await buyer.page.getByRole('link', { name: 'Listen to details / get explanations' }).evaluate(e => e === document.activeElement), true);
+    assert.equal(await buyer.page.getByRole('link', { name: 'Help understanding this request' }).evaluate(e => e === document.activeElement), true);
     await scan(buyer.page);
   });
   await t.test('amount and authentication errors have field associations and corrective focus', async () => {
@@ -68,6 +68,7 @@ test('product UX: five-width layouts, transaction-first decisions, keyboard, err
     await helper.page.locator('#amount-error').filter({ hasText: 'Enter an exact positive amount' }).waitFor();
     assert.equal(await helper.page.locator('#amount').getAttribute('aria-invalid'), 'true');
     assert.equal(await helper.page.locator('#amount').evaluate(e => e === document.activeElement), true);
+    await guest.getByText('Already have a test login?', { exact: false }).click();
     await guest.getByLabel('Username', { exact: true }).fill('unknown');
     await guest.getByLabel('Password', { exact: true }).fill('incorrect-secret');
     await guest.getByRole('button', { name: 'Sign in', exact: true }).click();
@@ -83,6 +84,9 @@ test('product UX: five-width layouts, transaction-first decisions, keyboard, err
     assert.equal(await helper.page.locator('#merchant-name').evaluate(e => e === document.activeElement), true);
     await scan(guest); await scan(helper.page);
   });
+  const grouped = await helper.page.locator('#request-form .request-field').evaluateAll(fields =>
+    fields.every(field => { const label = field.querySelector('label'); return !!label && !!field.querySelector('#' + label.htmlFor); }));
+  assert.equal(grouped, true, 'all Helper form labels should be grouped with matching fields');
   await helper.call('/api/requests', sample({ merchant_name: 'M'.repeat(120), description: 'D'.repeat(500) }));
   await buyer.page.reload();
   for (const width of widths) {

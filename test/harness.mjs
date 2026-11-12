@@ -45,6 +45,7 @@ export async function harness(extraConfig = {}) {
     }
     await page.goto(`${origin}/app`);
     const account = accounts.find(a => a.username === name);
+    await page.getByText('Already have a test login?', { exact: false }).click();
     await page.getByLabel('Username', { exact: true }).fill(name);
     await page.getByLabel('Password', { exact: true }).fill(account.password);
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();

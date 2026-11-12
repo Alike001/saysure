@@ -13,6 +13,7 @@ test('hosted entry keeps landing, no-login demo and protected workspace on one o
 
   await page.goto(h.origin);
   await page.getByRole('heading', { name: 'Get help with a payment. Keep the final say.' }).waitFor();
+  assert.equal(await page.locator('.closing-cta').count(), 0, 'remove redundant light-blue strip before the footer');
   await page.getByRole('link', { name: /Try the guided demo/ }).first().waitFor();
   await page.getByRole('link', { name: 'Open live workspace' }).waitFor();
   assert.match(await page.locator('body').innerText(), /The Helper prepares\.\s*The Buyer decides\./);
@@ -64,6 +65,7 @@ test('hosted entry keeps landing, no-login demo and protected workspace on one o
   await page.getByRole('heading', { name: 'Try the real workspace' }).waitFor();
   await page.getByText('No signup or PayPal account needed', { exact: false }).waitFor();
   await page.getByText('Start as Helper', { exact: false }).waitFor();
+  await page.getByText('Already have a test login?', { exact: false }).click();
   await page.getByLabel('Username', { exact: true }).waitFor();
   await page.getByLabel('Password', { exact: true }).waitFor();
   await page.getByRole('link', { name: /sample demo/ }).first().waitFor();
