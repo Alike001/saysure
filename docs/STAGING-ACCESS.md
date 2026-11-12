@@ -18,10 +18,10 @@ No PayPal account is required to sign in to SaySure.
 
 ## Test a complete Helper-to-Buyer flow
 
-1. Open **https://saysure-staging-cnhm.onrender.com/app**.
+1. Open the owner's returning-account page **https://saysure-staging-cnhm.onrender.com/app/login**.
 2. Sign in as `helper` using the Helper secret supplied privately by the project owner.
 3. Create a clearly synthetic request. Select `buyer-a` or `buyer-b` as the recipient.
-4. Open a separate browser profile or another device. Sign in as the selected Buyer.
+4. Open **/app/login** in a separate browser profile or device, then sign in as the selected Buyer.
 5. Refresh the Buyer request list and open the new request.
 6. Check the merchant label, amount, currency, description, expiry and request status.
 7. The Buyer can decline without registering a passkey. To test consent, the Buyer first registers their own passkey on their own device, then reviews the request again and approves it.
@@ -54,10 +54,14 @@ Public registration is deliberately disabled. The current staging release suppor
 
 ## Self-service judge testing (private synthetic trial)
 The public staging workspace now provides a bounded, no-signup way to exercise **the actual authenticated Helper/Buyer APIs**:
-1. Open `/app` and select **Create private test workspace**. The server creates an isolated Helper and Buyer identity, logs the Helper in, and preloads one clearly fictional request. Save the **Helper username/password** presented once.
+1. Open `/app` and select **Start testing**. The server creates an isolated Helper and Buyer identity, logs the Helper in, and preloads one clearly fictional request. Save the **Helper username/password** presented once.
 2. Copy **only** the one-time Buyer invitation code (valid for 30 minutes), and give it to another person or open a separate browser profile/device. The Helper must not use the Buyer's passkey.
 3. The Buyer opens `/app`, enters the invitation code under **Join as Buyer**, and receives a private username/password upon claiming it. The invitation cannot be reused.
 4. Buyer refreshes the pending request, then declines without a passkey or registers their own passkey for local consent. The Helper sees their own request status after refreshing.
 5. Test trials do **not** allow PayPal order imports or payment operations. Private trial accounts are limited and isolated to their designated Buyer; there is no email identity verification and these are not production user accounts.
 
 Staging maintains its original fixed accounts for owner testing. Trial identities are stored separately and do not affect their passwords, sessions, passkeys or records. A trial invite is shown once; retain the code before closing that page.
+
+## Public workspace entry and returning-test access (November 12 update)
+
+The public `/app` route intentionally has no sign-in form and no public registration. New visitors choose **Start testing** or **Join as Buyer**; their credentials are issued by the server and may be saved privately. A separate owner/returning-test page, `/app/login`, accepts previously issued username/password pairs so sessions can be resumed without deleting previous accounts, requests or passkeys. This route does not enable new user sign-up, nor does it bypass authentication. The **Copy my login** control includes the returning-test page URL. When finished, sign out to return to the clean public workspace entry.

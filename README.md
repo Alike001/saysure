@@ -1,5 +1,15 @@
 # SaySure
 
+## Live project — how judges can test it
+
+- **Website:** https://saysure-staging-cnhm.onrender.com/
+- **Guided demonstration:** https://saysure-staging-cnhm.onrender.com/demo — no login; five fictional requests and a simulated Helper/Buyer walkthrough
+- **Authenticated workspace:** https://saysure-staging-cnhm.onrender.com/app — select **Start testing** to create your own isolated Helper account, then share the one-use Buyer invitation to a separate browser/device. The Buyer can decline or enroll their own passkey to record local consent.
+
+The main workspace entry **has no sign-in form or public signup**. Returning test users and pre-provisioned owners can access a separate recovery page at **https://saysure-staging-cnhm.onrender.com/app/login** using the credentials they saved when they started. This preserves existing test records without making the guest journey complicated. Nothing in SaySure's test workspace charges, captures, refunds or transfers money.
+
+**README status:** The hosted demo and real workspace are both running with PostgreSQL persistence; the sections below retain older local security milestones as historical background. The [judge walkthrough](docs/STAGING-ACCESS.md) explains access and security limits. The most recent hosted CI results should be checked in [GitHub Actions](https://github.com/Alike001/saysure/actions) and not confused with historical local test counts.
+
 ## Hackathon review (November 12, 2026)
 
 The official PayPal AI Hackathon rules require **meaningful integration of both PayPal Developer Platform and an AI tool**. The public SaySure demo at `/demo` is a clearly marked, browser-only simulation. The `/app` route is a functioning, database-backed, two-role consent workflow with independent Buyer passkey approval and a one-use Buyer invitation; it is **not** a PayPal checkout.
@@ -17,7 +27,7 @@ Getting help with a digital payment should not mean giving someone else the fina
 
 SaySure separates the **Helper**, who prepares a request, from the **Buyer**, who independently reviews the exact amount, currency, merchant reference and description. Readable details, optional speech and grounded questions support that review. Only the Buyer can record passkey-backed local consent; changing reviewed details invalidates it. The Buyer can decline without a passkey.
 
-This is a localhost prototype for exploring that separation. It does not execute payments. Accessibility, comprehension benefits and suitability for intended users have not been established through user research; passkey authentication proves credential control and required user verification, not understanding of a purchase.
+SaySure now includes a hosted, database-backed test workspace and a separate no-login guided demo. Neither executes payments. Accessibility, comprehension benefits and suitability for intended users have not been established through user research; passkey authentication proves credential control and required user verification, not understanding of a purchase.
 
 ## HOW TO TEST — judge quick start
 
@@ -40,7 +50,7 @@ The PostgreSQL-backed SaySure staging application serves the complete experience
 - **No-login guided demo:** https://saysure-staging-cnhm.onrender.com/demo
 - **Protected Helper/Buyer workspace:** https://saysure-staging-cnhm.onrender.com/app
 
-The landing page, synthetic walkthrough and authenticated workspace are routes on the same application. The demo does not send visitors to a second Render URL. Visitors can explore the demo without an account or PayPal account. Workspace access supports the owner's pre-provisioned accounts and bounded self-service synthetic judge trials: start an isolated Helper test workspace at `/app`, save the Helper credentials, and share a one-time invitation with a separate Buyer who claims their own password. Public production registration and email identity verification are not enabled.
+The landing page, synthetic walkthrough and authenticated workspace are routes on the same application. The demo does not send visitors to a second Render URL. Visitors can explore the demo without an account or PayPal account. Workspace access supports bounded, isolated judge trials at `/app`: start a Helper test, save the automatically issued credentials, and send the one-use Buyer invitation to a separate device or browser. The public workspace entry does not display a sign-in or registration form. Previous test accounts are available through the separate `/app/login` recovery route. Production registration and email verification are not enabled.
 
 The guided demo opens directly into the synthetic Buyer review rather than a second marketing page. It includes five realistic but fictional sample requests, a Buyer/Helper role switch, a browser-only Helper request form, revision invalidation and simulated Buyer decisions. It has no login or passkey ceremony and never reads or writes workspace records or calls PayPal. Visitors can inspect the request, ask fixed or free-form questions, simulate approval or decline, and test a revision. Its bounded buyer-question endpoint uses local deterministic matching unless `GROQ_API_KEY` is privately configured.
 
@@ -50,7 +60,7 @@ See [unified Render deployment and safety boundary](docs/PUBLIC-DEMO-DEPLOYMENT.
 
 ## Automated verification
 
-**Latest local verification (November 11, 2026): 206/206 automated tests passed on merged `master`, with no failures or skips; `npm run check` also passed.** These results were run on the contributor's local Linux machine; remote CI and cross-platform accessibility certification are not established. The following earlier checkpoints remain historical.
+**Hosted branch CI (November 12, 2026): 215 passing tests, one skip, zero failures, plus a passing isolated PostgreSQL integration test on commit `8744925`.** The separate `/app/login` recovery route and UI simplification are a subsequent change; verify their current checks in GitHub Actions. Browser/mobile physical-device acceptance remains the operator's responsibility. The older checkpoints below remain historical.
 
 Install **Google Chrome** separately; the tests launch its `chrome` channel through Playwright. With dependencies installed:
 

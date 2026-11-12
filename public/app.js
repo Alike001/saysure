@@ -178,7 +178,9 @@ $('login').addEventListener('submit', event => {
   perform(event.submitter, async () => {
     const values = Object.fromEntries(new FormData(event.target));
     await api('/api/login', values); event.target.reset();
-    await load(); $('account-heading').focus(); notify('Welcome back to your workspace.', false);
+    await load();
+    if (location.pathname === '/app/login') history.replaceState(null, '', '/app');
+    $('account-heading').focus(); notify('Welcome back to your workspace.', false);
   });
 });
 $('logout').addEventListener('click', event => perform(event.target, async () => {
@@ -188,8 +190,9 @@ $('logout').addEventListener('click', event => perform(event.target, async () =>
   $('trial-password').textContent = '';
   $('trial-invitation').textContent = '';
   await load();
-  $('returning-login').open = true;
-  $('username').focus(); notify("Signed out. Sign in with your saved test details whenever you are ready.", false);
+  if (location.pathname === '/app/login') history.replaceState(null, '', '/app');
+  $('trial-start').focus();
+  notify('Signed out. You can start a fresh sample test or return later using your saved access details.', false);
 }));
 $('trial-start').addEventListener('click', event => perform(event.target, async () => {
   const created = await api('/api/trial/create', {});
@@ -208,8 +211,8 @@ $('trial-claim-form').addEventListener('submit', event => {
 });
 $('trial-copy').addEventListener('click', event => perform(event.target, async () => {
   if (!trialAccessDetails) throw new Error('Your one-time login is no longer available.');
-  await navigator.clipboard.writeText('SaySure test login\nUsername: ' + trialAccessDetails.username +
-    '\nPassword: ' + trialAccessDetails.password);
+  await navigator.clipboard.writeText('SaySure test login\nReturn later: ' + location.origin + '/app/login' +
+    '\nUsername: ' + trialAccessDetails.username + '\nPassword: ' + trialAccessDetails.password);
   notify('Your login was copied. Save it somewhere private. Never share your password.');
 }));
 $('trial-share').addEventListener('click', event => perform(event.target, async () => {
@@ -271,7 +274,19 @@ function handleBuyerInviteLink() {
 window.addEventListener('hashchange', handleBuyerInviteLink);
 handleBuyerInviteLink();
 
-if (location.hash === '#signin') {
+// Keep the public workspace entry completely free of a login form.
+ // Existing private test accounts can resume at /app/login without needing signup.
+if (location.pathname === '/app/login') {
+  $('returning-login').hidden = false;
   $('returning-login').open = true;
-  history.replaceState(null, '', location.pathname + location.search);
+  document.querySelector('.trial-access-options').hidden = true;
+  document.querySelector('.workspace-step-guide').hidden = true;
+  document.querySelector('.workspace-demo-link').hidden = true;
+  document.getElementById('login-heading').textContent = 'Return to your test workspace';
+  document.querySelector('.workspace-welcome > p:not(.app-kicker)').textContent =
+    'Enter the username and password you saved when you started your test.';
+}
+if (location.hash === '#signin') {
+  history.replaceState(null, '', '/app/login');
+  location.assign('/app/login');
 }

@@ -76,3 +76,7 @@ Hosted entry: https://saysure-staging-cnhm.onrender.com/. The guest demo is clea
 According to https://paypalaihackathon.devpost.com/rules, PayPal developer technology and AI are both required, and the project must be demonstrably functional. Submit a public code repository with a visible open-source license, a freely accessible running project or complete setup steps, and a publicly accessible YouTube demonstration below three minutes. Do not present historical PayPal sandbox testing as a current verified checkout, or local consent as a completed PayPal payment.
 
 Hard blocker for claiming both integrations together publicly: operator-controlled PayPal read configuration and live AI availability are not verified on the current judge-facing trial. Do not make unapproved API writes to remove this blocker.
+
+## November 12 guest-entry cleanup
+
+The judge-facing `/app` entry now displays only **Start testing**, **Join as Buyer** and the no-login demo link. Returning or owner accounts use `/app/login` directly with previously saved credentials; it is intentionally absent from the public entry. Authentication, account isolation, Buyer passkeys and all PayPal trial restrictions are unchanged. The hosted README has been updated to show the current public flow rather than implying every tester must know fixed account passwords.

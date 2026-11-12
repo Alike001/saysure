@@ -68,7 +68,8 @@ test('product UX: five-width layouts, transaction-first decisions, keyboard, err
     await helper.page.locator('#amount-error').filter({ hasText: 'Enter an exact positive amount' }).waitFor();
     assert.equal(await helper.page.locator('#amount').getAttribute('aria-invalid'), 'true');
     assert.equal(await helper.page.locator('#amount').evaluate(e => e === document.activeElement), true);
-    await guest.getByText('Already have a test login?', { exact: false }).click();
+    assert.equal(await guest.locator('#returning-login').isHidden(), true);
+    await guest.goto(h.origin + '/app/login');
     await guest.getByLabel('Username', { exact: true }).fill('unknown');
     await guest.getByLabel('Password', { exact: true }).fill('incorrect-secret');
     await guest.getByRole('button', { name: 'Sign in', exact: true }).click();

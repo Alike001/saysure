@@ -65,7 +65,11 @@ test('hosted entry keeps landing, no-login demo and protected workspace on one o
   await page.getByRole('heading', { name: 'Try the real workspace' }).waitFor();
   await page.getByText('No signup or PayPal account needed', { exact: false }).waitFor();
   await page.getByText('Start as Helper', { exact: false }).waitFor();
-  await page.getByText('Already have a test login?', { exact: false }).click();
+  assert.equal(await page.locator('#returning-login').isHidden(), true,
+    'public workspace should have no sign-in form');
+  assert.equal(await page.getByRole('button', { name: 'Start testing' }).count(), 1);
+  await page.goto(h.origin + '/app/login');
+  await page.getByRole('heading', { name: 'Return to your test workspace' }).waitFor();
   await page.getByLabel('Username', { exact: true }).waitFor();
   await page.getByLabel('Password', { exact: true }).waitFor();
   await page.getByRole('link', { name: /sample demo/ }).first().waitFor();
