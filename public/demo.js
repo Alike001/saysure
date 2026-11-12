@@ -18,19 +18,66 @@ function report() {
     boundary: status === 'rejected' ? 'Simulated buyer refusal. Do not proceed.' : 'DEMO FIXTURE ONLY. Not evidence of a payable order.' };
 }
 function paint() {
-  stop(); const s = item().snapshot, host = $('review'); host.replaceChildren();
-  const p = text => { const node = document.createElement('p'); node.textContent = text; host.append(node); };
-  const heading = document.createElement('h3'); heading.textContent = `${exactAmount(s)} — ${s.merchant_name}`; host.append(heading);
-  p(mode === 'synthetic' ? 'SYNTHETIC / helper-supplied / merchant unverified.' : 'MOCK PayPal fixture / no authenticated API response / shop identity unverified.');
-  p('Item: A5 ruled journal. Expected quantity: 1. Recorded quantity: ' + quantity + '. Unit amount: 1.00 USD.');
-  p(`Revision: ${revision}. Simulated local consent: ${status}.`);
-  p('Genuine PayPal order verification: not established. PayPal buyer approval: not established. Payment authorization/completion: not established.');
+  stop();
+  const s = item().snapshot, host = $('review');
+  host.replaceChildren();
+  const p = (text, className = '') => {
+    const node = document.createElement('p');
+    node.textContent = text;
+    if (className) node.className = className;
+    host.append(node);
+    return node;
+  };
+  p('AMOUNT REQUESTED', 'review-amount-label');
+  const heading = document.createElement('h3');
+  heading.textContent = exactAmount(s);
+  host.append(heading);
+  p(s.merchant_name, 'review-merchant');
+  p(mode === 'synthetic' ? 'Helper-provided · merchant unverified' : 'MOCK PayPal fixture · no authenticated API response', 'review-source');
+
+  const facts = document.createElement('dl');
+  facts.className = 'review-facts';
+  const addFact = (label, value) => {
+    const term = document.createElement('dt'); term.textContent = label;
+    const detail = document.createElement('dd'); detail.textContent = value;
+    facts.append(term, detail);
+  };
+  addFact('Item', 'A5 ruled journal');
+  addFact('Recorded quantity', quantity + (quantity === '1' ? ' unit' : ' units'));
+  addFact('Expected quantity', '1 unit');
+  addFact('Unit amount', '1.00 USD');
+  addFact('Merchant reference', s.merchant_id);
+  addFact('Revision', String(revision));
+  host.append(facts);
+
+  const warning = document.createElement('div');
+  warning.className = quantity === '2' ? 'review-warning' : 'review-clear';
+  warning.setAttribute('role', 'status');
+  warning.textContent = quantity === '2'
+    ? 'Review needed: the request records 2 journals, but the expected quantity is 1. The recorded total is 2.00 USD.'
+    : 'Quantity check: the recorded and expected quantities now match. The total is 1.00 USD.';
+  host.append(warning);
+  p('Revision: ' + revision + '. Simulated local consent: ' + status + '.', 'review-state');
+  p('No genuine PayPal order verification, buyer approval or payment completion is established.', 'review-state');
+
+  const statusLabel = { pending: 'REVIEW NEEDED', approved: 'CONSENT SIMULATED', rejected: 'DECLINED', consumed: 'CONSUMED (SIMULATED)' };
+  $('demo-status').textContent = statusLabel[status] || 'SIMULATED';
+  $('demo-status').dataset.state = status;
   $('payment-audio').replaceChildren();
-  addSpeech($('payment-audio'), () => `${mode === 'mock' ? 'MOCK PayPal fixture. No authenticated API response.' : 'Synthetic request.'} Amount: ${exactAmount(s)}. Merchant unverified: ${s.merchant_name}. Reference: ${s.merchant_id}. ${s.description} Expected quantity 1; recorded quantity ${quantity}. Unit amount 1.00 USD. Simulated consent: ${status}. No payment was made.`, 'payment details', notify);
+  addSpeech($('payment-audio'), () =>
+    (mode === 'mock' ? 'MOCK PayPal fixture. No authenticated API response. ' : 'Synthetic request. ') +
+    'Amount: ' + exactAmount(s) + '. Merchant unverified: ' + s.merchant_name +
+    '. Reference: ' + s.merchant_id + '. ' + s.description +
+    '. Expected quantity 1; recorded quantity ' + quantity +
+    '. Unit amount 1.00 USD. Simulated consent: ' + status + '. No payment was made.',
+    'payment details', notify);
   for (const selected of ['synthetic', 'mock']) $(selected).setAttribute('aria-pressed', String(mode === selected));
-  $('approve').disabled = status !== 'pending'; $('consume').disabled = status !== 'approved';
-  $('decline').disabled = status !== 'pending'; $('revise').disabled = !['pending', 'approved'].includes(status);
+  $('approve').disabled = status !== 'pending';
+  $('consume').disabled = status !== 'approved';
+  $('decline').disabled = status !== 'pending';
+  $('revise').disabled = !['pending', 'approved'].includes(status);
   $('explanation').textContent = '';
+  $('ai-explanation').textContent = '';
   if (document.activeElement?.disabled) $('review-heading').focus();
 }
 function reset() { status = 'pending'; revision = 1; quantity = '2'; paint(); notify('Simulation restarted. No real state or payment was changed.'); }
@@ -39,7 +86,6 @@ for (const selected of ['synthetic', 'mock']) $(selected).addEventListener('clic
   mode = selected; reset();
 });
 $('reset').addEventListener('click', reset);
-$('start').addEventListener('click', () => $('review-heading').focus());
 $('approve').addEventListener('click', () => { if (status !== 'pending') return; status = 'approved'; paint(); notify('SIMULATED consent approval only. No passkey or payment operation occurred.'); });
 $('consume').addEventListener('click', () => { if (status !== 'approved') return; status = 'consumed'; paint(); notify('SIMULATED consent consumed once. No payment occurred.'); });
 $('decline').addEventListener('click', () => { if (status !== 'pending') return; status = 'rejected'; paint(); notify('SIMULATED refusal recorded. Nothing was approved or paid.'); });
