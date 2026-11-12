@@ -358,3 +358,10 @@ body.demo { max-width: none; margin: 0; padding: 0; background: #f3f6fc; color: 
 .application .login-access-guide ol { margin: .5rem 0; padding-left: 1.25rem; }
 .application .login-access-guide li { margin-block: .3rem; }
 .application .login-access-guide p { margin-bottom: 0; color: var(--muted); font-size: .78rem; }
+
+@media (max-width: 480px) {
+  .demo-header-inner { flex-wrap: wrap; padding-block: .55rem; }
+  .demo-header-actions { flex: 1 1 100%; justify-content: space-between; }
+  .demo-card-header { flex-wrap: wrap; }
+  .demo .review-status { max-width: 100%; white-space: normal; text-align: center; line-height: 1.2; }
+}
