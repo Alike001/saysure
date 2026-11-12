@@ -33,8 +33,9 @@ test('public demo: only synthetic viewer and redacted question routing, no authe
 
   const page = await call(base, host, '/');
   assert.equal(page.status, 200);
-  assert.match(page.text, /Start the guided demo/);
-  assert.match(page.text, /DEMO ONLY — interactive simulation/);
+  assert.match(page.text, /Review a payment request/);
+  assert.match(page.text, /SIMULATION ONLY/);
+  assert.match(page.text, /NO ACCOUNT REQUIRED/);
   assert.match(page.text, /Your money. Your final say/);
   assert.doesNotMatch(page.text, /account secret|PAYPAL_CLIENT_SECRET|GROQ_API_KEY=/);
 

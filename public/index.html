@@ -13,8 +13,17 @@
 <section id="login-panel" aria-labelledby="login-heading">
 <h2 id="login-heading">Sign in to your workspace</h2>
 <p>A Helper prepares the request. The Buyer independently reviews the recipient, amount and details, then decides whether to approve or decline.</p>
-<p>Workspace access is provisioned by the project owner. Use your own account secret; roles are assigned by the server. Never share Buyer secrets with a Helper.</p>
-<p class="login-demo-note">New to SaySure? <a href="/demo">Try the guided demo — no account required.</a></p>
+<p>Sign in with your SaySure account — a PayPal account is not required. Workspace accounts are currently issued by the project owner; public sign-up is disabled.</p>
+<div class="login-access-guide">
+  <strong>Testing with another person</strong>
+  <ol>
+    <li>The Helper signs in with the Helper account and prepares a synthetic request for a Buyer.</li>
+    <li>The Buyer signs in separately, refreshes their requests, and reviews the exact details.</li>
+    <li>The Buyer can decline immediately or register their own passkey before recording consent in SaySure.</li>
+  </ol>
+  <p>Use separate browser profiles or devices for the Helper and Buyer. Never share a Buyer's password or passkey with a Helper.</p>
+</div>
+<p class="login-demo-note">Just exploring? <a href="/demo">Open the interactive demo — no account required.</a></p>
 <p id="login-error" class="field-error" role="alert"></p><form id="login"><label for="username">Username</label><input id="username" aria-describedby="login-error" name="username" autocomplete="username" required>
 <label for="password">Account secret</label><input id="password" aria-describedby="login-error" name="password" type="password" autocomplete="current-password" required>
 <button>Sign in</button></form></section>

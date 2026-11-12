@@ -28,11 +28,11 @@ The landing page, demo and authenticated workspace are served by the same Postgr
 
 Keep database URLs, staging bootstrap credentials, PayPal sandbox credentials and any Groq key in Render's private Environment settings. Never put them in source, issues, screenshots, or chat. Remove one-time `STAGING_*_PASSWORD` bootstrap variables after the staging accounts have been provisioned successfully, as the startup log instructs.
 
-Workspace accounts are currently provisioned by the project owner. The login is SaySure authentication; it does not require a PayPal account. The public guided demo requires neither a SaySure account nor a PayPal account. Self-service account registration is not enabled.
+Workspace accounts are currently provisioned by the project owner. The current staging database has one Helper test account (`helper`) and two Buyer test accounts (`buyer-a`, `buyer-b`); their high-entropy secrets are shared privately and are never published in this repository or deployment logs. The login is SaySure authentication; it does not require a PayPal account. The public guided demo requires neither a SaySure account nor a PayPal account. Self-service account registration is not enabled. See [STAGING-ACCESS.md](STAGING-ACCESS.md) for the role-by-role test procedure and controlled credential rotation.
 
 ## Public demo boundary
 
-The `/demo` page uses fixed synthetic fixtures and visibly labels every decision as simulated. It does not create a session, invoke WebAuthn, read or write workspace records, import PayPal orders, or perform a payment operation.
+The `/demo` page opens directly into a focused synthetic Buyer review, with the payment facts, quantity discrepancy, question controls and simulated decision actions visible without scrolling through a second landing page. It uses fixed synthetic fixtures and visibly labels every decision as simulated. It does not create a session, invoke WebAuthn, read or write workspace records, import PayPal orders, or perform a payment operation.
 
 The demo's `POST /api/demo-question` endpoint is hosted on the same origin. It accepts only a small JSON question payload, checks the exact same-origin request, applies the bounded buyer-question classifier and returns a closed topic plus local explanation. It does not attach transaction records. Local deterministic matching works without an AI key; Groq classification is optional and must be configured privately.
 

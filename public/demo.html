@@ -4,100 +4,131 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#071d3d">
-  <meta name="description" content="SaySure helps buyers independently review payment details, understand questions and decide whether to consent. Interactive demo; no real payment.">
-  <title>SaySure — Your money. Your final say.</title>
+  <meta name="description" content="Try SaySure's Buyer-controlled payment review using a synthetic request. No account or payment is required.">
+  <title>SaySure demo — Review a payment request</title>
   <link rel="stylesheet" href="/style.css">
   <script type="module" src="/demo.js"></script>
 </head>
 <body class="demo">
-  <a class="skip" href="#main">Skip to main content</a>
-  <header class="demo-hero">
-    <div class="hero-inner">
-      <div class="topbar">
-        <p class="brand-lockup"><span class="brand-icon" aria-hidden="true">S</span><span>SaySure<small>Your money. Your final say.</small></span></p>
-        <nav aria-label="Primary"><a href="/">Home</a><a href="#how-it-works">How it works</a><a href="#review-heading">Try the demo</a><a href="/app">Open workspace</a><a href="https://github.com/Alike001/saysure">Source code</a></nav>
-      </div>
-      <div class="hero-grid">
-        <div class="hero-copy">
-          <p class="eyebrow">INDEPENDENT PAYMENT CONSENT</p>
-          <h1>Help with a payment.<br><em>Keep the final say.</em></h1>
-          <p class="hero-lede">A trusted Helper can prepare the details. The Buyer can review, ask questions and make their own decision — without handing over control.</p>
-          <p class="boundary"><strong>DEMO ONLY — interactive simulation.</strong> No real PayPal response, passkey ceremony or payment. Optional AI question routing uses Groq when configured; otherwise local matching is used. No account is needed.</p>
-          <div class="hero-actions"><a class="button primary" id="start" href="#review-heading">Start the guided demo</a><a class="hero-secondary" href="#how-it-works">See how it works</a></div>
-          <p class="hero-footnote">Synthetic data only · No money moves · No credentials required</p>
-        </div>
-        <aside class="preview" aria-label="Illustrative synthetic request, not live payment data">
-          <div class="preview-head"><span class="preview-mark" aria-hidden="true">S</span><span>PAYMENT REVIEW</span><span class="preview-demo">SIMULATED</span></div>
-          <p class="preview-kicker">Your decision, your terms</p>
-          <h2 class="preview-amount">2.00 <small>USD</small></h2>
-          <p class="preview-recipient">Example Store <span>Unverified merchant</span></p>
-          <div class="preview-details"><span>Item</span><strong>A5 ruled journal</strong><span>Recorded quantity</span><strong>2 units</strong><span>Expected quantity</span><strong>1 unit</strong></div>
-          <p class="preview-note"><span aria-hidden="true">!</span> Review needed: the quantity doesn't match your expectation.</p>
-          <div class="preview-bottom"><span class="preview-dot" aria-hidden="true"></span> Awaiting Buyer's independent decision</div>
-          <p class="preview-disclaimer">Static illustration, not PayPal verification or an approval.</p>
-        </aside>
+  <a class="skip" href="#main">Skip to the demo</a>
+  <header class="demo-header">
+    <div class="demo-header-inner">
+      <a class="demo-brand" href="/">
+        <span class="demo-brand-mark" aria-hidden="true">S</span>
+        <span>SaySure<small>Your money. Your final say.</small></span>
+      </a>
+      <div class="demo-header-actions">
+        <span class="demo-mode-badge">INTERACTIVE DEMO</span>
+        <a class="demo-exit" href="/">Back to website</a>
+        <a class="demo-workspace-link" href="/app">Open workspace</a>
       </div>
     </div>
   </header>
-  <main id="main">
-    <div class="demo-container">
-      <section class="journey" id="how-it-works" aria-labelledby="journey-heading">
-        <div class="section-intro"><p class="eyebrow">HOW SAYSURE WORKS</p><h2 id="journey-heading">One request. Two distinct roles. One final say.</h2></div>
-        <div class="journey-grid">
-          <div class="journey-step"><span class="step-number">01</span><h3>Helper prepares</h3><p>The Helper enters the payment details. They cannot approve for the Buyer.</p></div>
-          <div class="journey-step"><span class="step-number">02</span><h3>Buyer understands</h3><p>Exact facts, optional speech and grounded answers make it easier to review before deciding.</p></div>
-          <div class="journey-step"><span class="step-number">03</span><h3>Buyer decides</h3><p>Approve or decline independently. In the real local app, approval requires the Buyer's passkey.</p></div>
+
+  <main id="main" class="demo-main">
+    <div class="demo-intro">
+      <div>
+        <p class="eyebrow">BUYER EXPERIENCE · GUIDED WALKTHROUGH</p>
+        <h1>Review a payment request.</h1>
+        <p>Check the details, ask a question, and decide what should happen next.</p>
+      </div>
+      <span class="demo-no-account">NO ACCOUNT REQUIRED</span>
+    </div>
+
+    <div class="demo-steps" aria-label="Three steps in the review">
+      <div class="demo-step active"><span>01</span> Review details</div>
+      <div class="demo-step"><span>02</span> Understand</div>
+      <div class="demo-step"><span>03</span> Decide</div>
+    </div>
+
+    <div class="demo-simulation-banner" role="note">
+      <strong>SIMULATION ONLY</strong>
+      <span>This sample uses fictional details. It does not connect to PayPal, request a passkey, or move money.</span>
+    </div>
+
+    <p id="message" role="status" aria-live="polite" tabindex="-1"></p>
+
+    <div class="demo-layout">
+      <section class="review-card" aria-labelledby="review-heading">
+        <div class="demo-card-header">
+          <div>
+            <p class="card-kicker">STEP 01 · PAYMENT REVIEW</p>
+            <h2 id="review-heading" tabindex="-1">Check the request</h2>
+          </div>
+          <span class="review-status" id="demo-status">REVIEW NEEDED</span>
+        </div>
+        <div id="review"></div>
+
+        <div class="decision-panel">
+          <p class="card-kicker">STEP 03 · YOUR DECISION</p>
+          <h3>What would you like to do?</h3>
+          <p>In the real workspace, only the Buyer can record consent with their own passkey. Here, both choices are simulated.</p>
+          <div role="group" class="decision-actions" aria-label="Simulated Buyer decisions">
+            <button class="primary" id="approve" type="button">Simulate consent approval</button>
+            <button id="decline" type="button">Decline request</button>
+          </div>
+          <p class="decision-note">Approval is not PayPal approval and does not complete a payment.</p>
+        </div>
+        <div id="payment-audio"></div>
+      </section>
+
+      <section class="help-card" aria-labelledby="help-heading">
+        <div class="demo-card-header">
+          <div>
+            <p class="card-kicker">STEP 02 · UNDERSTAND</p>
+            <h2 id="help-heading">Questions before deciding</h2>
+          </div>
+          <span class="helper-mark" aria-hidden="true">?</span>
+        </div>
+        <p class="help-intro">Get a plain-language explanation based on this sample. Listening never approves anything.</p>
+
+        <label for="question">Choose a question</label>
+        <select id="question">
+          <option value="difference">Why does my total differ from what I expected?</option>
+          <option value="items">What items am I being charged for?</option>
+          <option value="merchant">Is this the same merchant I expected?</option>
+          <option value="payment">Has payment already happened?</option>
+          <option value="decline">What happens if I decline?</option>
+          <option value="simple">Can you explain this in simpler language?</option>
+        </select>
+        <button id="answer" type="button">Explain this question</button>
+        <p id="explanation" role="status" aria-live="polite"></p>
+        <div id="answer-audio"></div>
+
+        <div class="ai-question-panel">
+          <p class="ai-label">ASK IN YOUR OWN WORDS <span>Optional AI-assisted topic matching</span></p>
+          <label for="buyer-question">What would you like to know?</label>
+          <input id="buyer-question" type="text" maxlength="300" autocomplete="off" aria-describedby="buyer-question-note" placeholder="e.g. Why is the amount different?">
+          <p id="buyer-question-note">Avoid personal, merchant or payment details. Only a best-effort redacted question is sent for topic matching when AI is configured; otherwise local matching is used.</p>
+          <button id="ask-question" type="button" class="primary">Ask SaySure</button>
+          <p id="ai-explanation" role="status" aria-live="polite"></p>
         </div>
       </section>
-      <div class="workspace-heading"><div><p class="eyebrow">INTERACTIVE WALKTHROUGH</p><h2>See the review flow</h2></div><span class="demo-tag">DEMO DATA · NO PAYMENT</span></div>
-      <p id="message" role="status" aria-live="polite" tabindex="-1"></p>
-      <div class="demo-layout">
-        <section class="review-card" aria-labelledby="review-heading">
-          <p class="card-kicker">STEP 01 · REVIEW</p>
-          <h2 id="review-heading" tabindex="-1">Review, then decide</h2>
-          <div id="review"></div>
-          <a class="explanation-link" href="#help-heading">Listen / explain the quantity difference</a>
-          <p>Check the recipient, amount, currency and items. In the application, the Buyer records consent with their own passkey. Here, choices are simulated.</p>
-          <div role="group" class="decision-actions" aria-label="Simulated choices"><button class="primary" id="approve">Simulate local consent approval</button><button id="decline">Simulate decline</button></div>
-          <div id="payment-audio"></div>
-        </section>
-        <section class="help-card" aria-labelledby="help-heading">
-          <p class="card-kicker">STEP 02 · UNDERSTAND</p>
-          <h2 id="help-heading" tabindex="-1">Understand this request</h2>
-          <p>Answers use only recorded demo details. Listening never approves anything. Your browser or OS supplies the voice; audio may be heard by others.</p>
-          <label for="question">Choose a buyer question</label>
-          <select id="question">
-            <option value="difference">Why does my total differ from what I expected?</option>
-            <option value="items">What items am I being charged for?</option>
-            <option value="merchant">Is this the same merchant I expected?</option>
-            <option value="payment">Has payment already happened?</option>
-            <option value="decline">What happens if I decline?</option>
-            <option value="simple">Can you explain this in simpler language?</option>
-          </select>
-          <button id="answer">Explain selected question</button>
-          <p id="explanation" role="status" aria-live="polite"></p>
-          <div id="answer-audio"></div>
-          <div class="ai-question-panel">
-            <p class="ai-label">AI-ASSISTED CLARITY <span>Bounded, factual answers</span></p>
-            <label for="buyer-question">Ask a question in your own words</label>
-            <input id="buyer-question" type="text" maxlength="300" autocomplete="off" aria-describedby="buyer-question-note" placeholder="e.g. Does my passkey make a payment?">
-            <p id="buyer-question-note">Only a best-effort redacted question is sent for topic selection when Groq is configured. No transaction record is attached. Redaction is not a guarantee; avoid personal, merchant or payment details.</p>
-            <button id="ask-question" type="button" class="primary">Ask SaySure (AI-assisted)</button>
-            <p id="ai-explanation" role="status" aria-live="polite"></p>
-          </div>
-        </section>
+    </div>
+
+    <details class="advanced">
+      <summary>Advanced demo controls</summary>
+      <p>These controls change only this browser's synthetic fixture. A revision invalidates the previous simulated decision.</p>
+      <div role="group" aria-label="Simulation evidence type">
+        <button id="synthetic" type="button" aria-pressed="true">Synthetic request</button>
+        <button id="mock" type="button" aria-pressed="false">MOCK PayPal order</button>
       </div>
-      <details class="advanced"><summary>Advanced: simulation scenarios and operator testing</summary>
-        <p>These controls change only this browser simulation. Switching evidence type starts a new scenario and clears the decision and revision. Use Start again to repeat the selected scenario.</p>
-        <div role="group" aria-label="Simulation evidence type"><button id="synthetic" aria-pressed="true">Synthetic request</button><button id="mock" aria-pressed="false">MOCK PayPal order</button></div>
-        <button id="reset">Start again</button>
-        <button id="revise">Change fixture quantity (invalidates simulated consent)</button>
-        <p>Operator / developer illustration: single-use local consent is separate from making a payment.</p>
-        <button id="consume">Simulate consuming consent once</button>
-        <p>Your real localhost passkeys, accounts and consent evidence are not accessed by this demo.</p>
-      </details>
+      <button id="reset" type="button">Start again</button>
+      <button id="revise" type="button">Change fixture quantity (invalidates simulated consent)</button>
+      <p>Operator illustration: local consent is separate from payment execution.</p>
+      <button id="consume" type="button">Simulate consuming consent once</button>
+      <p>Your real account, passkeys and workspace records are never accessed by this demo.</p>
+    </details>
+
+    <div class="demo-bottom-nav">
+      <a href="/">← Back to SaySure</a>
+      <a href="/app">Have an account? Open your workspace →</a>
     </div>
   </main>
-  <footer class="demo-footer"><div><strong>SaySure</strong><span>Your money. Your final say.</span></div><p>Automated protocol tests use virtual authenticators and synthetic data. This simulation does not establish comprehension benefit or production readiness.</p><a href="https://github.com/Alike001/saysure">Open-source repository</a></footer>
+
+  <footer class="demo-footer">
+    <strong>SaySure</strong>
+    <span>Buyer-controlled consent · Synthetic data · No payment operation</span>
+  </footer>
 </body>
 </html>

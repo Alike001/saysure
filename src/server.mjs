@@ -21,6 +21,8 @@ export async function startLocalServer(preparedIntegration) {
       const result = await provisionStaging(store, env);
       if (result.created) {
         console.log('Staging accounts provisioned. Remove STAGING_*_PASSWORD values from deployment settings after first successful start.');
+      } else if (result.rotated) {
+        console.log('Staging account passwords rotated and existing sessions invalidated. Remove STAGING_ROTATE_PASSWORDS and STAGING_*_PASSWORD values from deployment settings after first successful start.');
       }
       console.log('Persistence: PostgreSQL pool ready.');
     } else {

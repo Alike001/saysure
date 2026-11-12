@@ -31,11 +31,11 @@ The PostgreSQL-backed SaySure staging application serves the complete experience
 
 The landing page, synthetic walkthrough and authenticated workspace are routes on the same application. The demo does not send visitors to a second Render URL. Visitors can explore the demo without an account or PayPal account. Workspace access currently uses SaySure credentials provisioned by the project owner; public self-registration is not enabled.
 
-The guided demo is stateless at the route level: it uses fixed synthetic fixtures, has no login or passkey ceremony, and does not read or write workspace records or call PayPal. Its bounded buyer-question endpoint uses local deterministic matching unless `GROQ_API_KEY` is privately configured.
+The guided demo opens directly into the synthetic Buyer review rather than a second marketing page. It uses fixed sample details, has no login or passkey ceremony, and does not read or write workspace records or call PayPal. Visitors can inspect the request, ask fixed or free-form questions, simulate approval or decline, and test a revision. Its bounded buyer-question endpoint uses local deterministic matching unless `GROQ_API_KEY` is privately configured.
 
 The authenticated workspace uses PostgreSQL persistence and the existing Helper/Buyer role separation and passkey-backed local consent. Its optional PayPal sandbox order inspection remains read-only and operator-allowlisted. SaySure consent is not PayPal payer approval, authorization, capture or payment completion. Checkout, capture, refunds, verified webhooks and payment reconciliation are not live.
 
-See [unified Render deployment and safety boundary](docs/PUBLIC-DEMO-DEPLOYMENT.md) and [PayTale integration status](docs/PAYTALE-SAYSURE-INTEGRATION.md).
+See [unified Render deployment and safety boundary](docs/PUBLIC-DEMO-DEPLOYMENT.md), [staging workspace access and test instructions](docs/STAGING-ACCESS.md), and [PayTale integration status](docs/PAYTALE-SAYSURE-INTEGRATION.md).
 
 ## Automated verification
 
