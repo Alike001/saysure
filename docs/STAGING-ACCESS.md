@@ -50,3 +50,14 @@ The rotation is accepted only when the database contains exactly the expected th
 ## Adding more people
 
 Public registration is deliberately disabled. The current staging release supports one Helper and two Buyer test accounts. Do not share one Buyer identity among multiple people if you need attributable, independent test evidence. Additional named test accounts and an invitation workflow should be designed separately before expanding access.
+
+
+## Self-service judge testing (private synthetic trial)
+The public staging workspace now provides a bounded, no-signup way to exercise **the actual authenticated Helper/Buyer APIs**:
+1. Open `/app` and select **Create private test workspace**. The server creates an isolated Helper and Buyer identity, logs the Helper in, and preloads one clearly fictional request. Save the **Helper username/password** presented once.
+2. Copy **only** the one-time Buyer invitation code (valid for 30 minutes), and give it to another person or open a separate browser profile/device. The Helper must not use the Buyer's passkey.
+3. The Buyer opens `/app`, enters the invitation code under **Join as Buyer**, and receives a private username/password upon claiming it. The invitation cannot be reused.
+4. Buyer refreshes the pending request, then declines without a passkey or registers their own passkey for local consent. The Helper sees their own request status after refreshing.
+5. Test trials do **not** allow PayPal order imports or payment operations. Private trial accounts are limited and isolated to their designated Buyer; there is no email identity verification and these are not production user accounts.
+
+Staging maintains its original fixed accounts for owner testing. Trial identities are stored separately and do not affect their passwords, sessions, passkeys or records. A trial invite is shown once; retain the code before closing that page.

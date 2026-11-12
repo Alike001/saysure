@@ -412,3 +412,59 @@ body.demo { max-width: none; margin: 0; padding: 0; background: #f3f6fc; color: 
   .demo .demo-cases { display: flex; width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; gap: .6rem; padding: .15rem .15rem .65rem; scroll-snap-type: x proximity; }
   .demo .demo-case { flex: 0 0 min(76vw,225px); scroll-snap-align: start; }
 }
+
+
+/* Unified high-fidelity navigation across guided demo and protected workspace. */
+body.demo { background:linear-gradient(180deg,#f4f8ff,#f7f9fd 520px); }
+.demo-header { background:rgba(255,255,255,.97); border-bottom:1px solid #e1e9f6; color:#102c50; position:sticky; top:0; z-index:45; backdrop-filter:blur(15px); }
+.demo-header-inner { min-height:72px; }
+.demo-brand { color:#0f2d50; }
+.demo-brand:hover { color:#155eef; }
+.demo-brand small { color:#7187a3; }
+.demo-brand-mark { background:linear-gradient(135deg,#2775fc,#777aff); border-radius:11px; width:38px; height:38px; font-size:1.27rem; }
+.demo-mode-badge { color:#215eae; background:#edf5ff; border:1px solid #ceddf5; }
+.demo-exit { color:#536f8e; }
+.demo-workspace-link { color:#fff; border:1px solid #092c51; background:#092c51; border-radius:99px; min-height:39px; padding:.45rem .95rem; }
+.demo-workspace-link:hover { color:#fff; background:#155eef; border-color:#155eef; }
+.demo-main { padding-top:clamp(1.5rem,3.5vw,2.8rem); }
+.demo-intro .eyebrow { color:#2166cf; }
+.demo-intro h1 { font-size:clamp(2rem,4vw,3rem); }
+.demo-no-account { text-decoration:none; border:0; background:#155eef; color:#fff; padding:.75rem 1.05rem; border-radius:99px; box-shadow:0 10px 20px rgba(25,95,218,.15); letter-spacing:0; }
+.demo-no-account:hover { color:#fff; background:#1048b8; }
+.demo-command,.demo .demo-layout > section,.demo .demo-helper-console { border-radius:1.2rem; border-color:#dee8f6; box-shadow:0 12px 34px rgba(8,42,92,.04); }
+.demo-steps { border-color:#e1e8f3; }
+.demo .review-status { white-space:normal; text-align:center; }
+@media(max-width:700px) {
+  .demo-header-inner { width:min(100% - 1.5rem,1240px); gap:.45rem; }
+  .demo-header-actions { gap:.35rem; }
+  .demo-mode-badge { display:none; }
+  .demo-exit { display:none; }
+  .demo-workspace-link { padding:.45rem .55rem; font-size:.72rem; }
+  .demo-main { width:min(100% - 1.5rem,1240px); }
+  .demo-intro { align-items:flex-start; flex-direction:column; }
+}
+.application { max-width:70rem; padding:1rem 1.5rem; }
+.application .app-header { border:0; padding:.5rem 0 1.15rem; border-bottom:1px solid #dbe4f1; }
+.application .app-header h1 { color:#102c50; font-weight:850; letter-spacing:-.05em; }
+.application .app-home-link { color:#fff; background:#092c51; border-color:#092c51; border-radius:999px; padding:.5rem .9rem; }
+.application .app-home-link:hover { color:#fff; background:#155eef; }
+.application #login-panel { border:1px solid #d7e3f1; border-radius:1.2rem; box-shadow:0 20px 50px rgba(11,50,101,.07); }
+.application #login-panel h2 { color:#0c315a; letter-spacing:-.035em; }
+.application .trial-access-options { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:1rem; margin:1.5rem 0 1rem; }
+.application .trial-access-card { min-width:0; padding:1.1rem; border:1px solid #d9e5f4; border-radius:.9rem; background:#f6f9ff; }
+.application .trial-access-card h3 { margin:.1rem 0 .45rem; font-size:1.1rem; color:#0f3155; }
+.application .trial-access-card p { margin:.45rem 0; font-size:.86rem; color:#536b86; }
+.application .trial-access-card button { width:100%; margin:.75rem 0 0; }
+.application .trial-access-card form { margin:0; }
+.application #trial-access { background:#eff7ff; border:1px solid #bbd5f6; border-radius:.9rem; padding:1rem 1.2rem; margin:.8rem 0; }
+.application #trial-access h2 { margin:.2rem 0; font-size:1.3rem; color:#12355d; }
+.application #trial-access p { font-size:.83rem; margin:.45rem 0; }
+.application #trial-access dl { display:grid; grid-template-columns:minmax(0,12rem) minmax(0,1fr); gap:.5rem; margin:.65rem 0; }
+.application #trial-access dt { color:#536b86; }
+.application #trial-access dd { margin:0; overflow-wrap:anywhere; font:600 .85rem ui-monospace,monospace; }
+.application #trial-access .credential-sensitive { background:#fff; border:1px solid #c7d9ed; padding:.3rem .5rem; border-radius:.4rem; }
+.application .trial-help-notice { color:#526987; font-size:.8rem; }
+@media(max-width:660px) {
+  .application .trial-access-options { grid-template-columns:minmax(0,1fr); }
+  .application #trial-access dl { grid-template-columns:minmax(0,1fr); }
+}

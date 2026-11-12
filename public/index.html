@@ -13,7 +13,7 @@
 <section id="login-panel" aria-labelledby="login-heading">
 <h2 id="login-heading">Sign in to your workspace</h2>
 <p>A Helper prepares the request. The Buyer independently reviews the recipient, amount and details, then decides whether to approve or decline.</p>
-<p>Sign in with your SaySure account — a PayPal account is not required. Workspace accounts are currently issued by the project owner; public sign-up is disabled.</p>
+<p>Sign in with an existing SaySure account, or start a private two-person test workspace below. A PayPal account is not required. All trial requests are synthetic and cannot move money.</p>
 <div class="login-access-guide">
   <strong>Testing with another person</strong>
   <ol>
@@ -23,12 +23,37 @@
   </ol>
   <p>Use separate browser profiles or devices for the Helper and Buyer. Never share a Buyer's password or passkey with a Helper.</p>
 </div>
+<div class="trial-access-options" aria-label="Try the authenticated workflow">
+  <div class="trial-access-card">
+    <h3>Start a real-workspace test</h3>
+    <p>Create your own isolated Helper account and a one-time invitation for a Buyer. A sample request is preloaded for testing. No signup, shared password or PayPal account needed.</p>
+    <button type="button" id="trial-start" class="primary">Create private test workspace</button>
+  </div>
+  <div class="trial-access-card">
+    <h3>Have a Buyer invitation?</h3>
+    <p>Open this page in a separate browser or device and enter the invitation received from the Helper. You will get your own Buyer password.</p>
+    <form id="trial-claim-form"><label for="trial-code">One-time Buyer invitation code</label>
+      <input id="trial-code" name="invitation" type="text" autocomplete="off" maxlength="43" minlength="43" required placeholder="Paste invitation code">
+      <button type="submit">Join as Buyer</button>
+    </form>
+  </div>
+</div>
+<p class="trial-help-notice">Test workspaces are capped and intended only for judge evaluation. Invitation codes expire after 30 minutes. Save your credentials securely and do not share your Buyer's passkey.</p>
 <p class="login-demo-note">Just exploring? <a href="/demo">Open the interactive demo — no account required.</a></p>
 <p id="login-error" class="field-error" role="alert"></p><form id="login"><label for="username">Username</label><input id="username" aria-describedby="login-error" name="username" autocomplete="username" required>
 <label for="password">Account secret</label><input id="password" aria-describedby="login-error" name="password" type="password" autocomplete="current-password" required>
 <button>Sign in</button></form></section>
 <section id="account" hidden aria-labelledby="account-heading"><h2 id="account-heading" tabindex="-1">Your workspace</h2>
 <p id="identity"></p><button id="logout" type="button">Sign out</button>
+</section>
+<section id="trial-access" hidden aria-labelledby="trial-access-heading">
+  <h2 id="trial-access-heading" tabindex="-1">Save your test workspace access</h2>
+  <p>Shown once. These are synthetic-workspace credentials, not PayPal credentials. Save them in a password manager before leaving this page.</p>
+  <dl><dt>Username</dt><dd id="trial-username" class="credential-sensitive"></dd>
+      <dt>Account password</dt><dd id="trial-password" class="credential-sensitive"></dd>
+      <dt id="trial-invite-label" hidden>Buyer invitation</dt><dd id="trial-invitation" class="credential-sensitive" hidden></dd></dl>
+  <p id="trial-access-instructions"></p>
+  <button type="button" id="trial-copy">Copy my test access details</button>
 </section>
 <section id="helper" hidden aria-labelledby="helper-heading"><h2 id="helper-heading">Prepare a synthetic request</h2>
 <p>Merchant details are entered by the helper and are <strong>not independently verified</strong>.</p>

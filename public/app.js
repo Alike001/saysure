@@ -3,6 +3,21 @@ import { stopAudio } from './presentation.js';
 import { renderRequests } from './review.js';
 const $ = id => document.getElementById(id);
 let session;
+let trialAccessDetails = null;
+function showTrialDetails(data, helperRole) {
+  trialAccessDetails = data;
+  $('trial-access').hidden = false;
+  $('trial-username').textContent = data.username;
+  $('trial-password').textContent = data.password;
+  $('trial-invite-label').hidden = !helperRole;
+  $('trial-invitation').hidden = !helperRole;
+  $('trial-invitation').textContent = helperRole ? data.invitation : '';
+  $('trial-access-instructions').textContent = helperRole
+    ? 'Copy the invitation and send it privately to your Buyer. They must open /app in a separate browser and choose Join as Buyer. Your Helper account cannot approve for them.'
+    : 'You are now signed in as Buyer. Review the pending fictional request below; decline it or enroll your own passkey to record local consent. No payment occurs.';
+  $('trial-access-heading').focus();
+}
+
 const explanations = {
   DETAILS_CHANGED_REVIEW_AGAIN: 'Details changed. Refresh and review the whole request again.',
   CHALLENGE_EXPIRED_OR_USED: 'This passkey challenge expired or was already used. Refresh and try again.',
@@ -150,7 +165,34 @@ $('login').addEventListener('submit', event => {
   });
 });
 $('logout').addEventListener('click', event => perform(event.target, async () => {
-  await api('/api/logout', {}); resetForm(); await load(); $('username').focus(); notify('Signed out.', false);
+  await api('/api/logout', {}); resetForm(); trialAccessDetails = null;
+  $('trial-access').hidden = true;
+  $('trial-password').textContent = '';
+  $('trial-invitation').textContent = '';
+  await load(); $('username').focus(); notify('Signed out.', false);
+}));
+$('trial-start').addEventListener('click', event => perform(event.target, async () => {
+  const created = await api('/api/trial/create', {});
+  await load(); showTrialDetails(created, true);
+  notify('Your private synthetic Helper workspace is ready. Save the access details and share only the Buyer invitation code.');
+}));
+$('trial-claim-form').addEventListener('submit', event => {
+  event.preventDefault();
+  perform(event.submitter, async () => {
+    const invitation = $('trial-code').value.trim();
+    const created = await api('/api/trial/claim', { invitation });
+    $('trial-code').value = '';
+    await load(); showTrialDetails(created, false);
+    notify('Buyer invitation claimed. Your credential is private to this browser; register your own passkey if you choose to consent.');
+  });
+});
+$('trial-copy').addEventListener('click', event => perform(event.target, async () => {
+  if (!trialAccessDetails) throw new Error('Your one-time access details are no longer available.');
+  const value = 'SaySure synthetic test workspace\\nUsername: ' + trialAccessDetails.username +
+    '\\nPassword: ' + trialAccessDetails.password +
+    (trialAccessDetails.invitation ? '\\nBuyer invitation (share code only): ' + trialAccessDetails.invitation : '');
+  await navigator.clipboard.writeText(value.replaceAll('\\n','\n'));
+  notify('Test access details copied. Store them privately, and only share the invitation code with the Buyer.');
 }));
 $('register').addEventListener('click', event => perform(event.target, async () => {
   if (!window.PublicKeyCredential || !window.isSecureContext) throw new Error('A secure context and WebAuthn-capable browser are required.');
