@@ -17,11 +17,16 @@
     "demo": "node scripts/demo.mjs",
     "audit:release": "node scripts/release-audit.mjs",
     "test:release": "node --import ./scripts/offline-test-guard.mjs --test test/release-audit.test.mjs",
-    "configure:ai": "node scripts/configure-ai.mjs"
+    "configure:ai": "node scripts/configure-ai.mjs",
+    "start:public-demo": "node scripts/hosted-demo.mjs",
+    "migrate": "node scripts/migrate.mjs",
+    "provision:staging": "node scripts/provision-staging.mjs",
+    "test:postgres": "node --test test/postgres-integration.test.mjs"
   },
   "dependencies": {
     "@simplewebauthn/browser": "14.0.0",
-    "@simplewebauthn/server": "14.0.3"
+    "@simplewebauthn/server": "14.0.3",
+    "pg": "8.23.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.14.0",

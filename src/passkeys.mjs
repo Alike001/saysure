@@ -5,52 +5,53 @@ import { buyer } from './identity.mjs';
 
 export function passkeyService(store, requests, config, paypal) {
   const credential = buyerId => store.get('SELECT * FROM credentials WHERE buyer_id=?', buyerId);
-  function liveSession(session) {
-    ensure(store.get('SELECT id FROM sessions WHERE id=? AND user_id=? AND expires>?',
+  async function liveSession(session, executor = store) {
+    ensure(await executor.get('SELECT id FROM sessions WHERE id=? AND user_id=? AND expires>?',
       session.id, session.user_id, Date.now()), 'SESSION_EXPIRED', 401);
   }
-  function saveChallenge(session, kind, challenge, row = null) {
+  async function saveChallenge(session, kind, challenge, row = null) {
     const id = random();
-    store.atomic(() => {
-      liveSession(session);
-      store.run('UPDATE challenges SET used=2 WHERE session_id=? AND kind=?', session.id, kind);
-      store.run(`INSERT INTO challenges(id,session_id,buyer_id,kind,request_id,digest,challenge,expires)
+    await store.transaction(async tx => {
+      await liveSession(session, tx);
+      await tx.run('UPDATE challenges SET used=2 WHERE session_id=? AND kind=?', session.id, kind);
+      await tx.run(`INSERT INTO challenges(id,session_id,buyer_id,kind,request_id,digest,challenge,expires)
         VALUES(?,?,?,?,?,?,?,?)`, id, session.id, session.user_id, kind, row?.id ?? null,
       row?.digest ?? null, challenge, Math.min(Date.now() + 120_000,
         row ? JSON.parse(row.snapshot).expires_at : session.expires));
     });
     return id;
   }
-  function take(session, kind, id, requestId = null) {
+  async function take(session, kind, id, requestId = null) {
     buyer(session);
     ensure(typeof id === 'string' && /^[A-Za-z0-9_-]{43}$/.test(id), 'INVALID_CHALLENGE_ID', 400);
-    return store.atomic(() => {
-      liveSession(session);
-      const c = store.get('SELECT * FROM challenges WHERE id=?', id);
+    return store.transaction(async tx => {
+      await liveSession(session, tx);
+      const c = await tx.get('SELECT * FROM challenges WHERE id=?', id);
       ensure(c && c.session_id === session.id && c.buyer_id === session.user_id &&
         c.kind === kind && c.request_id === requestId, 'CHALLENGE_NOT_OWNED', 403);
       ensure(c.used === 0 && c.expires > Date.now(), 'CHALLENGE_EXPIRED_OR_USED');
-      store.run('UPDATE challenges SET used=1 WHERE id=? AND used=0', id);
+      const updated = await tx.run('UPDATE challenges SET used=1 WHERE id=? AND used=0', id);
+      ensure(updated.changes === 1, 'CHALLENGE_EXPIRED_OR_USED');
       return c;
     });
   }
-  function stillCurrent(session, c) {
-    liveSession(session);
-    ensure(c.expires > Date.now() && store.get('SELECT used FROM challenges WHERE id=?', c.id)?.used === 1,
+  async function stillCurrent(session, c, executor = store) {
+    await liveSession(session, executor);
+    ensure(c.expires > Date.now() && (await executor.get('SELECT used FROM challenges WHERE id=?', c.id))?.used === 1,
       'CHALLENGE_EXPIRED_OR_SUPERSEDED');
   }
   async function registrationOptions(session) {
     buyer(session);
-    ensure(!credential(session.user_id), 'BUYER_ALREADY_ENROLLED');
-    const options = await generateRegistrationOptions({ rpName: 'Synthetic consent experiment', rpID: config.rpID,
+    ensure(!await credential(session.user_id), 'BUYER_ALREADY_ENROLLED');
+    const options = await generateRegistrationOptions({ rpName: 'SaySure', rpID: config.rpID,
       userName: session.user_id, userID: new TextEncoder().encode(session.user_id),
       attestationType: 'none', supportedAlgorithmIDs: [-7, -257], timeout: 120_000,
       authenticatorSelection: { residentKey: 'required', userVerification: 'required' } });
-    return { options, challengeId: saveChallenge(session, 'register', options.challenge) };
+    return { options, challengeId: await saveChallenge(session, 'register', options.challenge) };
   }
   async function register(session, input) {
-    const c = take(session, 'register', input.challengeId);
-    ensure(!credential(session.user_id), 'BUYER_ALREADY_ENROLLED');
+    const c = await take(session, 'register', input.challengeId);
+    ensure(!await credential(session.user_id), 'BUYER_ALREADY_ENROLLED');
     clientData(input.response);
     let result;
     try {
@@ -60,39 +61,38 @@ export function passkeyService(store, requests, config, paypal) {
     } catch { throw new Failure('PASSKEY_REGISTRATION_FAILED', 400); }
     ensure(result.verified && result.registrationInfo.userVerified, 'PASSKEY_REGISTRATION_FAILED', 400);
     const info = result.registrationInfo, key = info.credential;
-    store.atomic(() => {
-      stillCurrent(session, c);
-      ensure(!credential(session.user_id) && !store.get('SELECT id FROM credentials WHERE id=?', key.id),
+    await store.transaction(async tx => {
+      await stillCurrent(session, c, tx);
+      ensure(!await tx.get('SELECT id FROM credentials WHERE buyer_id=? OR id=?', session.user_id, key.id),
         'BUYER_ALREADY_ENROLLED');
-      store.run('INSERT INTO credentials VALUES(?,?,?,?,?,?,?)', key.id, session.user_id,
+      await tx.run('INSERT INTO credentials VALUES(?,?,?,?,?,?,?)', key.id, session.user_id,
         Buffer.from(key.publicKey), key.counter, JSON.stringify(key.transports ?? []),
         info.credentialDeviceType, Number(info.credentialBackedUp));
-      store.run('UPDATE challenges SET used=3 WHERE id=?', c.id);
-      store.event(session.user_id, 'passkey_registered');
+      await tx.run('UPDATE challenges SET used=3 WHERE id=?', c.id);
+      await tx.event(session.user_id, 'passkey_registered');
     });
     return { registered: true, user_verified: true };
   }
   async function approvalOptions(session, id, expectedDigest) {
     buyer(session);
-    const row = requests.owned(id, session); requests.intact(row);
+    const row = await requests.owned(id, session); requests.intact(row);
     ensure(row.status === 'pending', 'REQUEST_NOT_PENDING');
     ensure(row.digest === expectedDigest, 'DETAILS_CHANGED_REVIEW_AGAIN');
-    const key = credential(session.user_id);
+    const key = await credential(session.user_id);
     ensure(key, 'ENROLL_BUYER_PASSKEY_FIRST');
     const proof = await paypal?.revalidate(session, id);
     const options = await generateAuthenticationOptions({ rpID: config.rpID, timeout: 120_000,
       userVerification: 'required', allowCredentials: [{ id: key.id, transports: JSON.parse(key.transports) }] });
-    // Recheck after the asynchronous library call, before binding the challenge.
-    const current = requests.owned(id, session); requests.intact(current);
+    const current = await requests.owned(id, session); requests.intact(current);
     ensure(current.status === 'pending' && current.digest === row.digest, 'DETAILS_CHANGED_REVIEW_AGAIN');
-    requests.assertEvidence(current, proof);
-    return { options, challengeId: saveChallenge(session, 'approve', options.challenge, current), digest: current.digest };
+    await requests.assertEvidence(current, proof);
+    return { options, challengeId: await saveChallenge(session, 'approve', options.challenge, current), digest: current.digest };
   }
   async function approve(session, id, input) {
-    const c = take(session, 'approve', input.challengeId, id);
-    const row = requests.owned(id, session); requests.intact(row);
+    const c = await take(session, 'approve', input.challengeId, id);
+    const row = await requests.owned(id, session); requests.intact(row);
     ensure(row.status === 'pending' && row.digest === c.digest, 'DETAILS_CHANGED_REVIEW_AGAIN');
-    const key = credential(session.user_id);
+    const key = await credential(session.user_id);
     ensure(key && input.response?.id === key.id, 'WRONG_BUYER_CREDENTIAL', 403);
     clientData(input.response);
     const handle = input.response.response.userHandle;
@@ -107,18 +107,18 @@ export function passkeyService(store, requests, config, paypal) {
     } catch { throw new Failure('PASSKEY_AUTHENTICATION_FAILED', 400); }
     ensure(result.verified && result.authenticationInfo.userVerified, 'PASSKEY_AUTHENTICATION_FAILED', 400);
     const proof = await paypal?.revalidate(session, id);
-    return store.atomic(() => {
-      stillCurrent(session, c);
-      const current = requests.owned(id, session); requests.intact(current);
+    return store.transaction(async tx => {
+      await stillCurrent(session, c, tx);
+      const current = await requests.owned(id, session, { executor: tx }); requests.intact(current);
       ensure(current.status === 'pending' && current.digest === c.digest, 'DETAILS_CHANGED_REVIEW_AGAIN');
-      requests.assertEvidence(current, proof);
-      const updated = store.run(`UPDATE requests SET status='approved',consent_digest=?
+      await requests.assertEvidence(current, proof, tx);
+      const updated = await tx.run(`UPDATE requests SET status='approved',consent_digest=?
         WHERE id=? AND status='pending' AND digest=?`, c.digest, id, c.digest);
       ensure(updated.changes === 1, 'ALREADY_APPROVED_OR_MODIFIED');
-      store.run('UPDATE credentials SET counter=? WHERE id=?', result.authenticationInfo.newCounter, key.id);
-      store.run('UPDATE challenges SET used=3 WHERE id=?', c.id);
-      store.event(session.user_id, 'consent_approved', id);
-      return requests.view(store.request(id));
+      await tx.run('UPDATE credentials SET counter=? WHERE id=?', result.authenticationInfo.newCounter, key.id);
+      await tx.run('UPDATE challenges SET used=3 WHERE id=?', c.id);
+      await tx.event(session.user_id, 'consent_approved', id);
+      return requests.view(await tx.request(id), tx);
     });
   }
   return { credential, registrationOptions, register, approvalOptions, approve };

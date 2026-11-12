@@ -1,12 +1,33 @@
 # SaySure
 
+## Live project — how judges can test it
+
+- **Website:** https://saysure-staging-cnhm.onrender.com/
+- **Guided demonstration:** https://saysure-staging-cnhm.onrender.com/demo — no login; five fictional requests and a simulated Helper/Buyer walkthrough
+- **Authenticated workspace:** https://saysure-staging-cnhm.onrender.com/app — select **Start testing** to create your own isolated Helper account, then share the one-use Buyer invitation to a separate browser/device. The Buyer can decline or enroll their own passkey to record local consent.
+
+The main workspace entry **has no sign-in form or public signup**. Returning test users and pre-provisioned owners can access a separate recovery page at **https://saysure-staging-cnhm.onrender.com/app/login** using the credentials they saved when they started. This preserves existing test records without making the guest journey complicated. Nothing in SaySure's test workspace charges, captures, refunds or transfers money.
+
+**README status:** The hosted demo and real workspace are both running with PostgreSQL persistence; the sections below retain older local security milestones as historical background. The [judge walkthrough](docs/STAGING-ACCESS.md) explains access and security limits. The most recent hosted CI results should be checked in [GitHub Actions](https://github.com/Alike001/saysure/actions) and not confused with historical local test counts.
+
+## Hackathon review (November 12, 2026)
+
+The official PayPal AI Hackathon rules require **meaningful integration of both PayPal Developer Platform and an AI tool**. The public SaySure demo at `/demo` is a clearly marked, browser-only simulation. The `/app` route is a functioning, database-backed, two-role consent workflow with independent Buyer passkey approval and a one-use Buyer invitation; it is **not** a PayPal checkout.
+
+**Current staging limitations:** The public judge trial explicitly blocks PayPal sandbox order imports; existing PayPal sandbox code reads allowlisted orders only when configured by the operator, and does not capture or send funds. Groq model-based question classification uses a private `GROQ_API_KEY`; without it, the public deployment uses deterministic local question matching (not live AI). **Do not state that the current hosted judge trial proves a PayPal+AI end-to-end integration.** Confirm operator-approved PayPal evidence and live AI classification separately before describing either as verified. Never run a new sandbox write or expose credentials just to meet a deadline.
+
+**Submit with:** (1) URL `https://saysure-staging-cnhm.onrender.com/` with `/demo` and `/app`, (2) public GitHub repository and MIT license, (3) working judge instructions using the one-click private test workspace, (4) YouTube video under three minutes with a real recorded Helper→Buyer outcome, (5) precise descriptions of verified vs. simulated capabilities and which AI tool was configured, (6) a specific explanation of what was built during the hackathon. The user-facing pages must never claim PayPal capture, refund, or checkout completion.
+
+**Official deadline:** November 12, 2026, 12:00 PM Pacific Standard Time = 9:00 PM West Africa Time. Verify remaining time on Devpost before submitting.
+
+
 **Your money. Your final say.**
 
 Getting help with a digital payment should not mean giving someone else the final say. People who need assistance completing payments, including people who cannot comfortably operate conventional payment interfaces, still need a way to review the details and decide for themselves.
 
 SaySure separates the **Helper**, who prepares a request, from the **Buyer**, who independently reviews the exact amount, currency, merchant reference and description. Readable details, optional speech and grounded questions support that review. Only the Buyer can record passkey-backed local consent; changing reviewed details invalidates it. The Buyer can decline without a passkey.
 
-This is a localhost prototype for exploring that separation. It does not execute payments. Accessibility, comprehension benefits and suitability for intended users have not been established through user research; passkey authentication proves credential control and required user verification, not understanding of a purchase.
+SaySure now includes a hosted, database-backed test workspace and a separate no-login guided demo. Neither executes payments. Accessibility, comprehension benefits and suitability for intended users have not been established through user research; passkey authentication proves credential control and required user verification, not understanding of a purchase.
 
 ## HOW TO TEST — judge quick start
 
@@ -21,9 +42,25 @@ Open **http://localhost:3200**. This is an **isolated synthetic demonstration**.
 
 The demo also includes an **AI-assisted question** control. To enable live Groq classification, supply your own `GROQ_API_KEY` privately in the environment or an ignored `.env`, or run `npm run configure:ai` if a key is already available in the existing local configuration. Never include a key in a video, issue or commit. Without a key, the control uses local deterministic matching. The model receives only a best-effort redacted question string, not the transaction snapshot or order data, and returns a fixed topic; SaySure generates the explanation locally. Do not include personal, merchant or payment details in questions. Redaction is best-effort, not a guarantee. See [AI question-routing boundary](docs/AI-QUESTION-ROUTING.md).
 
+## Hosted SaySure — one domain, one Render service
+
+The PostgreSQL-backed SaySure staging application serves the complete experience from one Render web service and one public origin:
+
+- **Product landing page:** https://saysure-staging-cnhm.onrender.com/
+- **No-login guided demo:** https://saysure-staging-cnhm.onrender.com/demo
+- **Protected Helper/Buyer workspace:** https://saysure-staging-cnhm.onrender.com/app
+
+The landing page, synthetic walkthrough and authenticated workspace are routes on the same application. The demo does not send visitors to a second Render URL. Visitors can explore the demo without an account or PayPal account. Workspace access supports bounded, isolated judge trials at `/app`: start a Helper test, save the automatically issued credentials, and send the one-use Buyer invitation to a separate device or browser. The public workspace entry does not display a sign-in or registration form. Previous test accounts are available through the separate `/app/login` recovery route. Production registration and email verification are not enabled.
+
+The guided demo opens directly into the synthetic Buyer review rather than a second marketing page. It includes five realistic but fictional sample requests, a Buyer/Helper role switch, a browser-only Helper request form, revision invalidation and simulated Buyer decisions. It has no login or passkey ceremony and never reads or writes workspace records or calls PayPal. Visitors can inspect the request, ask fixed or free-form questions, simulate approval or decline, and test a revision. Its bounded buyer-question endpoint uses local deterministic matching unless `GROQ_API_KEY` is privately configured.
+
+The authenticated workspace uses PostgreSQL persistence, optional one-time Buyer trial invitations, and the existing Helper/Buyer role separation and passkey-backed local consent. Its optional PayPal sandbox order inspection remains read-only and operator-allowlisted. SaySure consent is not PayPal payer approval, authorization, capture or payment completion. Checkout, capture, refunds, verified webhooks and payment reconciliation are not live.
+
+See [unified Render deployment and safety boundary](docs/PUBLIC-DEMO-DEPLOYMENT.md), [staging workspace access and test instructions](docs/STAGING-ACCESS.md), and [PayTale integration status](docs/PAYTALE-SAYSURE-INTEGRATION.md).
+
 ## Automated verification
 
-**Latest local verification (November 11, 2026): 206/206 automated tests passed on merged `master`, with no failures or skips; `npm run check` also passed.** These results were run on the contributor's local Linux machine; remote CI and cross-platform accessibility certification are not established. The following earlier checkpoints remain historical.
+**Hosted branch CI (November 12, 2026): 215 passing tests, one skip, zero failures, plus a passing isolated PostgreSQL integration test on commit `8744925`.** The separate `/app/login` recovery route and UI simplification are a subsequent change; verify their current checks in GitHub Actions. Browser/mobile physical-device acceptance remains the operator's responsibility. The older checkpoints below remain historical.
 
 Install **Google Chrome** separately; the tests launch its `chrome` channel through Playwright. With dependencies installed:
 
@@ -49,7 +86,7 @@ npm run setup
 npm start
 ```
 
-Open **http://localhost:3100** exactly. The listener is loopback-only; expected origin is `http://localhost:3100` and RP ID is `localhost`. Do not substitute a LAN address, `127.0.0.1` in the browser, or a different port. If the port is occupied, identify and stop the conflicting process before using this checkout.
+Open **http://localhost:3100/app** exactly for the authenticated workspace. The product landing page is at `http://localhost:3100/`; the no-login synthetic walkthrough is at `http://localhost:3200`. The listener is loopback-only; expected origin remains `http://localhost:3100` and RP ID is `localhost`. Do not substitute a LAN address, `127.0.0.1` in the browser, or a different port. If the port is occupied, identify and stop the conflicting process before using this checkout.
 
 Setup creates separate Helper, buyer-a and buyer-b accounts in ignored private storage. Retrieve each account's secret in a private interactive terminal with `npm run account -- helper` or `npm run account -- buyer-a`. Use separate browser profiles: the Helper creates a synthetic request; the Buyer refreshes their inbox, reviews exact details, and chooses decline or explicit passkey consent. Optional local consumption is single-use and does not move money. A manual passkey test requires the Buyer's own supported authenticator; the detailed procedure follows below.
 
@@ -79,7 +116,7 @@ SaySure is a working name without trademark/domain clearance. This is not a prod
 
 1. Use **two separate browser profiles or different browsers**, one for the helper and one for the buyer. Two tabs share a cookie and are not two identities. Optional buyer-b testing requires a third profile/browser or signing out and signing into that separate account. Never use an automated virtual authenticator for this manual test.
 2. In your private terminal, run `npm run account -- buyer-a`. It displays only buyer-a's local username and secret and refuses noninteractive output. Keep the secret out of chat/logs/screenshots. The local machine administrator can read all bootstrap secrets; that is an explicit trust assumption.
-3. In the buyer profile, sign into `http://localhost:3100` as **buyer-a** using that secret. Confirm the page says `Signed in as buyer-a. Server-assigned role: buyer.`
+3. In the buyer profile, sign into `http://localhost:3100/app` as **buyer-a** using that secret. Confirm the page says `Signed in as buyer-a. Server-assigned role: buyer.`
 4. Select **Register my passkey**. For a real phone-backed test, choose your browser/OS option to use a phone or another device, if offered; follow its native QR/pairing instructions on the buyer’s own phone and unlock there. Provider wording varies; this is not an app button. Keep the desktop buyer profile at the exact localhost URL. If no phone option is offered or pairing fails, record that blocker and stop this phone-backed test; a desktop credential is not a phone-backed result. The authenticator may show the preserved RP display name **Synthetic consent experiment**. Complete your browser/OS authenticator prompt yourself. A biometric, device unlock or security-key PIN may be handled by your authenticator; **never enter a card PIN into this app**. Choose your own authenticator, not the helper's. User verification is required. Canceling or lacking a suitable authenticator must leave the account unenrolled.
 5. Expect **Your passkey was registered to this buyer account. No payment was approved.** Replacement enrollment is disabled. Do not register buyer-a on the helper's device. Do not use a shared OS passkey store if testing independent ownership.
 6. In a private terminal run `npm run account -- helper`. In the helper profile sign in as **helper** with only that account's secret. Confirm server-assigned helper role. The helper must see no passkey-registration or buyer-approval controls.

@@ -31,7 +31,7 @@ async function fixture(t, extra = {}) {
   const initial = reads;
   return { h, helper, buyer, item, id, path, data, reads: () => reads - initial,
     delay(promise) { waiting = promise; },
-    async button() { await buyer.page.reload(); await buyer.page.getByText('Advanced: technical details and operator testing', { exact: true }).click(); const b = buyer.page.getByRole('button', { name: 'Consume consent once (local test only)', exact: true }); await b.waitFor(); return b; } };
+    async button() { await buyer.page.reload(); await buyer.page.getByText('Technical details (optional)', { exact: true }).click(); const b = buyer.page.getByRole('button', { name: 'Consume consent once (local test only)', exact: true }); await b.waitFor(); return b; } };
 }
 test('HTTP 200 approved response is never accepted as a consumption acknowledgement', async t => {
   const f = await fixture(t), button = await f.button();

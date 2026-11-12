@@ -43,10 +43,10 @@ export async function harness(extraConfig = {}) {
         isUserVerified: true, automaticPresenceSimulation: true,
       } }));
     }
-    await page.goto(origin);
+    await page.goto(`${origin}/app/login`);
     const account = accounts.find(a => a.username === name);
     await page.getByLabel('Username', { exact: true }).fill(name);
-    await page.getByLabel('Account secret').fill(account.password);
+    await page.getByLabel('Password', { exact: true }).fill(account.password);
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
     await page.getByText(`Signed in as ${name}.`, { exact: false }).waitFor();
     const call = async (path, body, method = 'POST', extra = {}) => page.evaluate(async ({ path, body, method, extra }) => {

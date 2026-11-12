@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: saysure-staging
+    runtime: node
+    plan: free
+    region: frankfurt
+    branch: feat/saysure-postgres-runtime
+    buildCommand: npm ci --ignore-scripts
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeploy: false
+    numInstances: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PG_POOL_MAX
+        value: "4"
+      - key: DATABASE_URL
+        sync: false
+      - key: STAGING_HELPER_PASSWORD
+        sync: false
+      - key: STAGING_BUYER_A_PASSWORD
+        sync: false
+      - key: STAGING_BUYER_B_PASSWORD
+        sync: false

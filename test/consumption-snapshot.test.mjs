@@ -9,10 +9,10 @@ import { normalizeSandboxOrder } from '../src/paypal-order.mjs';
 import { fixtureOrder, merchant, orderId } from './paypal-fixtures.mjs';
 import { canonicalConsentDigest, validateConsumptionReceipt, matchesConsumedState } from '../public/consumption.js';
 import { reviewedEvidence } from '../public/evidence-provenance.js';
-function fixture(t) {
+async function fixture(t) {
   const store = openStore(':memory:'); provision(store); t.after(() => store.close());
   const requests = requestService(store), now = Date.now();
-  const item = requests.create({ role: 'helper', user_id: 'helper' }, { buyer_id: 'buyer-a', merchant_id: merchant,
+  const item = await requests.create({ role: 'helper', user_id: 'helper' }, { buyer_id: 'buyer-a', merchant_id: merchant,
     merchant_name: 'Fixture reference (unverified)', amount: '1.00', currency: 'USD', description: 'Fixture description' });
   item.snapshot.kind = 'paypal'; item.snapshot.provider = normalizeSandboxOrder(fixtureOrder(), orderId, merchant, now);
   item.snapshot.evidence_provenance = 'mock-paypal-fixture';
@@ -21,20 +21,20 @@ function fixture(t) {
     JSON.stringify(item.snapshot), item.digest, item.digest, item.snapshot.request_id);
   store.run('INSERT INTO paypal_bindings VALUES(?,?,?,1,?)', item.snapshot.request_id, orderId, now, 'mock-paypal-fixture');
   item.paypal_evidence = { provenance: 'mock-paypal-fixture', observed_at: now, current: true, merchant_identity_verified: false };
-  const data = requests.action({ role: 'buyer', user_id: 'buyer-a' }, item.snapshot.request_id, 'consume', item.digest,
+  const data = await requests.action({ role: 'buyer', user_id: 'buyer-a' }, item.snapshot.request_id, 'consume', item.digest,
     { digest: item.digest, observedAt: now, provenance: 'mock-paypal-fixture' });
   data.consumption_receipt.correlation_id = randomUUID();
   return { item, data };
 }
 test('valid PayPal receipt retains original reviewed snapshot and verifies its canonical digest', async t => {
-  const { item, data } = fixture(t);
+  const { item, data } = await fixture(t);
   assert.equal(await canonicalConsentDigest(item.snapshot), item.digest);
   const result = await validateConsumptionReceipt(data, item);
   assert.deepEqual(result.snapshot, item.snapshot); assert.notEqual(result.snapshot, data.snapshot);
   data.snapshot.buyer_id = 'CHANGED_AFTER_VALIDATION'; assert.equal(result.snapshot.buyer_id, 'buyer-a');
 });
 test('all returned transaction details must exactly match the reviewed snapshot', async t => {
-  const { item, data } = fixture(t);
+  const { item, data } = await fixture(t);
   const changes = {
     buyer: d => d.snapshot.buyer_id = 'buyer-b', amount: d => d.snapshot.amount_minor = '999',
     currency: d => d.snapshot.currency = 'EUR', merchant: d => d.snapshot.merchant_id = 'WRONG123',
@@ -54,7 +54,7 @@ test('all returned transaction details must exactly match the reviewed snapshot'
   });
 });
 test('changing the expected snapshot without updating its canonical digest also fails', async t => {
-  const { item, data } = fixture(t), wrong = structuredClone(item);
+  const { item, data } = await fixture(t), wrong = structuredClone(item);
   wrong.snapshot.buyer_id = 'buyer-b'; const returned = structuredClone(data); returned.snapshot.buyer_id = 'buyer-b';
   returned.consumption_receipt.buyer_id = 'buyer-b';
   await assert.rejects(() => validateConsumptionReceipt(returned, wrong), /not confirmed/);
@@ -73,14 +73,14 @@ test('legacy canonical byte domains remain unchanged for synthetic and PayPal sn
     s.nonce, s.expires_at, s.revision]));
   for (const value of [s, paypal]) assert.equal(await canonicalConsentDigest(value), digest(value));
 });
-test('provenance is part of the v2 canonical digest and legacy bytes remain v1', t => {
-  const { item } = fixture(t), changed = structuredClone(item.snapshot);
+test('provenance is part of the v2 canonical digest and legacy bytes remain v1', async t => {
+  const { item } = await fixture(t), changed = structuredClone(item.snapshot);
   assert.match(canonical(changed), /^\["paypal-consent-v2","mock-paypal-fixture"/);
   changed.evidence_provenance = 'authenticated-sandbox-api'; assert.notEqual(digest(changed), item.digest);
   delete changed.evidence_provenance; assert.match(canonical(changed), /^\["paypal-consent-v1"/);
 });
 test('receipt rejects missing, unknown and bidirectionally changed provenance', async t => {
-  const { item, data } = fixture(t);
+  const { item, data } = await fixture(t);
   for (const source of ['mock-paypal-fixture', 'authenticated-sandbox-api']) {
     const original = structuredClone(item), receipt = structuredClone(data);
     original.snapshot.evidence_provenance = source; original.paypal_evidence.provenance = source;
@@ -101,7 +101,7 @@ test('receipt rejects missing, unknown and bidirectionally changed provenance', 
   }
 });
 test('fresh evidence timestamps and identity assertions must be verifiable', async t => {
-  const { item, data } = fixture(t);
+  const { item, data } = await fixture(t);
   for (const mutate of [d => d.paypal_evidence.observed_at = Date.now() + 600000,
     d => d.paypal_evidence.observed_at = item.paypal_evidence.observed_at - 1,
     d => d.paypal_evidence.observed_at = null, d => d.paypal_evidence.current = 'true',

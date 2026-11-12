@@ -4,41 +4,137 @@
 <title>SaySure — Your money. Your final say.</title><link rel="stylesheet" href="/style.css">
 <script src="/webauthn.js" defer></script><script type="module" src="/app.js"></script></head>
 <body class="application"><a href="#main" class="skip">Skip to main content</a>
-<header><h1>SaySure</h1>
-<p><strong>No real money. No PayPal checkout.</strong> Approval records local consent only.</p></header>
+<header class="app-header">
+  <a class="app-header-brand" href="/">
+    <span class="app-mark" aria-hidden="true">S</span>
+    <span><h1>SaySure</h1><small>Your money. Your final say.</small></span>
+  </a>
+  <nav class="app-navigation" aria-label="Product navigation">
+    <a href="/">Home</a><a href="/demo">Demo</a>
+    <span class="app-nav-current">Workspace</span>
+  </nav>
+</header>
 <main id="main">
 <p id="message" role="status" aria-live="polite" tabindex="-1"></p>
 <section id="login-panel" aria-labelledby="login-heading">
-<h2 id="login-heading">Sign in to your provisioned account</h2>
-<p>A Helper initiates a request. The Buyer independently reviews and approves or declines it.</p>
-<p>Use your own account secret. Roles are assigned by the server. Do not share buyer secrets with the helper.</p>
-<p id="login-error" class="field-error" role="alert"></p><form id="login"><label for="username">Username</label><input id="username" aria-describedby="login-error" name="username" autocomplete="username" required>
-<label for="password">Account secret</label><input id="password" aria-describedby="login-error" name="password" type="password" autocomplete="current-password" required>
-<button>Sign in</button></form></section>
+  <div class="workspace-welcome">
+    <p class="app-kicker">WELCOME TO SAYSURE</p>
+    <h2 id="login-heading">Try the real workspace</h2>
+    <p>See how one person prepares a request and another makes the decision. Your first test is ready in one click.</p>
+    <div class="workspace-step-guide" aria-label="How the test works">
+      <span><b>1</b> Start as Helper</span><span><b>2</b> Invite a Buyer</span><span><b>3</b> Review and decide</span>
+    </div>
+  </div>
+  <div class="trial-access-options" aria-label="Try the authenticated workflow">
+    <div class="trial-access-card trial-access-primary">
+      <span class="access-card-tag">START HERE</span>
+      <h3>Start a new test</h3>
+      <p>Open your own workspace with a ready-made sample request. No signup or PayPal account needed.</p>
+      <button type="button" id="trial-start" class="primary">Start testing <span aria-hidden="true">↗</span></button>
+    </div>
+    <div class="trial-access-card">
+      <span class="access-card-tag">FOR THE BUYER</span>
+      <h3>Join a request</h3>
+      <p>Someone invited you to review a payment request? Use their invite below.</p>
+      <form id="trial-claim-form">
+        <label for="trial-code">Buyer invite code</label>
+        <input id="trial-code" name="invitation" type="text" autocomplete="off" maxlength="43" minlength="43" required placeholder="Paste your invite code">
+        <button type="submit">Join as Buyer</button>
+      </form>
+    </div>
+  </div>
+  <div class="workspace-entry-bottom">
+    <a class="workspace-demo-link" href="/demo">Just looking? Explore the sample demo — no login.</a>
+    <details class="workspace-login-returning" id="returning-login" hidden>
+      <summary>Returning tester access <span>Sign in</span></summary>
+      <div class="returning-login-body">
+        <p>Use the username and password you saved when you started your test.</p>
+        <p id="login-error" class="field-error" role="alert"></p>
+        <form id="login" class="workspace-login-form">
+          <div><label for="username">Username</label><input id="username" aria-describedby="login-error" name="username" autocomplete="username" required></div>
+          <div><label for="password">Password</label><input id="password" aria-describedby="login-error" name="password" type="password" autocomplete="current-password" required></div>
+          <button type="submit">Sign in</button>
+        </form>
+      </div>
+    </details>
+  </div>
+  <p class="trial-help-notice">All requests here are examples. No money is moved. Each Buyer uses their own login and device to approve.</p>
+</section>
 <section id="account" hidden aria-labelledby="account-heading"><h2 id="account-heading" tabindex="-1">Your workspace</h2>
 <p id="identity"></p><button id="logout" type="button">Sign out</button>
 </section>
-<section id="helper" hidden aria-labelledby="helper-heading"><h2 id="helper-heading">Prepare a synthetic request</h2>
-<p>Merchant details are entered by the helper and are <strong>not independently verified</strong>.</p>
-<form id="request-form"><input name="request_id" type="hidden"><input name="revision" type="hidden">
-<label for="buyer">Buyer account</label><select id="buyer" name="buyer_id" required></select>
-<label for="merchant-id">Synthetic merchant ID</label><input id="merchant-id" name="merchant_id" maxlength="80" required>
-<label for="merchant-name">Merchant displayed name (unverified)</label><input id="merchant-name" name="merchant_name" maxlength="120" required>
-<label for="currency">Currency</label><select id="currency" name="currency"><option>USD</option><option>EUR</option><option>NGN</option><option>JPY</option></select>
-<label for="amount">Exact amount in major units, for example 1.00 USD or 100 JPY</label><input id="amount" name="amount" aria-describedby="amount-error" inputmode="decimal" required>
-<p id="amount-error" class="field-error" role="alert"></p>
-<label for="description">Description</label><textarea id="description" name="description" maxlength="500" required></textarea>
-<label for="lifetime">Request lifetime in minutes (1–30)</label><input id="lifetime" name="lifetime_minutes" type="number" min="1" max="30" value="10" required>
-<button id="save-request">Create synthetic request</button><button id="cancel-edit" type="button" hidden>Cancel revision</button></form></section>
+<section id="trial-access" hidden aria-labelledby="trial-access-heading">
+  <div class="trial-access-heading"><div><p class="app-kicker">YOUR TEST ACCESS</p><h2 id="trial-access-heading" tabindex="-1">You're in. Save your details.</h2></div><span class="test-tag">EXAMPLE DATA</span></div>
+  <p>Your workspace is ready. Keep your password private; only share the Buyer invite with the person reviewing the request.</p>
+  <dl class="trial-access-credentials">
+    <dt>Username</dt><dd id="trial-username" class="credential-sensitive"></dd>
+    <dt>Password</dt><dd id="trial-password" class="credential-sensitive" aria-label="Password hidden until revealed">••••••••</dd>
+    <dt id="trial-invite-label" hidden>Buyer invite code</dt><dd id="trial-invitation" class="credential-sensitive" hidden>••••••••</dd>
+  </dl>
+  <div class="trial-access-buttons">
+    <button type="button" id="trial-copy">Copy my login</button>
+    <button type="button" id="trial-share" class="primary" hidden>Copy Buyer invite link</button>
+    <button type="button" id="trial-reveal" aria-pressed="false">Show access details</button>
+  </div>
+  <p id="trial-access-instructions" class="trial-instructions"></p>
+</section>
+<section id="helper" hidden aria-labelledby="helper-heading">
+  <div class="workspace-section-head"><div><p class="app-kicker">HELPER WORKSPACE</p><h2 id="helper-heading">Prepare a request</h2><p>Fill in the details for your Buyer to review. This test won't send money.</p></div><span class="test-tag">TEST MODE</span></div>
+<form id="request-form" class="request-form-grid">
+  <input name="request_id" type="hidden"><input name="revision" type="hidden">
+  <div class="request-field">
+    <label for="buyer">Send to Buyer</label>
+    <select id="buyer" name="buyer_id" required></select>
+    <p class="field-help">Only your invited Buyer can review this request.</p>
+  </div>
+  <div class="request-field">
+    <label for="merchant-name">Store or recipient name</label>
+    <input id="merchant-name" name="merchant_name" maxlength="120" required placeholder="e.g. Campus Supplies" autocomplete="off">
+  </div>
+  <div class="request-field">
+    <label for="merchant-id">Store reference</label>
+    <input id="merchant-id" name="merchant_id" maxlength="80" required placeholder="e.g. CAMPUS-001" autocomplete="off">
+    <p class="field-help">A short reference you choose for the test.</p>
+  </div>
+  <div class="request-field">
+    <label for="amount">Amount (e.g. 12.00)</label>
+    <input id="amount" name="amount" aria-describedby="amount-error" inputmode="decimal" required placeholder="12.00" autocomplete="off">
+    <p id="amount-error" class="field-error" role="alert"></p>
+  </div>
+  <div class="request-field">
+    <label for="currency">Currency</label>
+    <select id="currency" name="currency"><option>USD</option><option>EUR</option><option>NGN</option><option>JPY</option></select>
+  </div>
+  <div class="request-field">
+    <label for="lifetime">Review time (minutes)</label>
+    <input id="lifetime" name="lifetime_minutes" type="number" min="1" max="30" value="30" required>
+  </div>
+  <div class="request-field request-field-wide">
+    <label for="description">What's this for?</label>
+    <textarea id="description" name="description" maxlength="500" required placeholder="e.g. Stationery kit for the new term"></textarea>
+  </div>
+  <div class="request-form-actions request-field-wide">
+    <button id="save-request" class="primary" type="submit">Send test request</button>
+    <button id="cancel-edit" type="button" hidden>Cancel revision</button>
+  </div>
+</form></section>
 <details class="provider-tools" hidden><summary>Advanced: operator-enabled sandbox order review</summary><section id="paypal-helper" hidden aria-labelledby="paypal-heading"><h2 id="paypal-heading">Review a PayPal sandbox order</h2>
 <p>Enter only an operator-allowlisted current order ID. The server reads the amount and payee from PayPal. This does not create an order or make a payment. Reading must be enabled in private configuration.</p>
 <form id="paypal-import"><label for="paypal-buyer">App buyer account (not proof of PayPal payer identity)</label><select id="paypal-buyer" name="buyer_id" required></select>
 <label for="paypal-order">PayPal sandbox order ID</label><input id="paypal-order" name="order_id" pattern="[A-Z0-9]{5,32}" maxlength="32" required>
 <button>Read and prepare PayPal order review</button></form></section></details>
-<section id="inbox" hidden aria-labelledby="inbox-heading"><div class="inbox-toolbar"><h2 id="inbox-heading">Requests</h2>
-<button id="refresh" type="button">Refresh requests</button></div><div id="requests"></div>
-<p>Changed details require a new review. Refresh to check for updates.</p></section>
-<section id="buyer-settings" hidden aria-label="Buyer passkey setup"><div id="enrollment" hidden><h3>Enroll your buyer passkey</h3>
-<p>Register only in your own account and authenticator. Your device handles its unlock locally. A passkey does not prove you understand a purchase.</p>
-<button id="register" type="button">Register my passkey</button></div>
-<p id="enrolled" hidden>Buyer passkey enrolled. Replacement enrollment is disabled in this experiment.</p></section></main><footer><p>Local security experiment. Optional AI question routing only; no card collection, payment approval or payment execution.</p></footer></body></html>
+<section id="inbox" hidden aria-labelledby="inbox-heading">
+  <div class="inbox-toolbar"><div><p class="app-kicker">YOUR REQUESTS</p><h2 id="inbox-heading">Requests to review</h2></div>
+  <button id="refresh" type="button">Refresh</button></div><div id="requests"></div>
+  <p class="request-footer-note">If the Helper changes the details, refresh and review the updated request before deciding.</p>
+</section>
+<section id="buyer-settings" hidden aria-label="Buyer passkey setup">
+  <div class="workspace-section-head"><div><p class="app-kicker">BUYER WORKSPACE</p><h2>Your decision stays yours</h2><p>You can decline a request at any time. To approve, first set up a passkey on your own device.</p></div><span class="test-tag">TEST MODE</span></div>
+  <div id="enrollment" hidden class="passkey-onboarding">
+    <div><strong>Step 1 — Set up your passkey</strong><p>A passkey uses your device or security key to verify it's you. It does not make a payment.</p></div>
+    <button id="register" type="button" class="primary">Set up my passkey</button>
+    <p class="passkey-device-note">If this browser can't create a passkey, try a compatible phone or a hardware security key. Declining still works without a passkey.</p>
+  </div>
+  <p id="enrolled" hidden class="passkey-ready">✓ Passkey ready. Now review a request and tick the confirmation to enable approval.</p>
+</section>
+</main><footer><p>SaySure test workspace · Local decisions only · No payments are sent.</p></footer></body></html>

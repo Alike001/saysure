@@ -53,7 +53,7 @@ test('accessible buyer review in Chrome (speech API stub; no physical audio clai
   });
   await t.test('missing speech remains readable and announces unavailability', async () => {
     await buyer.page.evaluate(() => Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: undefined }));
-    await buyer.page.getByRole('button', { name: 'Refresh requests' }).click();
+    await buyer.page.getByRole('button', { name: 'Refresh', exact: true }).click();
     await article.getByText('Speech is unavailable', { exact: false }).waitFor();
     assert.equal(await article.getByRole('button', { name: 'Read payment details aloud' }).isDisabled(), true);
     await article.getByRole('heading', { name: '1.00 USD — Example Store' }).waitFor();
