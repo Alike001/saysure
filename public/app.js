@@ -191,6 +191,14 @@ $('logout').addEventListener('click', event => perform(event.target, async () =>
   $('trial-invitation').textContent = '';
   await load();
   if (location.pathname === '/app/login') history.replaceState(null, '', '/app');
+  $('returning-login').hidden = true;
+  $('returning-login').open = false;
+  document.querySelector('.trial-access-options').hidden = false;
+  document.querySelector('.workspace-step-guide').hidden = false;
+  document.querySelector('.workspace-demo-link').hidden = false;
+  document.getElementById('login-heading').textContent = 'Try the real workspace';
+  document.querySelector('.workspace-welcome > p:not(.app-kicker)').textContent =
+    'See how one person prepares a request and another makes the decision. Your first test is ready in one click.';
   $('trial-start').focus();
   notify('Signed out. You can start a fresh sample test or return later using your saved access details.', false);
 }));

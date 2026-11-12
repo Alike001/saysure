@@ -72,6 +72,9 @@ test('hosted entry keeps landing, no-login demo and protected workspace on one o
   await page.getByRole('heading', { name: 'Return to your test workspace' }).waitFor();
   await page.getByLabel('Username', { exact: true }).waitFor();
   await page.getByLabel('Password', { exact: true }).waitFor();
+  assert.equal(await page.locator('#returning-login').isVisible(), true,
+    'saved test accounts have their own returning access path');
+  await page.goto(h.origin + '/app');
   await page.getByRole('link', { name: /sample demo/ }).first().waitFor();
   assert.deepEqual(errors, []);
   await context.close();
